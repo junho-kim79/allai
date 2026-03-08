@@ -5,10 +5,12 @@ export default async function handler(req, res) {
   const { name } = req.query;
 
   if (!name) {
-    return res.status(400).json({ error: "약품명을 입력해주세요" });
+    return res.status(400).json({
+      error: "약품명을 입력해주세요"
+    });
   }
 
-  const key = process.env.API_KEY_MFDS;
+  const key = process.env.API_KEY_MFDS || process.env["API_KEY_MFDS"];
 
   if (!key) {
     return res.status(500).json({

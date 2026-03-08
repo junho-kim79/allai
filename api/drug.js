@@ -3,18 +3,22 @@ export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Methods", "GET");
 
   const { name } = req.query;
+
   if (!name) {
     return res.status(400).json({ error: "약품명을 입력해주세요" });
   }
 
   const key = process.env.API_KEY_MFDS;
+
   if (!key) {
-    return res.status(500).json({ error: "API_KEY_MFDS 환경변수가 없습니다" });
+    return res.status(500).json({
+      error: "API_KEY_MFDS 환경변수가 없습니다"
+    });
   }
 
   const url =
     `https://apis.data.go.kr/1471000/DrbEasyDrugInfoService/getDrbEasyDrugList` +
-    `?ServiceKey=${encodeURIComponent(key)}` +
+    `?ServiceKey=${key}` +
     `&itemName=${encodeURIComponent(name)}` +
     `&type=json&numOfRows=20&pageNo=1`;
 
@@ -22,8 +26,8 @@ export default async function handler(req, res) {
     const response = await fetch(url, {
       method: "GET",
       headers: {
-        Accept: "application/json, text/plain, */*",
-      },
+        Accept: "application/json, text/plain, */*"
+      }
     });
 
     const raw = await response.text();
@@ -34,7 +38,16 @@ export default async function handler(req, res) {
         error: "공공데이터 API 응답 오류",
         status: response.status,
         contentType,
-        preview: raw.slice(0, 500),
+        preview: raw.slice(0, 1000),
+        url
+      });
+    }
+
+    if (!raw) {
+      return res.status(502).json({
+        error: "빈 응답",
+        contentType,
+        url
       });
     }
 
@@ -45,22 +58,23 @@ export default async function handler(req, res) {
       return res.status(502).json({
         error: "JSON 파싱 실패",
         contentType,
-        preview: raw.slice(0, 500),
+        preview: raw.slice(0, 1000),
+        url
       });
     }
 
-    const body = data?.response?.body || {};
-    const items = body?.items?.item || [];
+    const body = data?.response?.body || data?.body || {};
+    const items = body?.items?.item || body?.items || [];
     const list = Array.isArray(items) ? items : items ? [items] : [];
 
     return res.status(200).json({
       items: list,
-      totalCount: Number(body?.totalCount || 0),
+      totalCount: Number(body?.totalCount || 0)
     });
   } catch (e) {
     return res.status(500).json({
       error: "API 호출 실패",
-      detail: e.message,
+      detail: e.message
     });
   }
 }

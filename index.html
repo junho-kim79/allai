@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Allai - 제약 영업 실무 도구</title>
+  <style>
+    :root {
+      --green: #00C07F;
+      --green2: #00A36C;
+      --text: #111111;
+      --sub: #6E6E73;
+      --bg: #F4FAF7;
+      --card: rgba(255,255,255,0.88);
+      --line: rgba(255,255,255,0.7);
+      --shadow: 0 18px 50px rgba(0, 80, 50, 0.08);
+      --red: #ef4444;
+      --yellow: #f59e0b;
+      --blue: #3b82f6;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', 'Segoe UI', sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(0,192,127,0.10), transparent 40%),
+        linear-gradient(180deg, #F0FAF5 0%, #E4F5EC 100%);
+      color: var(--text);
+    }
+    .phone-shell {
+      width: 100%;
+      max-width: 430px;
+      background: rgba(255,255,255,0.62);
+      backdrop-filter: blur(24px);
+      border: 1px solid rgba(255,255,255,0.75);
+      border-radius: 38px;
+      box-shadow: var(--shadow);
+      padding: 16px;
+      overflow: hidden;
+    }
+    .view-container {
+      background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.82));
+      border: 1px solid var(--line);
+      border-radius: 30px;
+      min-height: 760px;
+      padding: 24px 18px 20px;
+      position: relative;
+    }
+    .dev-credit {
+      position: absolute; bottom: 14px; right: 18px;
+      font-size: 0.72rem; color: rgba(110,110,115,0.45);
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+    .brand { font-size: 0.95rem; font-weight: 800; letter-spacing: -0.02em; }
+    .brand span { color: var(--green); }
+    .beta-badge {
+      display: inline-flex; align-items: center;
+      padding: 3px 8px; border-radius: 999px;
+      background: rgba(0,192,127,0.12);
+      color: var(--green2);
+      font-size: 0.68rem; font-weight: 800;
+      letter-spacing: 0.05em;
+      border: 1px solid rgba(0,192,127,0.2);
+      margin-left: 6px;
+    }
+    .step-chip {
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(0,192,127,0.10);
+      color: var(--green2);
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+    .screen { display: none; animation: fadeUp 0.3s ease; }
+    .screen.active { display: block; }
+    .hero { margin: 20px 0 24px; text-align: center; }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 1.85rem;
+      line-height: 1.2;
+      letter-spacing: -0.04em;
+      font-weight: 800;
+    }
+    .subtext { margin: 0; color: var(--sub); font-size: 0.92rem; line-height: 1.5; }
+    .card-list { display: grid; gap: 14px; margin: 22px 0; }
+    .choice-card {
+      text-align: left;
+      padding: 18px 16px;
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.9);
+      border-radius: 22px;
+      box-shadow: 0 8px 24px rgba(0,80,50,0.04);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      width: 100%;
+    }
+    .choice-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 32px rgba(0,192,127,0.14);
+    }
+    .choice-top { display: flex; justify-content: space-between; align-items: center; gap: 14px; }
+    .choice-card h3 { margin: 0; font-size: 1.05rem; letter-spacing: -0.02em; font-weight: 700; }
+    .choice-card p { margin: 6px 0 0; font-size: 0.88rem; color: var(--sub); line-height: 1.45; }
+    .icon-badge {
+      width: 44px; height: 44px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0,192,127,0.12);
+      font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+    /* 검색 */
+    .search-wrap { position: relative; margin-bottom: 14px; }
+    .search-input {
+      width: 100%;
+      padding: 16px 50px 16px 18px;
+      border-radius: 20px;
+      border: 1px solid rgba(17,17,17,0.08);
+      background: rgba(255,255,255,0.96);
+      font-size: 1rem;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .search-input:focus {
+      border-color: rgba(0,192,127,0.5);
+      box-shadow: 0 0 0 4px rgba(0,192,127,0.10);
+    }
+    .search-btn {
+      position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+      background: var(--green); color: #fff;
+      border: none; border-radius: 12px;
+      padding: 8px 14px; font-size: 0.85rem; font-weight: 700; cursor: pointer;
+    }
+    .result-list { display: grid; gap: 10px; margin-top: 12px; max-height: 440px; overflow-y: auto; }
+    .result-item {
+      padding: 14px 16px;
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.9);
+      border-radius: 18px;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .result-item:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(0,192,127,0.10); }
+    .result-name { font-size: 1rem; font-weight: 700; letter-spacing: -0.02em; }
+    .result-sub { font-size: 0.82rem; color: var(--sub); margin-top: 3px; }
+    .result-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+    /* 배지 */
+    .badge {
+      display: inline-block; padding: 4px 10px;
+      border-radius: 999px; font-size: 0.74rem; font-weight: 700;
+    }
+    .badge-green { background: rgba(0,192,127,0.12); color: var(--green2); }
+    .badge-red { background: rgba(239,68,68,0.12); color: #b91c1c; }
+    .badge-yellow { background: rgba(245,158,11,0.12); color: #92400e; }
+    .badge-blue { background: rgba(59,130,246,0.12); color: #1d4ed8; }
+    .badge-gray { background: rgba(110,110,115,0.10); color: var(--sub); }
+    /* 상세 */
+    .detail-section { margin-bottom: 18px; }
+    .section-title {
+      font-size: 0.78rem; font-weight: 700; color: var(--sub);
+      letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 10px;
+    }
+    .info-card {
+      padding: 16px;
+      background: rgba(255,255,255,0.92);
+      border: 1px solid rgba(255,255,255,0.95);
+      border-radius: 20px;
+      box-shadow: 0 4px 16px rgba(0,80,50,0.04);
+    }
+    .info-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 9px 0;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+      font-size: 0.9rem;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-label { color: var(--sub); font-size: 0.85rem; }
+    .info-value { font-weight: 700; letter-spacing: -0.01em; }
+    /* 삭감 위험 */
+    .risk-bar {
+      display: flex; align-items: center; gap: 10px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      margin-bottom: 10px;
+    }
+    .risk-low { background: rgba(0,192,127,0.08); border: 1px solid rgba(0,192,127,0.15); }
+    .risk-mid { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.15); }
+    .risk-high { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.15); }
+    .risk-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .risk-dot-low { background: var(--green); }
+    .risk-dot-mid { background: var(--yellow); }
+    .risk-dot-high { background: var(--red); }
+    .risk-text { font-size: 0.85rem; line-height: 1.45; flex: 1; }
+    /* 상병코드 */
+    .icd-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 14px; border-radius: 14px;
+      background: rgba(59,130,246,0.08);
+      border: 1px solid rgba(59,130,246,0.12);
+      margin: 4px; font-size: 0.84rem; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .icd-chip:hover { background: rgba(59,130,246,0.15); }
+    .icd-code { font-weight: 800; color: #1d4ed8; }
+    .icd-name { color: var(--sub); font-size: 0.8rem; }
+    /* 경쟁품 */
+    .comp-card {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 13px 16px;
+      background: rgba(255,255,255,0.92);
+      border: 1px solid rgba(255,255,255,0.95);
+      border-radius: 16px;
+      margin-bottom: 8px;
+    }
+    .comp-name { font-weight: 700; font-size: 0.95rem; }
+    .comp-co { font-size: 0.8rem; color: var(--sub); margin-top: 2px; }
+    .comp-price { font-weight: 800; color: var(--green2); font-size: 0.95rem; }
+    /* 버튼 */
+    .btn-primary {
+      width: 100%; padding: 17px;
+      background: linear-gradient(135deg, var(--green), var(--green2));
+      color: #fff; border: none; border-radius: 20px;
+      font-size: 1.02rem; font-weight: 800;
+      letter-spacing: -0.01em; cursor: pointer;
+      box-shadow: 0 8px 20px rgba(0,192,127,0.25);
+      transition: all 0.2s;
+      margin-top: 14px;
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 12px 28px rgba(0,192,127,0.3); }
+    .btn-back {
+      background: none; border: none; color: var(--sub);
+      font-size: 0.88rem; cursor: pointer; padding: 0; margin-bottom: 18px;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .empty-text { padding: 20px; text-align: center; color: var(--sub); font-size: 0.9rem; }
+    .field-wrap { margin-bottom: 14px; }
+    .input-label { display: block; margin-bottom: 8px; font-size: 0.9rem; font-weight: 700; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+    .tab-btn {
+      padding: 7px 14px; border-radius: 999px;
+      background: rgba(0,0,0,0.05); border: none;
+      font-size: 0.82rem; font-weight: 700; cursor: pointer;
+      color: var(--sub); transition: all 0.15s;
+    }
+    .tab-btn.active { background: var(--green); color: #fff; }
+  </style>
+</head>
+<body>
+<div class="phone-shell">
+  <div class="view-container">
+    <div class="dev-credit">개발 · 김동원</div>
+
+    <div class="topbar">
+      <div class="brand">All<span>ai</span><span class="beta-badge">BETA</span></div>
+      <div class="step-chip" id="stepChip">홈</div>
+    </div>
+
+    <!-- 화면 1: 메인 -->
+    <div class="screen active" id="screen1">
+      <div class="hero">
+        <h1>무엇을<br>찾으시나요?</h1>
+        <p class="subtext">제약 영업 현장에서 바로 쓰는<br>실무 정보 도구</p>
+      </div>
+      <div class="card-list">
+        <button class="choice-card" onclick="goScreen('screen2', '약품 검색')">
+          <div class="choice-top">
+            <div><h3>💊 약품 검색</h3><p>제품명 · 성분명 · 보험코드로 검색</p></div>
+            <div class="icon-badge">🔍</div>
+          </div>
+        </button>
+        <button class="choice-card" onclick="goScreen('screen_icd', '상병코드')">
+          <div class="choice-top">
+            <div><h3>🏥 상병코드 조회</h3><p>질환명 또는 코드로 관련 약품 확인</p></div>
+            <div class="icon-badge">📋</div>
+          </div>
+        </button>
+        <button class="choice-card" onclick="goScreen('screen_comp', '경쟁품 비교')">
+          <div class="choice-top">
+            <div><h3>⚔️ 경쟁품 비교</h3><p>성분·계열별 경쟁제품 한눈에 비교</p></div>
+            <div class="icon-badge">📊</div>
+          </div>
+        </button>
+        <button class="choice-card" onclick="goScreen('screen_cut', '삭감 조회')">
+          <div class="choice-top">
+            <div><h3>⚠️ 삭감 위험 조회</h3><p>처방 시 삭감 가능성 미리 확인</p></div>
+            <div class="icon-badge">🛡️</div>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- 화면 2: 약품 검색 -->
+    <div class="screen" id="screen2">
+      <button class="btn-back" onclick="goScreen('screen1','홈')">← 홈</button>
+      <div class="hero" style="margin-top:0; text-align:left;">
+        <h1 style="font-size:1.5rem;">약품 검색</h1>
+        <p class="subtext">제품명, 성분명, 보험코드 입력</p>
+      </div>
+      <div class="search-wrap">
+        <input class="search-input" id="drugSearch" placeholder="예) 라베프라졸, 케이캡, 215700ATB" oninput="searchDrug()" />
+        <button class="search-btn" onclick="searchDrug()">검색</button>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="setSearchType('all',this)">전체</button>
+        <button class="tab-btn" onclick="setSearchType('product',this)">제품명</button>
+        <button class="tab-btn" onclick="setSearchType('ingredient',this)">성분명</button>
+        <button class="tab-btn" onclick="setSearchType('code',this)">보험코드</button>
+      </div>
+      <div id="drugResults" class="result-list">
+        <div class="empty-text">약품명을 입력해주세요</div>
+      </div>
+    </div>
+
+    <!-- 화면 3: 약품 상세 -->
+    <div class="screen" id="screen3">
+      <button class="btn-back" onclick="goScreen('screen2','약품 검색')">← 검색</button>
+      <div id="drugDetail"></div>
+    </div>
+
+    <!-- 화면: 상병코드 조회 -->
+    <div class="screen" id="screen_icd">
+      <button class="btn-back" onclick="goScreen('screen1','홈')">← 홈</button>
+      <div class="hero" style="margin-top:0; text-align:left;">
+        <h1 style="font-size:1.5rem;">상병코드 조회</h1>
+        <p class="subtext">질환명 또는 ICD코드로 검색</p>
+      </div>
+      <div class="search-wrap">
+        <input class="search-input" id="icdSearch" placeholder="예) 위식도역류, K21, 당뇨" oninput="searchICD()" />
+        <button class="search-btn" onclick="searchICD()">검색</button>
+      </div>
+      <div id="icdResults" class="result-list">
+        <div class="empty-text">질환명 또는 코드를 입력해주세요</div>
+      </div>
+    </div>
+
+    <!-- 화면: 경쟁품 비교 -->
+    <div class="screen" id="screen_comp">
+      <button class="btn-back" onclick="goScreen('screen1','홈')">← 홈</button>
+      <div class="hero" style="margin-top:0; text-align:left;">
+        <h1 style="font-size:1.5rem;">경쟁품 비교</h1>
+        <p class="subtext">성분·계열로 경쟁제품 비교</p>
+      </div>
+      <div class="search-wrap">
+        <input class="search-input" id="compSearch" placeholder="예) 라베프라졸, PPI, 케이캡" oninput="searchComp()" />
+        <button class="search-btn" onclick="searchComp()">검색</button>
+      </div>
+      <div id="compResults" class="result-list">
+        <div class="empty-text">성분명 또는 약품명을 입력해주세요</div>
+      </div>
+    </div>
+
+    <!-- 화면: 삭감 조회 -->
+    <div class="screen" id="screen_cut">
+      <button class="btn-back" onclick="goScreen('screen1','홈')">← 홈</button>
+      <div class="hero" style="margin-top:0; text-align:left;">
+        <h1 style="font-size:1.5rem;">삭감 위험 조회</h1>
+        <p class="subtext">처방 전 삭감 가능성 확인</p>
+      </div>
+      <div class="search-wrap">
+        <input class="search-input" id="cutSearch" placeholder="예) 라베프라졸, 케이캡" oninput="searchCut()" />
+        <button class="search-btn" onclick="searchCut()">검색</button>
+      </div>
+      <div id="cutResults" class="result-list">
+        <div class="empty-text">약품명을 입력해주세요</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── 샘플 데이터 (API 연동 전 데모용) ──────────────────────────────
+const DRUGS = [
+  {
+    id: 1,
+    name: '케이캡정 50mg',
+    ingredient: '테고프라잔',
+    company: 'HK이노엔',
+    type: 'P-CAB',
+    price: 850,
+    insurance: '급여',
+    code: '215700ATB',
+    icd: ['K21','K25','K26','K29'],
+    fda: '미승인 (국내 허가)',
+    form: '정',
+    risks: [
+      { level:'low', text:'GERD(K21) 상병 코드 정확히 기재 시 삭감 위험 낮음' },
+      { level:'mid', text:'상병코드 없이 장기 처방 시 심사 주의' },
+      { level:'high', text:'헬리코박터 제균 목적 외 PPI 병용 처방 시 삭감 가능' },
+    ],
+    comps: [2,3,4,5],
+  },
+  {
+    id: 2,
+    name: '파리에트정 10mg',
+    ingredient: '라베프라졸나트륨',
+    company: '에자이',
+    type: 'PPI',
+    price: 650,
+    insurance: '급여',
+    code: '196600ATB',
+    icd: ['K21','K25','K27','K29','K30'],
+    fda: '승인 (GERD)',
+    form: '정',
+    risks: [
+      { level:'low', text:'표준 GERD 처방 시 삭감 위험 낮음' },
+      { level:'mid', text:'BID 처방은 내시경 검사 결과 있어야 인정' },
+      { level:'high', text:'타과 장기 처방 시 심사 위험 존재' },
+    ],
+    comps: [1,3,4,5],
+  },
+  {
+    id: 3,
+    name: '라베린정 10mg',
+    ingredient: '라베프라졸나트륨',
+    company: '일양약품',
+    type: 'PPI',
+    price: 454,
+    insurance: '급여',
+    code: '200401ATB',
+    icd: ['K21','K25','K27','K29'],
+    fda: '해당없음 (제네릭)',
+    form: '정',
+    risks: [
+      { level:'low', text:'동일성분 오리지널 대비 저가 - 삭감 위험 낮음' },
+      { level:'mid', text:'BID 처방 시 적응증 명확해야 함' },
+    ],
+    comps: [1,2,4,5],
+  },
+  {
+    id: 4,
+    name: '넥시움정 20mg',
+    ingredient: '에소메프라졸마그네슘삼수화물',
+    company: '아스트라제네카',
+    type: 'PPI',
+    price: 720,
+    insurance: '급여',
+    code: '197800ATB',
+    icd: ['K21','K25','K26','K29','K30'],
+    fda: '승인 (GERD, 헬리코박터)',
+    form: '정',
+    risks: [
+      { level:'low', text:'FDA 승인 적응증 내 처방 시 안전' },
+      { level:'mid', text:'40mg 고용량 장기 처방 시 심사 주의' },
+    ],
+    comps: [1,2,3,5],
+  },
+  {
+    id: 5,
+    name: '란스톤캡슐 30mg',
+    ingredient: '란소프라졸',
+    company: '일동제약',
+    type: 'PPI',
+    price: 520,
+    insurance: '급여',
+    code: '193700ACE',
+    icd: ['K21','K25','K27'],
+    fda: '승인 (GERD)',
+    form: '캡슐',
+    risks: [
+      { level:'low', text:'표준 처방 범위 내 삭감 위험 낮음' },
+      { level:'mid', text:'중복 PPI 처방 시 삭감 주의' },
+    ],
+    comps: [1,2,3,4],
+  },
+];
+
+const ICD_DB = [
+  { code:'K21', name:'위식도역류질환 (GERD)', drugs:[1,2,3,4,5] },
+  { code:'K25', name:'위궤양', drugs:[2,3,4,5] },
+  { code:'K26', name:'십이지장궤양', drugs:[2,4] },
+  { code:'K27', name:'위십이지장궤양', drugs:[3,5] },
+  { code:'K29', name:'위염 및 십이지장염', drugs:[1,2,3,4,5] },
+  { code:'K30', name:'소화불량', drugs:[2,4] },
+  { code:'E11', name:'2형 당뇨병', drugs:[] },
+  { code:'I10', name:'본태성 고혈압', drugs:[] },
+];
+
+// ── 유틸 ──────────────────────────────────────────────────────────
+let searchType = 'all';
+function setSearchType(t, el) {
+  searchType = t;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  searchDrug();
+}
+
+function goScreen(id, label) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById('stepChip').textContent = label;
+}
+
+function riskLabel(l) {
+  if(l==='low') return '<span class="badge badge-green">🟢 낮음</span>';
+  if(l==='mid') return '<span class="badge badge-yellow">🟡 주의</span>';
+  return '<span class="badge badge-red">🔴 위험</span>';
+}
+
+// ── 약품 검색 ────────────────────────────────────────────────────
+function searchDrug() {
+  const q = document.getElementById('drugSearch').value.trim().toLowerCase();
+  const el = document.getElementById('drugResults');
+  if(!q) { el.innerHTML='<div class="empty-text">약품명을 입력해주세요</div>'; return; }
+
+  const results = DRUGS.filter(d => {
+    if(searchType==='product') return d.name.toLowerCase().includes(q);
+    if(searchType==='ingredient') return d.ingredient.toLowerCase().includes(q);
+    if(searchType==='code') return d.code.toLowerCase().includes(q);
+    return d.name.toLowerCase().includes(q) || d.ingredient.toLowerCase().includes(q) || d.code.toLowerCase().includes(q) || d.company.toLowerCase().includes(q);
+  });
+
+  if(!results.length) { el.innerHTML='<div class="empty-text">검색 결과가 없습니다</div>'; return; }
+
+  el.innerHTML = results.map(d => `
+    <div class="result-item" onclick="showDrug(${d.id})">
+      <div class="result-name">${d.name}</div>
+      <div class="result-sub">${d.ingredient} · ${d.company}</div>
+      <div class="result-badges">
+        <span class="badge badge-green">${d.insurance}</span>
+        <span class="badge badge-blue">${d.type}</span>
+        <span class="badge badge-gray">${d.price}원</span>
+        <span class="badge badge-gray">${d.form}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function showDrug(id) {
+  const d = DRUGS.find(x=>x.id===id);
+  const comps = DRUGS.filter(x=>d.comps.includes(x.id));
+
+  document.getElementById('drugDetail').innerHTML = `
+    <div class="detail-section">
+      <div style="margin-bottom:16px;">
+        <div style="font-size:1.3rem;font-weight:800;letter-spacing:-0.03em;">${d.name}</div>
+        <div style="color:var(--sub);font-size:0.88rem;margin-top:4px;">${d.ingredient} · ${d.company}</div>
+        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+          <span class="badge badge-green">${d.insurance}</span>
+          <span class="badge badge-blue">${d.type}</span>
+          <span class="badge badge-gray">${d.form}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <div class="section-title">기본 정보</div>
+      <div class="info-card">
+        <div class="info-row"><span class="info-label">약가</span><span class="info-value" style="color:var(--green2);">${d.price}원</span></div>
+        <div class="info-row"><span class="info-label">보험코드</span><span class="info-value">${d.code}</span></div>
+        <div class="info-row"><span class="info-label">성분</span><span class="info-value">${d.ingredient}</span></div>
+        <div class="info-row"><span class="info-label">FDA 승인</span><span class="info-value">${d.fda}</span></div>
+        <div class="info-row"><span class="info-label">제형</span><span class="info-value">${d.form}</span></div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <div class="section-title">관련 상병코드</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;">
+        ${d.icd.map(c => {
+          const info = ICD_DB.find(i=>i.code===c);
+          return `<div class="icd-chip"><span class="icd-code">${c}</span><span class="icd-name">${info?info.name:''}</span></div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <div class="section-title">삭감 위험</div>
+      ${d.risks.map(r=>`
+        <div class="risk-bar risk-${r.level}">
+          <div class="risk-dot risk-dot-${r.level}"></div>
+          <div class="risk-text">${r.text}</div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="detail-section">
+      <div class="section-title">경쟁품 비교</div>
+      ${comps.map(c=>`
+        <div class="comp-card">
+          <div>
+            <div class="comp-name">${c.name}</div>
+            <div class="comp-co">${c.ingredient} · ${c.company}</div>
+            <div style="margin-top:6px;display:flex;gap:5px;">
+              <span class="badge badge-blue" style="font-size:0.7rem;">${c.type}</span>
+              <span class="badge badge-green" style="font-size:0.7rem;">${c.insurance}</span>
+            </div>
+          </div>
+          <div class="comp-price">${c.price}원</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+
+  goScreen('screen3', d.name.substring(0,6)+'...');
+}
+
+// ── 상병코드 검색 ────────────────────────────────────────────────
+function searchICD() {
+  const q = document.getElementById('icdSearch').value.trim().toLowerCase();
+  const el = document.getElementById('icdResults');
+  if(!q) { el.innerHTML='<div class="empty-text">질환명 또는 코드를 입력해주세요</div>'; return; }
+
+  const results = ICD_DB.filter(i =>
+    i.code.toLowerCase().includes(q) || i.name.toLowerCase().includes(q)
+  );
+
+  if(!results.length) { el.innerHTML='<div class="empty-text">검색 결과가 없습니다</div>'; return; }
+
+  el.innerHTML = results.map(i => {
+    const drugs = DRUGS.filter(d=>i.drugs.includes(d.id));
+    return `
+      <div class="result-item">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="badge badge-blue" style="font-size:0.9rem;">${i.code}</span>
+          <span style="font-weight:700;">${i.name}</span>
+        </div>
+        <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;">
+          ${drugs.length ? drugs.map(d=>`<span class="badge badge-green" style="cursor:pointer;" onclick="showDrug(${d.id});goScreen('screen3','')">${d.name}</span>`).join('') : '<span class="badge badge-gray">관련 약품 없음</span>'}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ── 경쟁품 검색 ──────────────────────────────────────────────────
+function searchComp() {
+  const q = document.getElementById('compSearch').value.trim().toLowerCase();
+  const el = document.getElementById('compResults');
+  if(!q) { el.innerHTML='<div class="empty-text">성분명 또는 약품명을 입력해주세요</div>'; return; }
+
+  const base = DRUGS.find(d =>
+    d.name.toLowerCase().includes(q) || d.ingredient.toLowerCase().includes(q) || d.type.toLowerCase().includes(q)
+  );
+
+  if(!base) { el.innerHTML='<div class="empty-text">검색 결과가 없습니다</div>'; return; }
+
+  const sameIngredient = DRUGS.filter(d=>d.ingredient===base.ingredient && d.id!==base.id);
+  const sameType = DRUGS.filter(d=>d.type===base.type && d.ingredient!==base.ingredient);
+
+  el.innerHTML = `
+    <div style="padding:12px 0 6px;font-size:0.8rem;font-weight:700;color:var(--sub);">기준 약품</div>
+    <div class="comp-card" style="border:1px solid rgba(0,192,127,0.2);">
+      <div><div class="comp-name">${base.name}</div><div class="comp-co">${base.ingredient} · ${base.company}</div></div>
+      <div class="comp-price">${base.price}원</div>
+    </div>
+    ${sameIngredient.length ? `
+      <div style="padding:12px 0 6px;font-size:0.8rem;font-weight:700;color:var(--sub);">동일 성분</div>
+      ${sameIngredient.map(d=>`
+        <div class="comp-card" onclick="showDrug(${d.id});goScreen('screen3','')" style="cursor:pointer;">
+          <div><div class="comp-name">${d.name}</div><div class="comp-co">${d.ingredient} · ${d.company}</div></div>
+          <div class="comp-price">${d.price}원</div>
+        </div>
+      `).join('')}
+    ` : ''}
+    ${sameType.length ? `
+      <div style="padding:12px 0 6px;font-size:0.8rem;font-weight:700;color:var(--sub);">동일 계열 (${base.type})</div>
+      ${sameType.map(d=>`
+        <div class="comp-card" onclick="showDrug(${d.id});goScreen('screen3','')" style="cursor:pointer;">
+          <div><div class="comp-name">${d.name}</div><div class="comp-co">${d.ingredient} · ${d.company}</div></div>
+          <div class="comp-price">${d.price}원</div>
+        </div>
+      `).join('')}
+    ` : ''}
+  `;
+}
+
+// ── 삭감 조회 ────────────────────────────────────────────────────
+function searchCut() {
+  const q = document.getElementById('cutSearch').value.trim().toLowerCase();
+  const el = document.getElementById('cutResults');
+  if(!q) { el.innerHTML='<div class="empty-text">약품명을 입력해주세요</div>'; return; }
+
+  const results = DRUGS.filter(d=>d.name.toLowerCase().includes(q)||d.ingredient.toLowerCase().includes(q));
+  if(!results.length) { el.innerHTML='<div class="empty-text">검색 결과가 없습니다</div>'; return; }
+
+  el.innerHTML = results.map(d=>`
+    <div class="result-item">
+      <div class="result-name">${d.name}</div>
+      <div class="result-sub">${d.ingredient} · ${d.company}</div>
+      <div style="margin-top:12px;">
+        ${d.risks.map(r=>`
+          <div class="risk-bar risk-${r.level}" style="margin-bottom:8px;">
+            <div class="risk-dot risk-dot-${r.level}"></div>
+            <div class="risk-text">${r.text}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+</script>
+</body>
+</html>

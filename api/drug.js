@@ -6,8 +6,6 @@ export default async function handler(req, res) {
   if (!name) return res.status(400).json({ error: '약품명을 입력해주세요' });
 
   const key = process.env.API_KEY_MFDS;
-  
-  // e약은요 API (일반의약품 개요정보)
   const url = `https://apis.data.go.kr/1471000/DrbEasyDrugInfoService/getDrbEasyDrugList?serviceKey=${key}&itemName=${encodeURIComponent(name)}&type=json&numOfRows=20&pageNo=1`;
 
   try {

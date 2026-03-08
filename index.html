@@ -262,7 +262,7 @@
 <body>
 <div class="phone-shell">
   <div class="view-container">
-    <div class="dev-credit">개발 · 김동원</div>
+    <div class="dev-credit">dev. junho.kim</div>
 
     <div class="topbar">
       <div class="brand">All<span>ai</span><span class="beta-badge">BETA</span></div>
@@ -271,9 +271,12 @@
 
     <!-- 화면 1: 메인 -->
     <div class="screen active" id="screen1">
-      <div class="hero">
-        <h1>무엇을<br>찾으시나요?</h1>
-        <p class="subtext">제약 영업 현장에서 바로 쓰는<br>실무 정보 도구</p>
+      <div class="hero" style="margin:0 0 20px; text-align:left; position:relative; border-radius:22px; overflow:hidden; min-height:160px; background:#111;">
+        <img src="sales.jpg" alt="영업사원" style="width:100%; height:180px; object-fit:cover; object-position:center 20%; opacity:0.55; display:block; border-radius:22px;" />
+        <div style="position:absolute; bottom:0; left:0; right:0; padding:18px 18px 16px; background:linear-gradient(transparent, rgba(0,0,0,0.7)); border-radius:0 0 22px 22px;">
+          <h1 style="margin:0 0 4px; font-size:1.7rem; color:#fff; letter-spacing:-0.04em; line-height:1.15;">면담<br>1분 전</h1>
+          <p style="margin:0; color:rgba(255,255,255,0.75); font-size:0.84rem;">급하고 헷갈릴 땐, 스피드있게</p>
+        </div>
       </div>
       <div class="card-list">
         <button class="choice-card" onclick="goScreen('screen2', '약품 검색')">
@@ -298,6 +301,12 @@
           <div class="choice-top">
             <div><h3>⚠️ 삭감 위험 조회</h3><p>처방 시 삭감 가능성 미리 확인</p></div>
             <div class="icon-badge">🛡️</div>
+          </div>
+        </button>
+        <button class="choice-card" onclick="goScreen('screen_stat', '처방 통계')">
+          <div class="choice-top">
+            <div><h3>📈 처방 통계 추이</h3><p>지역별 · 성분별 · 품목별 처방 그래프</p></div>
+            <div class="icon-badge">📊</div>
           </div>
         </button>
       </div>
@@ -377,6 +386,24 @@
       <div id="cutResults" class="result-list">
         <div class="empty-text">약품명을 입력해주세요</div>
       </div>
+    </div>
+
+    <!-- 화면: 처방 통계 추이 -->
+    <div class="screen" id="screen_stat">
+      <button class="btn-back" onclick="goScreen('screen1','홈')">← 홈</button>
+      <div class="hero" style="margin-top:0; text-align:left;">
+        <h1 style="font-size:1.5rem;">처방 통계 추이</h1>
+        <p class="subtext">지역별 · 성분별 · 품목별 비교</p>
+      </div>
+
+      <!-- 분류 탭 -->
+      <div class="tabs" id="statTypeTabs">
+        <button class="tab-btn active" onclick="setStatType('region',this)">지역별</button>
+        <button class="tab-btn" onclick="setStatType('ingredient',this)">성분별</button>
+        <button class="tab-btn" onclick="setStatType('product',this)">품목별</button>
+      </div>
+
+      <div id="statContent"></div>
     </div>
 
   </div>
@@ -490,6 +517,86 @@ const ICD_DB = [
   { code:'I10', name:'본태성 고혈압', drugs:[] },
 ];
 
+// ── 처방 추이 샘플 데이터 ─────────────────────────────────────────
+const TREND_DATA = {
+  1: { // 케이캡
+    years: ['2021','2022','2023','2024','2025'],
+    전국:  [12, 28, 52, 78, 95],
+    대구:  [8,  20, 40, 62, 80],
+    서울:  [15, 32, 58, 85, 102],
+  },
+  2: { // 파리에트
+    years: ['2021','2022','2023','2024','2025'],
+    전국:  [95, 88, 75, 60, 48],
+    대구:  [80, 72, 60, 48, 38],
+    서울:  [100, 92, 78, 63, 50],
+  },
+  3: { // 라베린
+    years: ['2021','2022','2023','2024','2025'],
+    전국:  [70, 68, 62, 55, 50],
+    대구:  [60, 58, 52, 46, 42],
+    서울:  [75, 72, 65, 58, 52],
+  },
+  4: { // 넥시움
+    years: ['2021','2022','2023','2024','2025'],
+    전국:  [110, 105, 98, 90, 85],
+    대구:  [90,  85,  78, 72, 68],
+    서울:  [120, 115, 108, 100, 95],
+  },
+  5: { // 란스톤
+    years: ['2021','2022','2023','2024','2025'],
+    전국:  [55, 52, 48, 42, 38],
+    대구:  [45, 42, 38, 34, 30],
+    서울:  [60, 57, 52, 46, 41],
+  },
+};
+
+let currentRegion = '전국';
+
+function drawChart(drugId) {
+  const data = TREND_DATA[drugId];
+  if(!data) return '';
+  const region = currentRegion;
+  const vals = data[region];
+  const max = Math.max(...vals);
+  const years = data.years;
+
+  const bars = years.map((y, i) => {
+    const pct = Math.round((vals[i] / max) * 100);
+    const isLast = i === years.length - 1;
+    return `
+      <div style="display:flex;flex-direction:column;align-items:center;flex:1;gap:4px;">
+        <div style="font-size:0.7rem;font-weight:700;color:var(--green2);">${vals[i]}</div>
+        <div style="width:100%;background:rgba(0,0,0,0.06);border-radius:8px;height:80px;display:flex;align-items:flex-end;overflow:hidden;">
+          <div style="width:100%;height:${pct}%;background:${isLast ? 'var(--green)' : 'rgba(0,192,127,0.35)'};border-radius:6px 6px 0 0;transition:height 0.4s ease;"></div>
+        </div>
+        <div style="font-size:0.7rem;color:var(--sub);">${y}</div>
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div class="detail-section">
+      <div class="section-title" style="display:flex;justify-content:space-between;align-items:center;">
+        <span>처방 추이 (만건)</span>
+        <div style="display:flex;gap:4px;">
+          ${['전국','대구','서울'].map(r=>`
+            <button onclick="currentRegion='${r}';showDrug(${drugId})" 
+              style="padding:3px 9px;border-radius:999px;border:none;cursor:pointer;font-size:0.72rem;font-weight:700;
+              background:${region===r?'var(--green)':'rgba(0,0,0,0.07)'};
+              color:${region===r?'#fff':'var(--sub)'};">${r}</button>
+          `).join('')}
+        </div>
+      </div>
+      <div class="info-card" style="padding:14px 10px 10px;">
+        <div style="display:flex;gap:6px;align-items:flex-end;">
+          ${bars}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 // ── 유틸 ──────────────────────────────────────────────────────────
 let searchType = 'all';
 function setSearchType(t, el) {
@@ -587,6 +694,8 @@ function showDrug(id) {
         </div>
       `).join('')}
     </div>
+
+    ${drawChart(d.id)}
 
     <div class="detail-section">
       <div class="section-title">경쟁품 비교</div>

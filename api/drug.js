@@ -1,31 +1,66 @@
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET');
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET");
 
   const { name } = req.query;
-  if (!name) return res.status(400).json({ error: '약품명을 입력해주세요' });
+  if (!name) {
+    return res.status(400).json({ error: "약품명을 입력해주세요" });
+  }
 
   const key = process.env.API_KEY_MFDS;
-  const url = `https://apis.data.go.kr/1471000/DrbEasyDrugInfoService/getDrbEasyDrugList?serviceKey=${key}&itemName=${encodeURIComponent(name)}&type=json&numOfRows=20&pageNo=1`;
+  if (!key) {
+    return res.status(500).json({ error: "API_KEY_MFDS 환경변수가 없습니다" });
+  }
+
+  const url =
+    `https://apis.data.go.kr/1471000/DrbEasyDrugInfoService/getDrbEasyDrugList` +
+    `?ServiceKey=${encodeURIComponent(key)}` +
+    `&itemName=${encodeURIComponent(name)}` +
+    `&type=json&numOfRows=20&pageNo=1`;
 
   try {
-    const response = await fetch(url);
-    const text = await response.text();
-    
-    let data;
-    try {
-      data = JSON.parse(text);
-    } catch(e) {
-      return res.status(200).json({ items: [], debug: text.substring(0, 300) });
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        Accept: "application/json, text/plain, */*",
+      },
+    });
+
+    const raw = await response.text();
+    const contentType = response.headers.get("content-type") || "";
+
+    if (!response.ok) {
+      return res.status(response.status).json({
+        error: "공공데이터 API 응답 오류",
+        status: response.status,
+        contentType,
+        preview: raw.slice(0, 500),
+      });
     }
 
-    const body = data?.body || data?.response?.body || {};
-    const items = body?.items || [];
-    const list = Array.isArray(items) ? items : (items.item ? [].concat(items.item) : []);
-    
-    res.status(200).json({ items: list, totalCount: body?.totalCount || 0 });
+    let data;
+    try {
+      data = JSON.parse(raw);
+    } catch (e) {
+      return res.status(502).json({
+        error: "JSON 파싱 실패",
+        contentType,
+        preview: raw.slice(0, 500),
+      });
+    }
 
+    const body = data?.response?.body || {};
+    const items = body?.items?.item || [];
+    const list = Array.isArray(items) ? items : items ? [items] : [];
+
+    return res.status(200).json({
+      items: list,
+      totalCount: Number(body?.totalCount || 0),
+    });
   } catch (e) {
-    res.status(500).json({ error: 'API 호출 실패', detail: e.message });
+    return res.status(500).json({
+      error: "API 호출 실패",
+      detail: e.message,
+    });
   }
 }

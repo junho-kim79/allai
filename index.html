@@ -275,7 +275,7 @@
         <img src="sales.jpg" alt="영업사원" style="width:100%; height:180px; object-fit:cover; object-position:center 20%; opacity:0.55; display:block; border-radius:22px;" />
         <div style="position:absolute; bottom:0; left:0; right:0; padding:18px 18px 16px; background:linear-gradient(transparent, rgba(0,0,0,0.7)); border-radius:0 0 22px 22px;">
           <h1 style="margin:0 0 4px; font-size:1.7rem; color:#fff; letter-spacing:-0.04em; line-height:1.15;">면담<br>1분 전</h1>
-          <p style="margin:0; color:rgba(255,255,255,0.75); font-size:0.84rem;">급하고 헷갈릴 땐, 스피드있게</p>
+          <p style="margin:0; color:rgba(255,255,255,0.75); font-size:0.84rem;" id="heroMsg"></p>
         </div>
       </div>
       <div class="card-list">
@@ -606,12 +606,6 @@ function setSearchType(t, el) {
   searchDrug();
 }
 
-function goScreen(id, label) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  document.getElementById('stepChip').textContent = label;
-}
-
 function riskLabel(l) {
   if(l==='low') return '<span class="badge badge-green">🟢 낮음</span>';
   if(l==='mid') return '<span class="badge badge-yellow">🟡 주의</span>';
@@ -642,6 +636,10 @@ function searchDrug() {
         <span class="badge badge-blue">${d.type}</span>
         <span class="badge badge-gray">${d.price}원</span>
         <span class="badge badge-gray">${d.form}</span>
+      </div>
+      <div style="margin-top:8px; padding-top:8px; border-top:1px solid rgba(0,0,0,0.05);">
+        <span style="font-size:0.74rem; color:var(--sub); font-weight:600;">FDA 승인</span>
+        <span style="font-size:0.78rem; font-weight:700; margin-left:8px; color:${d.fda.includes('승인') && !d.fda.includes('미') ? 'var(--green2)' : 'var(--sub)'};">${d.fda}</span>
       </div>
     </div>
   `).join('');
@@ -718,7 +716,157 @@ function showDrug(id) {
   goScreen('screen3', d.name.substring(0,6)+'...');
 }
 
-// ── 상병코드 검색 ────────────────────────────────────────────────
+// ── 랜덤 멘트 (자동 페이드) ─────────────────────────────────────
+const MSGS = [
+  "아맞다! FDA 승인 받았었나? 🤔",
+  "진짜 유사제품이 없을까? 🔍",
+  "또 약가인하된거 아닌가? 💸",
+  "삭감?? 헷갈려 😅",
+];
+let msgIdx = 0;
+const msgEl = document.getElementById('heroMsg');
+msgEl.textContent = MSGS[msgIdx];
+msgEl.style.transition = 'opacity 0.5s';
+
+setInterval(() => {
+  msgEl.style.opacity = '0';
+  setTimeout(() => {
+    msgIdx = (msgIdx + 1) % MSGS.length;
+    msgEl.textContent = MSGS[msgIdx];
+    msgEl.style.opacity = '1';
+  }, 500);
+}, 3000);
+
+
+let statType = 'region';
+
+function setStatType(type, el) {
+  statType = type;
+  document.querySelectorAll('#statTypeTabs .tab-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderStat();
+}
+
+function renderStat() {
+  const el = document.getElementById('statContent');
+  if(!el) return;
+
+  if(statType === 'region') {
+    // 지역별: 케이캡 기준 전국/대구/서울 비교
+    const years = ['2021','2022','2023','2024','2025'];
+    const regions = { '전국': [12,28,52,78,95], '대구': [8,20,40,62,80], '서울': [15,32,58,85,102] };
+    const colors = { '전국': 'var(--green)', '대구': '#3b82f6', '서울': '#f59e0b' };
+    const maxVal = 110;
+
+    el.innerHTML = `
+      <div class="section-title" style="margin-bottom:8px;">케이캡 지역별 처방 추이 (만건)</div>
+      <div class="info-card" style="padding:16px 12px 12px; margin-bottom:14px;">
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-bottom:12px;">
+          ${Object.keys(regions).map(r=>`
+            <div style="display:flex;align-items:center;gap:4px;">
+              <div style="width:10px;height:10px;border-radius:50%;background:${colors[r]};"></div>
+              <span style="font-size:0.74rem;color:var(--sub);font-weight:600;">${r}</span>
+            </div>
+          `).join('')}
+        </div>
+        ${years.map((y,i) => `
+          <div style="margin-bottom:10px;">
+            <div style="font-size:0.76rem;color:var(--sub);margin-bottom:4px;">${y}</div>
+            ${Object.entries(regions).map(([r,vals]) => `
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
+                <div style="width:28px;font-size:0.7rem;color:var(--sub);">${r}</div>
+                <div style="flex:1;height:12px;background:rgba(0,0,0,0.06);border-radius:6px;overflow:hidden;">
+                  <div style="height:100%;width:${Math.round(vals[i]/maxVal*100)}%;background:${colors[r]};border-radius:6px;transition:width 0.4s;"></div>
+                </div>
+                <div style="font-size:0.72rem;font-weight:700;width:24px;text-align:right;">${vals[i]}</div>
+              </div>
+            `).join('')}
+          </div>
+        `).join('')}
+      </div>
+    `;
+
+  } else if(statType === 'ingredient') {
+    // 성분별: PPI vs P-CAB 추이
+    const years = ['2021','2022','2023','2024','2025'];
+    const groups = {
+      'P-CAB (테고프라잔)': [12,28,52,78,95],
+      'PPI (라베프라졸)':   [165,160,148,132,120],
+      'PPI (에소메프라졸)': [110,105,98,90,85],
+      'PPI (란소프라졸)':   [55,52,48,42,38],
+    };
+    const colors = ['var(--green)','#3b82f6','#f59e0b','#a78bfa'];
+    const entries = Object.entries(groups);
+    const maxVal = 180;
+
+    el.innerHTML = `
+      <div class="section-title" style="margin-bottom:8px;">성분별 처방 추이 (전국, 만건)</div>
+      <div class="info-card" style="padding:16px 12px 12px; margin-bottom:14px;">
+        ${entries.map(([name, vals], ci) => `
+          <div style="margin-bottom:14px;">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+              <div style="width:10px;height:10px;border-radius:50%;background:${colors[ci]};flex-shrink:0;"></div>
+              <span style="font-size:0.78rem;font-weight:700;">${name}</span>
+            </div>
+            <div style="display:flex;gap:3px;align-items:flex-end;height:60px;">
+              ${years.map((y,i) => `
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+                  <div style="width:100%;background:rgba(0,0,0,0.06);border-radius:4px 4px 0 0;height:50px;display:flex;align-items:flex-end;overflow:hidden;">
+                    <div style="width:100%;height:${Math.round(vals[i]/maxVal*100)}%;background:${colors[ci]};opacity:${0.4 + i*0.15};border-radius:4px 4px 0 0;"></div>
+                  </div>
+                  <div style="font-size:0.6rem;color:var(--sub);">${y.slice(2)}</div>
+                </div>
+              `).join('')}
+            </div>
+            <div style="text-align:right;font-size:0.72rem;color:${vals[4]>vals[0]?'var(--green2)':'var(--red)'};font-weight:700;margin-top:2px;">
+              ${vals[4]>vals[0]?'▲':'▼'} ${Math.abs(vals[4]-vals[0])}만건 (2021→2025)
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+
+  } else {
+    // 품목별: 5개 약품 2025년 처방량 순위
+    const ranking = [
+      { name:'넥시움정 20mg',  val:85, color:'#3b82f6' },
+      { name:'케이캡정 50mg',  val:95, color:'var(--green)' },
+      { name:'파리에트정 10mg',val:48, color:'#f59e0b' },
+      { name:'라베린정 10mg',  val:50, color:'#a78bfa' },
+      { name:'란스톤캡슐 30mg',val:38, color:'#fb923c' },
+    ].sort((a,b)=>b.val-a.val);
+    const maxVal = ranking[0].val;
+
+    el.innerHTML = `
+      <div class="section-title" style="margin-bottom:8px;">품목별 처방 순위 (2025년, 전국, 만건)</div>
+      <div class="info-card" style="padding:16px 12px; margin-bottom:14px;">
+        ${ranking.map((r,i) => `
+          <div style="margin-bottom:12px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+              <span style="font-size:0.82rem;font-weight:700;">${i+1}. ${r.name}</span>
+              <span style="font-size:0.82rem;font-weight:800;color:${r.color};">${r.val}만건</span>
+            </div>
+            <div style="height:14px;background:rgba(0,0,0,0.06);border-radius:7px;overflow:hidden;">
+              <div style="height:100%;width:${Math.round(r.val/maxVal*100)}%;background:${r.color};border-radius:7px;transition:width 0.5s;"></div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+      <div style="font-size:0.74rem;color:var(--sub);text-align:center;">※ 샘플 데이터 · API 연동 후 실시간 업데이트</div>
+    `;
+  }
+}
+
+// goScreen 후 통계 렌더링
+const _origGoScreen = goScreen;
+function goScreen(id, label) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById('stepChip').textContent = label;
+  if(id === 'screen_stat') renderStat();
+}
+
+
 function searchICD() {
   const q = document.getElementById('icdSearch').value.trim().toLowerCase();
   const el = document.getElementById('icdResults');

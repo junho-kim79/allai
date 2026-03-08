@@ -6,7 +6,7 @@ export default async function handler(req, res) {
   if (!name) return res.status(400).json({ error: '약품명을 입력해주세요' });
 
   const key = process.env.API_KEY_MFDS;
-  const url = `https://apis.data.go.kr/1471000/DrugPrdtPrmsnInfoService05/getDrugPrdtPrmsnDtlInq05?serviceKey=${key}&item_name=${encodeURIComponent(name)}&type=json&numOfRows=20&pageNo=1`;
+  const url = `https://apis.data.go.kr/1471000/DrbEasyDrugInfoService/getDrbEasyDrugList?serviceKey=${key}&itemName=${encodeURIComponent(name)}&type=json&numOfRows=20&pageNo=1`;
 
   try {
     const response = await fetch(url);

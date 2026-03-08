@@ -612,22 +612,73 @@ function riskLabel(l) {
   return '<span class="badge badge-red">🔴 위험</span>';
 }
 
-// ── 약품 검색 ────────────────────────────────────────────────────
+// ── 약품 검색 (실제 API) ─────────────────────────────────────────
+let searchTimer = null;
+
 function searchDrug() {
-  const q = document.getElementById('drugSearch').value.trim().toLowerCase();
+  const q = document.getElementById('drugSearch').value.trim();
   const el = document.getElementById('drugResults');
   if(!q) { el.innerHTML='<div class="empty-text">약품명을 입력해주세요</div>'; return; }
 
-  const results = DRUGS.filter(d => {
-    if(searchType==='product') return d.name.toLowerCase().includes(q);
-    if(searchType==='ingredient') return d.ingredient.toLowerCase().includes(q);
-    if(searchType==='code') return d.code.toLowerCase().includes(q);
-    return d.name.toLowerCase().includes(q) || d.ingredient.toLowerCase().includes(q) || d.code.toLowerCase().includes(q) || d.company.toLowerCase().includes(q);
-  });
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => fetchDrug(q), 400);
+}
 
-  if(!results.length) { el.innerHTML='<div class="empty-text">검색 결과가 없습니다</div>'; return; }
+async function fetchDrug(q) {
+  const el = document.getElementById('drugResults');
+  el.innerHTML = '<div class="empty-text">검색 중... ⏳</div>';
 
-  el.innerHTML = results.map(d => `
+  try {
+    const res = await fetch(`/api/drug?name=${encodeURIComponent(q)}`);
+    const data = await res.json();
+    const items = data.items || [];
+
+    if(!items.length) {
+      // API 결과 없으면 샘플 데이터 폴백
+      const fallback = DRUGS.filter(d =>
+        d.name.toLowerCase().includes(q.toLowerCase()) ||
+        d.ingredient.toLowerCase().includes(q.toLowerCase())
+      );
+      if(!fallback.length) { el.innerHTML='<div class="empty-text">검색 결과가 없습니다</div>'; return; }
+      renderDrugList(fallback, el, false);
+      return;
+    }
+
+    // API 결과 렌더링
+    el.innerHTML = items.map((item, i) => `
+      <div class="result-item" onclick="showDrugAPI(${i})" data-idx="${i}">
+        <div class="result-name">${item.ITEM_NAME || item.itemName || '-'}</div>
+        <div class="result-sub">${item.INGR_NAME_KOR || item.ingrNameKor || ''} · ${item.ENTP_NAME || item.entpName || ''}</div>
+        <div class="result-badges">
+          <span class="badge badge-green">급여</span>
+          <span class="badge badge-gray">${item.FORM_CODE_NAME || item.formCodeName || '-'}</span>
+        </div>
+        <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,0,0,0.05);">
+          <span style="font-size:0.74rem;color:var(--sub);font-weight:600;">보험코드</span>
+          <span style="font-size:0.78rem;font-weight:700;margin-left:8px;">${item.ITEM_PERMIT_DATE || item.EDI_CODE || '-'}</span>
+        </div>
+        <div style="margin-top:4px;">
+          <span class="badge badge-blue" style="font-size:0.7rem;">🌐 실시간</span>
+        </div>
+      </div>
+    `).join('');
+
+    // API 결과 임시 저장
+    window._apiResults = items;
+
+  } catch(e) {
+    // 오류시 샘플 데이터로 폴백
+    const fallback = DRUGS.filter(d =>
+      d.name.toLowerCase().includes(q.toLowerCase()) ||
+      d.ingredient.toLowerCase().includes(q.toLowerCase())
+    );
+    renderDrugList(fallback, el, false);
+  }
+}
+
+function renderDrugList(list, el, isLive) {
+  if(!list.length) { el.innerHTML='<div class="empty-text">검색 결과가 없습니다</div>'; return; }
+  el.innerHTML = list.map(d => `
     <div class="result-item" onclick="showDrug(${d.id})">
       <div class="result-name">${d.name}</div>
       <div class="result-sub">${d.ingredient} · ${d.company}</div>
@@ -635,15 +686,40 @@ function searchDrug() {
         <span class="badge badge-green">${d.insurance}</span>
         <span class="badge badge-blue">${d.type}</span>
         <span class="badge badge-gray">${d.price}원</span>
-        <span class="badge badge-gray">${d.form}</span>
       </div>
-      <div style="margin-top:8px; padding-top:8px; border-top:1px solid rgba(0,0,0,0.05);">
-        <span style="font-size:0.74rem; color:var(--sub); font-weight:600;">FDA 승인</span>
-        <span style="font-size:0.78rem; font-weight:700; margin-left:8px; color:${d.fda.includes('승인') && !d.fda.includes('미') ? 'var(--green2)' : 'var(--sub)'};">${d.fda}</span>
+      <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,0,0,0.05);">
+        <span style="font-size:0.74rem;color:var(--sub);font-weight:600;">FDA 승인</span>
+        <span style="font-size:0.78rem;font-weight:700;margin-left:8px;color:${d.fda.includes('승인')&&!d.fda.includes('미')?'var(--green2)':'var(--sub)'};">${d.fda}</span>
       </div>
+      <span class="badge badge-gray" style="font-size:0.7rem;margin-top:4px;">📦 샘플</span>
     </div>
   `).join('');
 }
+
+function showDrugAPI(idx) {
+  const item = window._apiResults[idx];
+  if(!item) return;
+  document.getElementById('drugDetail').innerHTML = `
+    <div class="detail-section">
+      <div style="font-size:1.3rem;font-weight:800;letter-spacing:-0.03em;">${item.ITEM_NAME||item.itemName||'-'}</div>
+      <div style="color:var(--sub);font-size:0.88rem;margin-top:4px;">${item.INGR_NAME_KOR||item.ingrNameKor||''} · ${item.ENTP_NAME||item.entpName||''}</div>
+      <div style="margin-top:8px;"><span class="badge badge-blue">🌐 실시간 데이터</span></div>
+    </div>
+    <div class="detail-section">
+      <div class="section-title">기본 정보</div>
+      <div class="info-card">
+        <div class="info-row"><span class="info-label">제품명</span><span class="info-value">${item.ITEM_NAME||item.itemName||'-'}</span></div>
+        <div class="info-row"><span class="info-label">성분</span><span class="info-value">${item.INGR_NAME_KOR||item.ingrNameKor||'-'}</span></div>
+        <div class="info-row"><span class="info-label">제조사</span><span class="info-value">${item.ENTP_NAME||item.entpName||'-'}</span></div>
+        <div class="info-row"><span class="info-label">제형</span><span class="info-value">${item.FORM_CODE_NAME||item.formCodeName||'-'}</span></div>
+        <div class="info-row"><span class="info-label">허가일</span><span class="info-value">${item.ITEM_PERMIT_DATE||item.itemPermitDate||'-'}</span></div>
+        <div class="info-row"><span class="info-label">전문/일반</span><span class="info-value">${item.ETC_OTC_CODE||item.etcOtcCode||'-'}</span></div>
+      </div>
+    </div>
+  `;
+  goScreen('screen3', (item.ITEM_NAME||'').substring(0,6)+'...');
+}
+
 
 function showDrug(id) {
   const d = DRUGS.find(x=>x.id===id);

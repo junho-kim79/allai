@@ -1,238 +1,1044 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://apis.data.go.kr https://openapi.neis.go.kr; img-src 'self' data: blob:;">
-  <title>Allai - 제약 영업 실무 도구</title>
-  <style>
-    /* 네가 만든 예쁜 UI 스타일 그대로 유지 */
-    :root {
-      --green: #00C07F; --green2: #00A36C; --text: #111111; --sub: #6E6E73;
-      --bg: #F4FAF7; --card: rgba(255,255,255,0.88); --line: rgba(255,255,255,0.7);
-      --shadow: 0 18px 50px rgba(0, 80, 50, 0.08); --red: #ef4444; --yellow: #f59e0b; --blue: #3b82f6;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
-      padding: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif;
-      background: radial-gradient(circle at top left, rgba(0,192,127,0.10), transparent 40%), linear-gradient(180deg, #F0FAF5 0%, #E4F5EC 100%);
-      color: var(--text);
-    }
-    .phone-shell { width: 100%; max-width: 430px; background: rgba(255,255,255,0.62); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.75); border-radius: 38px; box-shadow: var(--shadow); padding: 16px; overflow: hidden; }
-    .view-container { background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.82)); border: 1px solid var(--line); border-radius: 30px; min-height: 760px; padding: 24px 18px 20px; position: relative; }
-    .dev-credit { position: absolute; bottom: 14px; right: 18px; font-size: 0.72rem; color: rgba(110,110,115,0.45); }
-    .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
-    .brand { font-size: 0.95rem; font-weight: 800; }
-    .brand span { color: var(--green); }
-    .beta-badge { padding: 3px 8px; border-radius: 999px; background: rgba(0,192,127,0.12); color: var(--green2); font-size: 0.68rem; font-weight: 800; border: 1px solid rgba(0,192,127,0.2); margin-left: 6px; }
-    .step-chip { padding: 6px 12px; border-radius: 999px; background: rgba(0,192,127,0.10); color: var(--green2); font-size: 0.78rem; font-weight: 700; }
-    .screen { display: none; animation: fadeUp 0.3s ease; }
-    .screen.active { display: block; }
-    .hero { margin: 20px 0 24px; }
-    h1 { margin: 0 0 8px; font-size: 1.85rem; font-weight: 800; }
-    .subtext { color: var(--sub); font-size: 0.92rem; }
-    .choice-card { text-align: left; padding: 18px 16px; background: var(--card); border: 1px solid rgba(255,255,255,0.9); border-radius: 22px; cursor: pointer; transition: 0.2s; width: 100%; margin-bottom: 12px; }
-    .choice-top { display: flex; justify-content: space-between; align-items: center; }
-    .icon-badge { width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; background: rgba(0,192,127,0.12); font-size: 1.3rem; }
-    .search-input { width: 100%; padding: 16px; border-radius: 20px; border: 1px solid rgba(17,17,17,0.08); font-size: 1rem; margin-bottom: 10px; }
-    .result-list { display: grid; gap: 10px; max-height: 440px; overflow-y: auto; }
-    .result-item { padding: 14px 16px; background: var(--card); border: 1px solid rgba(255,255,255,0.9); border-radius: 18px; cursor: pointer; }
-    .badge { padding: 4px 10px; border-radius: 999px; font-size: 0.74rem; font-weight: 700; }
-    .badge-green { background: rgba(0,192,127,0.12); color: var(--green2); }
-    .badge-red { background: rgba(239,68,68,0.12); color: #b91c1c; }
-    .badge-blue { background: rgba(59,130,246,0.12); color: #1d4ed8; }
-    .badge-yellow { background: rgba(245,158,11,0.12); color: #92400e; }
-    .info-card { padding: 16px; background: white; border-radius: 20px; margin-top: 10px; }
-    .info-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: 0.9rem; }
-    .btn-primary { width: 100%; padding: 17px; background: var(--green); color: white; border: none; border-radius: 20px; font-weight: 800; cursor: pointer; margin-top: 15px; }
-    .btn-back { background: none; border: none; color: var(--sub); cursor: pointer; margin-bottom: 10px; }
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://apis.data.go.kr https://openapi.neis.go.kr; img-src 'self' data: blob:;">
+  <title>Allai - 제약 영업 실무 도구</title>
+  <style>
+    :root {
+      --green: #00C07F;
+      --green2: #00A36C;
+      --text: #111111;
+      --sub: #6E6E73;
+      --bg: #F4FAF7;
+      --card: rgba(255,255,255,0.88);
+      --line: rgba(255,255,255,0.7);
+      --shadow: 0 18px 50px rgba(0, 80, 50, 0.08);
+      --red: #ef4444;
+      --yellow: #f59e0b;
+      --blue: #3b82f6;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', 'Segoe UI', sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(0,192,127,0.10), transparent 40%),
+        linear-gradient(180deg, #F0FAF5 0%, #E4F5EC 100%);
+      color: var(--text);
+    }
+    .phone-shell {
+      width: 100%;
+      max-width: 430px;
+      background: rgba(255,255,255,0.62);
+      backdrop-filter: blur(24px);
+      border: 1px solid rgba(255,255,255,0.75);
+      border-radius: 38px;
+      box-shadow: var(--shadow);
+      padding: 16px;
+      overflow: hidden;
+    }
+    .view-container {
+      background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.82));
+      border: 1px solid var(--line);
+      border-radius: 30px;
+      min-height: 760px;
+      padding: 24px 18px 20px;
+      position: relative;
+    }
+    .dev-credit {
+      position: absolute; bottom: 14px; right: 18px;
+      font-size: 0.72rem; color: rgba(110,110,115,0.45);
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+    .brand { font-size: 0.95rem; font-weight: 800; letter-spacing: -0.02em; }
+    .brand span { color: var(--green); }
+    .beta-badge {
+      display: inline-flex; align-items: center;
+      padding: 3px 8px; border-radius: 999px;
+      background: rgba(0,192,127,0.12);
+      color: var(--green2);
+      font-size: 0.68rem; font-weight: 800;
+      letter-spacing: 0.05em;
+      border: 1px solid rgba(0,192,127,0.2);
+      margin-left: 6px;
+    }
+    .step-chip {
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(0,192,127,0.10);
+      color: var(--green2);
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+    .screen { display: none; animation: fadeUp 0.3s ease; }
+    .screen.active { display: block; }
+    .hero { margin: 20px 0 24px; text-align: center; }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 1.85rem;
+      line-height: 1.2;
+      letter-spacing: -0.04em;
+      font-weight: 800;
+    }
+    .subtext { margin: 0; color: var(--sub); font-size: 0.92rem; line-height: 1.5; }
+    .card-list { display: grid; gap: 14px; margin: 22px 0; }
+    .choice-card {
+      text-align: left;
+      padding: 18px 16px;
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.9);
+      border-radius: 22px;
+      box-shadow: 0 8px 24px rgba(0,80,50,0.04);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      width: 100%;
+    }
+    .choice-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 32px rgba(0,192,127,0.14);
+    }
+    .choice-top { display: flex; justify-content: space-between; align-items: center; gap: 14px; }
+    .choice-card h3 { margin: 0; font-size: 1.05rem; letter-spacing: -0.02em; font-weight: 700; }
+    .choice-card p { margin: 6px 0 0; font-size: 0.88rem; color: var(--sub); line-height: 1.45; }
+    .icon-badge {
+      width: 44px; height: 44px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0,192,127,0.12);
+      font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+    /* 검색 */
+    .search-wrap { position: relative; margin-bottom: 14px; }
+    .search-input {
+      width: 100%;
+      padding: 16px 50px 16px 18px;
+      border-radius: 20px;
+      border: 1px solid rgba(17,17,17,0.08);
+      background: rgba(255,255,255,0.96);
+      font-size: 1rem;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .search-input:focus {
+      border-color: rgba(0,192,127,0.5);
+      box-shadow: 0 0 0 4px rgba(0,192,127,0.10);
+    }
+    .search-btn {
+      position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+      background: var(--green); color: #fff;
+      border: none; border-radius: 12px;
+      padding: 8px 14px; font-size: 0.85rem; font-weight: 700; cursor: pointer;
+    }
+    .result-list { display: grid; gap: 10px; margin-top: 12px; max-height: 440px; overflow-y: auto; }
+    .result-item {
+      padding: 14px 16px;
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.9);
+      border-radius: 18px;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .result-item:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(0,192,127,0.10); }
+    .result-name { font-size: 1rem; font-weight: 700; letter-spacing: -0.02em; }
+    .result-sub { font-size: 0.82rem; color: var(--sub); margin-top: 3px; }
+    .result-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+    /* 배지 */
+    .badge {
+      display: inline-block; padding: 4px 10px;
+      border-radius: 999px; font-size: 0.74rem; font-weight: 700;
+    }
+    .badge-green { background: rgba(0,192,127,0.12); color: var(--green2); }
+    .badge-red { background: rgba(239,68,68,0.12); color: #b91c1c; }
+    .badge-yellow { background: rgba(245,158,11,0.12); color: #92400e; }
+    .badge-blue { background: rgba(59,130,246,0.12); color: #1d4ed8; }
+    .badge-gray { background: rgba(110,110,115,0.10); color: var(--sub); }
+    /* 상세 */
+    .detail-section { margin-bottom: 18px; }
+    .section-title {
+      font-size: 0.78rem; font-weight: 700; color: var(--sub);
+      letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 10px;
+    }
+    .info-card {
+      padding: 16px;
+      background: rgba(255,255,255,0.92);
+      border: 1px solid rgba(255,255,255,0.95);
+      border-radius: 20px;
+      box-shadow: 0 4px 16px rgba(0,80,50,0.04);
+    }
+    .info-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 9px 0;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+      font-size: 0.9rem;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-label { color: var(--sub); font-size: 0.85rem; }
+    .info-value { font-weight: 700; letter-spacing: -0.01em; }
+    /* 삭감 위험 */
+    .risk-bar {
+      display: flex; align-items: center; gap: 10px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      margin-bottom: 10px;
+    }
+    .risk-low { background: rgba(0,192,127,0.08); border: 1px solid rgba(0,192,127,0.15); }
+    .risk-mid { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.15); }
+    .risk-high { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.15); }
+    .risk-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .risk-dot-low { background: var(--green); }
+    .risk-dot-mid { background: var(--yellow); }
+    .risk-dot-high { background: var(--red); }
+    .risk-text { font-size: 0.85rem; line-height: 1.45; flex: 1; }
+    /* 상병코드 */
+    .icd-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 14px; border-radius: 14px;
+      background: rgba(59,130,246,0.08);
+      border: 1px solid rgba(59,130,246,0.12);
+      margin: 4px; font-size: 0.84rem; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .icd-chip:hover { background: rgba(59,130,246,0.15); }
+    .icd-code { font-weight: 800; color: #1d4ed8; }
+    .icd-name { color: var(--sub); font-size: 0.8rem; }
+    /* 경쟁품 */
+    .comp-card {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 13px 16px;
+      background: rgba(255,255,255,0.92);
+      border: 1px solid rgba(255,255,255,0.95);
+      border-radius: 16px;
+      margin-bottom: 8px;
+    }
+    .comp-name { font-weight: 700; font-size: 0.95rem; }
+    .comp-co { font-size: 0.8rem; color: var(--sub); margin-top: 2px; }
+    .comp-price { font-weight: 800; color: var(--green2); font-size: 0.95rem; }
+    /* 버튼 */
+    .btn-primary {
+      width: 100%; padding: 17px;
+      background: linear-gradient(135deg, var(--green), var(--green2));
+      color: #fff; border: none; border-radius: 20px;
+      font-size: 1.02rem; font-weight: 800;
+      letter-spacing: -0.01em; cursor: pointer;
+      box-shadow: 0 8px 20px rgba(0,192,127,0.25);
+      transition: all 0.2s;
+      margin-top: 14px;
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 12px 28px rgba(0,192,127,0.3); }
+    .btn-back {
+      background: none; border: none; color: var(--sub);
+      font-size: 0.88rem; cursor: pointer; padding: 0; margin-bottom: 18px;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .empty-text { padding: 20px; text-align: center; color: var(--sub); font-size: 0.9rem; }
+    .field-wrap { margin-bottom: 14px; }
+    .input-label { display: block; margin-bottom: 8px; font-size: 0.9rem; font-weight: 700; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+    .tab-btn {
+      padding: 7px 14px; border-radius: 999px;
+      background: rgba(0,0,0,0.05); border: none;
+      font-size: 0.82rem; font-weight: 700; cursor: pointer;
+      color: var(--sub); transition: all 0.15s;
+    }
+    .tab-btn.active { background: var(--green); color: #fff; }
+  </style>
 </head>
 <body>
-
 <div class="phone-shell">
-  <div class="view-container">
-    <div class="dev-credit">dev. junho.kim</div>
-    <div class="topbar">
-      <div class="brand">All<span>ai</span><span class="beta-badge">BETA</span></div>
-      <div class="step-chip" id="stepChip">홈</div>
-    </div>
+  <div class="view-container">
+    <div class="dev-credit">dev. junho.kim</div>
 
-    <div class="screen active" id="screen1">
-      <div class="hero" style="background:#111; border-radius:22px; padding:20px; color:white; min-height:140px;">
-        <h1 style="font-size:1.5rem;">면담 1분 전</h1>
-        <p id="heroMsg" style="font-size:0.85rem; color:rgba(255,255,255,0.8);"></p>
-      </div>
-      <div style="margin-top:20px;">
-        <button class="choice-card" onclick="goScreen('screen2', '약품 검색')">
-          <div class="choice-top"><div><h3>💊 실시간 약품 검색</h3><p>주사제 · 전문약 전 품목 조회</p></div><div class="icon-badge">🔍</div></div>
-        </button>
-        <button class="choice-card" onclick="goScreen('screen_icd', '상병코드')">
-          <div class="choice-top"><div><h3>🏥 상병/효능 조회</h3><p>질환 키워드로 적응증 약품 매칭</p></div><div class="icon-badge">📋</div></div>
-        </button>
-      </div>
-    </div>
+    <div class="topbar">
+      <div class="brand">All<span>ai</span><span class="beta-badge">BETA</span></div>
+      <div class="step-chip" id="stepChip">홈</div>
+    </div>
 
-    <div class="screen" id="screen2">
-      <button class="btn-back" onclick="goScreen('screen1','홈')">← 홈으로</button>
-      <input class="search-input" id="drugSearch" placeholder="약품명 입력 (예: 트리손, 케이캡)" oninput="handleSearch()">
-      <div id="drugResults" class="result-list"></div>
-    </div>
+    <!-- 화면 1: 메인 -->
+    <div class="screen active" id="screen1">
+      <div class="hero" style="margin:0 0 20px; text-align:left; position:relative; border-radius:22px; overflow:hidden; min-height:160px; background:#111;">
+        <img src="sales.jpg" alt="영업사원" style="width:100%; height:180px; object-fit:cover; object-position:center 20%; opacity:0.55; display:block; border-radius:22px;" />
+        <div style="position:absolute; bottom:0; left:0; right:0; padding:18px 18px 16px; background:linear-gradient(transparent, rgba(0,0,0,0.7)); border-radius:0 0 22px 22px;">
+          <h1 style="margin:0 0 4px; font-size:1.7rem; color:#fff; letter-spacing:-0.04em; line-height:1.15;">면담<br>1분 전</h1>
+          <p style="margin:0; color:rgba(255,255,255,0.75); font-size:0.84rem;" id="heroMsg"></p>
+        </div>
+      </div>
+      <div class="card-list">
+        <button class="choice-card" onclick="goScreen('screen2', '약품 검색')">
+          <div class="choice-top">
+            <div><h3>💊 약품 검색</h3><p>제품명 · 성분명 · 보험코드로 검색</p></div>
+            <div class="icon-badge">🔍</div>
+          </div>
+        </button>
+        <button class="choice-card" onclick="goScreen('screen_icd', '상병코드')">
+          <div class="choice-top">
+            <div><h3>🏥 상병코드 조회</h3><p>질환명 또는 코드로 관련 약품 확인</p></div>
+            <div class="icon-badge">📋</div>
+          </div>
+        </button>
+        <button class="choice-card" onclick="goScreen('screen_comp', '경쟁품 비교')">
+          <div class="choice-top">
+            <div><h3>⚔️ 경쟁품 비교</h3><p>성분·계열별 경쟁제품 한눈에 비교</p></div>
+            <div class="icon-badge">📊</div>
+          </div>
+        </button>
+        <button class="choice-card" onclick="goScreen('screen_cut', '삭감 조회')">
+          <div class="choice-top">
+            <div><h3>⚠️ 삭감 위험 조회</h3><p>처방 시 삭감 가능성 미리 확인</p></div>
+            <div class="icon-badge">🛡️</div>
+          </div>
+        </button>
+        <button class="choice-card" onclick="goScreen('screen_stat', '처방 통계')">
+          <div class="choice-top">
+            <div><h3>📈 처방 통계 추이</h3><p>지역별 · 성분별 · 품목별 처방 그래프</p></div>
+            <div class="icon-badge">📊</div>
+          </div>
+        </button>
+      </div>
+    </div>
 
-    <div class="screen" id="screen3">
-      <button class="btn-back" onclick="goScreen('screen2','약품 검색')">← 검색 결과</button>
-      <div id="drugDetail"></div>
-    </div>
+    <!-- 화면 2: 약품 검색 -->
+    <div class="screen" id="screen2">
+      <button class="btn-back" onclick="goScreen('screen1','홈')">← 홈</button>
+      <div class="hero" style="margin-top:0; text-align:left;">
+        <h1 style="font-size:1.5rem;">약품 검색</h1>
+        <p class="subtext">제품명, 성분명, 보험코드 입력</p>
+      </div>
+      <div class="search-wrap">
+        <input class="search-input" id="drugSearch" placeholder="예) 라베프라졸, 케이캡, 215700ATB" oninput="searchDrug()" />
+        <button class="search-btn" onclick="searchDrug()">검색</button>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="setSearchType('all',this)">전체</button>
+        <button class="tab-btn" onclick="setSearchType('product',this)">제품명</button>
+        <button class="tab-btn" onclick="setSearchType('ingredient',this)">성분명</button>
+        <button class="tab-btn" onclick="setSearchType('code',this)">보험코드</button>
+      </div>
+      <div id="drugResults" class="result-list">
+        <div class="empty-text">약품명을 입력해주세요</div>
+      </div>
+    </div>
 
-    <div class="screen" id="screen_icd">
-      <button class="btn-back" onclick="goScreen('screen1','홈')">← 홈으로</button>
-      <input class="search-input" id="icdSearch" placeholder="질환명 입력 (예: 위궤양, 간염)" oninput="handleICDSearch()">
-      <div id="icdResults" class="result-list"></div>
-    </div>
+    <!-- 화면 3: 약품 상세 -->
+    <div class="screen" id="screen3">
+      <button class="btn-back" onclick="goScreen('screen2','약품 검색')">← 검색</button>
+      <div id="drugDetail"></div>
+    </div>
 
-  </div>
+    <!-- 화면: 상병코드 조회 -->
+    <div class="screen" id="screen_icd">
+      <button class="btn-back" onclick="goScreen('screen1','홈')">← 홈</button>
+      <div class="hero" style="margin-top:0; text-align:left;">
+        <h1 style="font-size:1.5rem;">상병코드 조회</h1>
+        <p class="subtext">질환명 또는 ICD코드로 검색</p>
+      </div>
+      <div class="search-wrap">
+        <input class="search-input" id="icdSearch" placeholder="예) 위식도역류, K21, 당뇨" oninput="searchICD()" />
+        <button class="search-btn" onclick="searchICD()">검색</button>
+      </div>
+      <div id="icdResults" class="result-list">
+        <div class="empty-text">질환명 또는 코드를 입력해주세요</div>
+      </div>
+    </div>
+
+    <!-- 화면: 경쟁품 비교 -->
+    <div class="screen" id="screen_comp">
+      <button class="btn-back" onclick="goScreen('screen1','홈')">← 홈</button>
+      <div class="hero" style="margin-top:0; text-align:left;">
+        <h1 style="font-size:1.5rem;">경쟁품 비교</h1>
+        <p class="subtext">성분·계열로 경쟁제품 비교</p>
+      </div>
+      <div class="search-wrap">
+        <input class="search-input" id="compSearch" placeholder="예) 라베프라졸, PPI, 케이캡" oninput="searchComp()" />
+        <button class="search-btn" onclick="searchComp()">검색</button>
+      </div>
+      <div id="compResults" class="result-list">
+        <div class="empty-text">성분명 또는 약품명을 입력해주세요</div>
+      </div>
+    </div>
+
+    <!-- 화면: 삭감 조회 -->
+    <div class="screen" id="screen_cut">
+      <button class="btn-back" onclick="goScreen('screen1','홈')">← 홈</button>
+      <div class="hero" style="margin-top:0; text-align:left;">
+        <h1 style="font-size:1.5rem;">삭감 위험 조회</h1>
+        <p class="subtext">처방 전 삭감 가능성 확인</p>
+      </div>
+      <div class="search-wrap">
+        <input class="search-input" id="cutSearch" placeholder="예) 라베프라졸, 케이캡" oninput="searchCut()" />
+        <button class="search-btn" onclick="searchCut()">검색</button>
+      </div>
+      <div id="cutResults" class="result-list">
+        <div class="empty-text">약품명을 입력해주세요</div>
+      </div>
+    </div>
+
+    <!-- 화면: 처방 통계 추이 -->
+    <div class="screen" id="screen_stat">
+      <button class="btn-back" onclick="goScreen('screen1','홈')">← 홈</button>
+      <div class="hero" style="margin-top:0; text-align:left;">
+        <h1 style="font-size:1.5rem;">처방 통계 추이</h1>
+        <p class="subtext">지역별 · 성분별 · 품목별 비교</p>
+      </div>
+
+      <!-- 분류 탭 -->
+      <div class="tabs" id="statTypeTabs">
+        <button class="tab-btn active" onclick="setStatType('region',this)">지역별</button>
+        <button class="tab-btn" onclick="setStatType('ingredient',this)">성분별</button>
+        <button class="tab-btn" onclick="setStatType('product',this)">품목별</button>
+      </div>
+
+      <div id="statContent"></div>
+    </div>
+
+  </div>
 </div>
 
 <script>
-// ── [설정] 본인의 API 서비스키를 입력하세요 ───────────────────────
-const SERVICE_KEY = 'YOUR_ENCODED_SERVICE_KEY'; 
+// ── 샘플 데이터 (API 연동 전 데모용) ──────────────────────────────
+const DRUGS = [
+  {
+    id: 1,
+    name: '케이캡정 50mg',
+    ingredient: '테고프라잔',
+    company: 'HK이노엔',
+    type: 'P-CAB',
+    price: 850,
+    insurance: '급여',
+    code: '215700ATB',
+    icd: ['K21','K25','K26','K29'],
+    fda: '미승인 (국내 허가)',
+    form: '정',
+    risks: [
+      { level:'low', text:'GERD(K21) 상병 코드 정확히 기재 시 삭감 위험 낮음' },
+      { level:'mid', text:'상병코드 없이 장기 처방 시 심사 주의' },
+      { level:'high', text:'헬리코박터 제균 목적 외 PPI 병용 처방 시 삭감 가능' },
+    ],
+    comps: [2,3,4,5],
+  },
+  {
+    id: 2,
+    name: '파리에트정 10mg',
+    ingredient: '라베프라졸나트륨',
+    company: '에자이',
+    type: 'PPI',
+    price: 650,
+    insurance: '급여',
+    code: '196600ATB',
+    icd: ['K21','K25','K27','K29','K30'],
+    fda: '승인 (GERD)',
+    form: '정',
+    risks: [
+      { level:'low', text:'표준 GERD 처방 시 삭감 위험 낮음' },
+      { level:'mid', text:'BID 처방은 내시경 검사 결과 있어야 인정' },
+      { level:'high', text:'타과 장기 처방 시 심사 위험 존재' },
+    ],
+    comps: [1,3,4,5],
+  },
+  {
+    id: 3,
+    name: '라베린정 10mg',
+    ingredient: '라베프라졸나트륨',
+    company: '일양약품',
+    type: 'PPI',
+    price: 454,
+    insurance: '급여',
+    code: '200401ATB',
+    icd: ['K21','K25','K27','K29'],
+    fda: '해당없음 (제네릭)',
+    form: '정',
+    risks: [
+      { level:'low', text:'동일성분 오리지널 대비 저가 - 삭감 위험 낮음' },
+      { level:'mid', text:'BID 처방 시 적응증 명확해야 함' },
+    ],
+    comps: [1,2,4,5],
+  },
+  {
+    id: 4,
+    name: '넥시움정 20mg',
+    ingredient: '에소메프라졸마그네슘삼수화물',
+    company: '아스트라제네카',
+    type: 'PPI',
+    price: 720,
+    insurance: '급여',
+    code: '197800ATB',
+    icd: ['K21','K25','K26','K29','K30'],
+    fda: '승인 (GERD, 헬리코박터)',
+    form: '정',
+    risks: [
+      { level:'low', text:'FDA 승인 적응증 내 처방 시 안전' },
+      { level:'mid', text:'40mg 고용량 장기 처방 시 심사 주의' },
+    ],
+    comps: [1,2,3,5],
+  },
+  {
+    id: 5,
+    name: '란스톤캡슐 30mg',
+    ingredient: '란소프라졸',
+    company: '일동제약',
+    type: 'PPI',
+    price: 520,
+    insurance: '급여',
+    code: '193700ACE',
+    icd: ['K21','K25','K27'],
+    fda: '승인 (GERD)',
+    form: '캡슐',
+    risks: [
+      { level:'low', text:'표준 처방 범위 내 삭감 위험 낮음' },
+      { level:'mid', text:'중복 PPI 처방 시 삭감 주의' },
+    ],
+    comps: [1,2,3,4],
+  },
+];
 
-// 전역 데이터 저장소
-window._apiCache = [];
+const ICD_DB = [
+  { code:'K21', name:'위식도역류질환 (GERD)', drugs:[1,2,3,4,5] },
+  { code:'K25', name:'위궤양', drugs:[2,3,4,5] },
+  { code:'K26', name:'십이지장궤양', drugs:[2,4] },
+  { code:'K27', name:'위십이지장궤양', drugs:[3,5] },
+  { code:'K29', name:'위염 및 십이지장염', drugs:[1,2,3,4,5] },
+  { code:'K30', name:'소화불량', drugs:[2,4] },
+  { code:'E11', name:'2형 당뇨병', drugs:[] },
+  { code:'I10', name:'본태성 고혈압', drugs:[] },
+];
 
-// ── [API 1 & 2] 실시간 약품 검색 (주사제 포함) ───────────────────
+// ── 처방 추이 샘플 데이터 ─────────────────────────────────────────
+const TREND_DATA = {
+  1: { // 케이캡
+    years: ['2021','2022','2023','2024','2025'],
+    전국:  [12, 28, 52, 78, 95],
+    대구:  [8,  20, 40, 62, 80],
+    서울:  [15, 32, 58, 85, 102],
+  },
+  2: { // 파리에트
+    years: ['2021','2022','2023','2024','2025'],
+    전국:  [95, 88, 75, 60, 48],
+    대구:  [80, 72, 60, 48, 38],
+    서울:  [100, 92, 78, 63, 50],
+  },
+  3: { // 라베린
+    years: ['2021','2022','2023','2024','2025'],
+    전국:  [70, 68, 62, 55, 50],
+    대구:  [60, 58, 52, 46, 42],
+    서울:  [75, 72, 65, 58, 52],
+  },
+  4: { // 넥시움
+    years: ['2021','2022','2023','2024','2025'],
+    전국:  [110, 105, 98, 90, 85],
+    대구:  [90,  85,  78, 72, 68],
+    서울:  [120, 115, 108, 100, 95],
+  },
+  5: { // 란스톤
+    years: ['2021','2022','2023','2024','2025'],
+    전국:  [55, 52, 48, 42, 38],
+    대구:  [45, 42, 38, 34, 30],
+    서울:  [60, 57, 52, 46, 41],
+  },
+};
+
+let currentRegion = '전국';
+
+function drawChart(drugId) {
+  const data = TREND_DATA[drugId];
+  if(!data) return '';
+  const region = currentRegion;
+  const vals = data[region];
+  const max = Math.max(...vals);
+  const years = data.years;
+
+  const bars = years.map((y, i) => {
+    const pct = Math.round((vals[i] / max) * 100);
+    const isLast = i === years.length - 1;
+    return `
+      <div style="display:flex;flex-direction:column;align-items:center;flex:1;gap:4px;">
+        <div style="font-size:0.7rem;font-weight:700;color:var(--green2);">${vals[i]}</div>
+        <div style="width:100%;background:rgba(0,0,0,0.06);border-radius:8px;height:80px;display:flex;align-items:flex-end;overflow:hidden;">
+          <div style="width:100%;height:${pct}%;background:${isLast ? 'var(--green)' : 'rgba(0,192,127,0.35)'};border-radius:6px 6px 0 0;transition:height 0.4s ease;"></div>
+        </div>
+        <div style="font-size:0.7rem;color:var(--sub);">${y}</div>
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div class="detail-section">
+      <div class="section-title" style="display:flex;justify-content:space-between;align-items:center;">
+        <span>처방 추이 (만건)</span>
+        <div style="display:flex;gap:4px;">
+          ${['전국','대구','서울'].map(r=>`
+            <button onclick="currentRegion='${r}';showDrug(${drugId})" 
+              style="padding:3px 9px;border-radius:999px;border:none;cursor:pointer;font-size:0.72rem;font-weight:700;
+              background:${region===r?'var(--green)':'rgba(0,0,0,0.07)'};
+              color:${region===r?'#fff':'var(--sub)'};">${r}</button>
+          `).join('')}
+        </div>
+      </div>
+      <div class="info-card" style="padding:14px 10px 10px;">
+        <div style="display:flex;gap:6px;align-items:flex-end;">
+          ${bars}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ── 유틸 ──────────────────────────────────────────────────────────
+let searchType = 'all';
+function setSearchType(t, el) {
+  searchType = t;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  searchDrug();
+}
+
+function riskLabel(l) {
+  if(l==='low') return '<span class="badge badge-green">🟢 낮음</span>';
+  if(l==='mid') return '<span class="badge badge-yellow">🟡 주의</span>';
+  return '<span class="badge badge-red">🔴 위험</span>';
+}
+
+// ── 약품 검색 (실제 API) ─────────────────────────────────────────
 let searchTimer = null;
-function handleSearch() {
-  clearTimeout(searchTimer);
-  searchTimer = setTimeout(() => {
-    const q = document.getElementById('drugSearch').value;
-    if(q.length < 2) return;
-    fetchDrugData(q);
-  }, 500);
+
+function searchDrug() {
+  const q = document.getElementById('drugSearch').value.trim();
+  const el = document.getElementById('drugResults');
+  if(!q) { el.innerHTML='<div class="empty-text">약품명을 입력해주세요</div>'; return; }
+
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => fetchDrug(q), 400);
 }
 
-async function fetchDrugData(q) {
-  const el = document.getElementById('drugResults');
-  el.innerHTML = '<div style="text-align:center; padding:20px;">데이터 로딩 중...</div>';
+async function fetchDrug(q) {
+  const el = document.getElementById('drugResults');
+  el.innerHTML = '<div class="empty-text">검색 중... ⏳</div>';
 
-  try {
-    // 1. 의약품 제품 허가 정보 (메인 API - 주사제 등 모든 품목 포함)
-    const url = `https://apis.data.go.kr/1471000/DrugPrdtPrmsnInfoService05/getDrugPrdtPrmsnInq05?serviceKey=${SERVICE_KEY}&item_name=${encodeURIComponent(q)}&type=json&numOfRows=15`;
-    
-    // 2. 행정처분 정보 (리스크 체크 API)
-    const adminUrl = `https://apis.data.go.kr/1471000/DrugPrdtPrmsnInfoService05/getAdminntSttusInq05?serviceKey=${SERVICE_KEY}&item_name=${encodeURIComponent(q)}&type=json`;
+  try {
+    const res = await fetch(`/api/drug?name=${encodeURIComponent(q)}`);
+    const data = await res.json();
+    const items = data.items || [];
 
-    const [res, adminRes] = await Promise.all([
-      fetch(url).then(r => r.json()),
-      fetch(adminUrl).then(r => r.json()).catch(() => null)
-    ]);
+    if(!items.length) {
+      // API 결과 없으면 샘플 데이터 폴백
+      const fallback = DRUGS.filter(d =>
+        d.name.toLowerCase().includes(q.toLowerCase()) ||
+        d.ingredient.toLowerCase().includes(q.toLowerCase())
+      );
+      if(!fallback.length) { el.innerHTML='<div class="empty-text">검색 결과가 없습니다</div>'; return; }
+      renderDrugList(fallback, el, false);
+      return;
+    }
 
-    const items = res.body?.items || [];
-    const admins = adminRes?.body?.items || [];
-    window._apiCache = items;
+    // API 결과 렌더링
+    el.innerHTML = items.map((item, i) => `
+      <div class="result-item" onclick="showDrugAPI(${i})" data-idx="${i}">
+        <div class="result-name">${item.ITEM_NAME || item.itemName || '-'}</div>
+        <div class="result-sub">${item.INGR_NAME_KOR || item.ingrNameKor || ''} · ${item.ENTP_NAME || item.entpName || ''}</div>
+        <div class="result-badges">
+          <span class="badge badge-green">급여</span>
+          <span class="badge badge-gray">${item.FORM_CODE_NAME || item.formCodeName || '-'}</span>
+        </div>
+        <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,0,0,0.05);">
+          <span style="font-size:0.74rem;color:var(--sub);font-weight:600;">보험코드</span>
+          <span style="font-size:0.78rem;font-weight:700;margin-left:8px;">${item.ITEM_PERMIT_DATE || item.EDI_CODE || '-'}</span>
+        </div>
+        <div style="margin-top:4px;">
+          <span class="badge badge-blue" style="font-size:0.7rem;">🌐 실시간</span>
+        </div>
+      </div>
+    `).join('');
 
-    if(items.length === 0) {
-      el.innerHTML = '<div style="padding:20px; color:gray;">검색 결과가 없어. 오타를 확인해봐!</div>';
-      return;
-    }
+    // API 결과 임시 저장
+    window._apiResults = items;
 
-    el.innerHTML = items.map((item, idx) => {
-      const isBad = admins.some(a => a.ITEM_NAME === item.ITEM_NAME);
-      return `
-        <div class="result-item" onclick="showDetail(${idx})">
-          <div style="font-weight:800; font-size:1rem;">${item.ITEM_NAME}</div>
-          <div style="font-size:0.85rem; color:var(--sub); margin:4px 0;">${item.ENTP_NAME}</div>
-          <div style="display:flex; gap:5px;">
-            <span class="badge ${item.ETC_OTC_CODE==='전문의약품'?'badge-red':'badge-green'}">${item.ETC_OTC_CODE}</span>
-            <span class="badge badge-blue">${item.MAKE_ITD_SPC_CODE || '허가'}</span>
-            ${isBad ? '<span class="badge badge-yellow">⚠️ 처분이력</span>' : ''}
-          </div>
-        </div>
-      `;
-    }).join('');
-  } catch(e) {
-    el.innerHTML = '<div style="padding:20px; color:red;">API 연결 실패! 서비스키를 확인해줘.</div>';
-  }
+  } catch(e) {
+    // 오류시 샘플 데이터로 폴백
+    const fallback = DRUGS.filter(d =>
+      d.name.toLowerCase().includes(q.toLowerCase()) ||
+      d.ingredient.toLowerCase().includes(q.toLowerCase())
+    );
+    renderDrugList(fallback, el, false);
+  }
 }
 
-// ── [API 3] 약품 상세 & 복약정보 결합 ───────────────────────────
-async function showDetail(idx) {
-  const item = window._apiCache[idx];
-  const detailEl = document.getElementById('drugDetail');
-  detailEl.innerHTML = '상세 정보 불러오는 중...';
-
-  // 3. e약은요 복약정보 API 조회
-  const easyUrl = `https://apis.data.go.kr/1471000/DrbEasyDrugInfoService/getDrbEasyDrugList?serviceKey=${SERVICE_KEY}&itemName=${encodeURIComponent(item.ITEM_NAME)}&type=json`;
-  const easyRes = await fetch(easyUrl).then(r => r.json()).catch(() => null);
-  const easyInfo = easyRes?.body?.items?.[0];
-
-  detailEl.innerHTML = `
-    <div style="padding:10px 0;">
-      <h2 style="margin:0;">${item.ITEM_NAME}</h2>
-      <p style="color:var(--sub);">${item.ENTP_NAME}</p>
-    </div>
-    <div class="info-card">
-      <div class="info-row"><span>품목기준코드</span><b>${item.ITEM_SEQ}</b></div>
-      <div class="info-row"><span>허가일자</span><b>${item.ITEM_PERMIT_DATE}</b></div>
-      <div class="info-row"><span>성상</span><b>${item.CHART.substring(0,20)}...</b></div>
-    </div>
-    ${easyInfo ? `
-      <div class="info-card" style="background:#f0f9ff;">
-        <h4 style="margin:0 0 10px; color:var(--blue);">💡 환자 복약 가이드</h4>
-        <p style="font-size:0.85rem; line-height:1.5;"><b>효능:</b> ${easyInfo.efcyQesitm}</p>
-        <p style="font-size:0.85rem; line-height:1.5;"><b>주의:</b> ${easyInfo.atpnQesitm.substring(0,100)}...</p>
-      </div>
-    ` : ''}
-    <button class="btn-primary" onclick="goScreen('screen1','홈')">메인으로</button>
-  `;
-  goScreen('screen3', '상세 정보');
+function renderDrugList(list, el, isLive) {
+  if(!list.length) { el.innerHTML='<div class="empty-text">검색 결과가 없습니다</div>'; return; }
+  el.innerHTML = list.map(d => `
+    <div class="result-item" onclick="showDrug(${d.id})">
+      <div class="result-name">${d.name}</div>
+      <div class="result-sub">${d.ingredient} · ${d.company}</div>
+      <div class="result-badges">
+        <span class="badge badge-green">${d.insurance}</span>
+        <span class="badge badge-blue">${d.type}</span>
+        <span class="badge badge-gray">${d.price}원</span>
+      </div>
+      <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,0,0,0.05);">
+        <span style="font-size:0.74rem;color:var(--sub);font-weight:600;">FDA 승인</span>
+        <span style="font-size:0.78rem;font-weight:700;margin-left:8px;color:${d.fda.includes('승인')&&!d.fda.includes('미')?'var(--green2)':'var(--sub)'};">${d.fda}</span>
+      </div>
+      <span class="badge badge-gray" style="font-size:0.7rem;margin-top:4px;">📦 샘플</span>
+    </div>
+  `).join('');
 }
 
-// ── [API 4 & 5] 상병/효능 기반 약품 조회 ──────────────────────────
-function handleICDSearch() {
-  clearTimeout(searchTimer);
-  searchTimer = setTimeout(async () => {
-    const q = document.getElementById('icdSearch').value;
-    if(q.length < 2) return;
-    
-    const el = document.getElementById('icdResults');
-    const url = `https://apis.data.go.kr/1471000/DrugPrdtPrmsnInfoService05/getDrugPrdtPrmsnInq05?serviceKey=${SERVICE_KEY}&ee_doc_data=${encodeURIComponent(q)}&type=json&numOfRows=10`;
-    
-    const res = await fetch(url).then(r => r.json());
-    const items = res.body?.items || [];
-    
-    el.innerHTML = items.map(i => `
-      <div class="result-item" onclick="document.getElementById('drugSearch').value='${i.ITEM_NAME}'; fetchDrugData('${i.ITEM_NAME}'); goScreen('screen2','약품 검색');">
-        <div style="font-weight:700;">${i.ITEM_NAME}</div>
-        <div style="font-size:0.8rem; color:var(--blue);">적응증: ${q} 관련 확인됨</div>
-      </div>
-    `).join('') || '결과가 없습니다.';
-  }, 500);
+function showDrugAPI(idx) {
+  const item = window._apiResults[idx];
+  if(!item) return;
+  document.getElementById('drugDetail').innerHTML = `
+    <div class="detail-section">
+      <div style="font-size:1.3rem;font-weight:800;letter-spacing:-0.03em;">${item.ITEM_NAME||item.itemName||'-'}</div>
+      <div style="color:var(--sub);font-size:0.88rem;margin-top:4px;">${item.INGR_NAME_KOR||item.ingrNameKor||''} · ${item.ENTP_NAME||item.entpName||''}</div>
+      <div style="margin-top:8px;"><span class="badge badge-blue">🌐 실시간 데이터</span></div>
+    </div>
+    <div class="detail-section">
+      <div class="section-title">기본 정보</div>
+      <div class="info-card">
+        <div class="info-row"><span class="info-label">제품명</span><span class="info-value">${item.ITEM_NAME||item.itemName||'-'}</span></div>
+        <div class="info-row"><span class="info-label">성분</span><span class="info-value">${item.INGR_NAME_KOR||item.ingrNameKor||'-'}</span></div>
+        <div class="info-row"><span class="info-label">제조사</span><span class="info-value">${item.ENTP_NAME||item.entpName||'-'}</span></div>
+        <div class="info-row"><span class="info-label">제형</span><span class="info-value">${item.FORM_CODE_NAME||item.formCodeName||'-'}</span></div>
+        <div class="info-row"><span class="info-label">허가일</span><span class="info-value">${item.ITEM_PERMIT_DATE||item.itemPermitDate||'-'}</span></div>
+        <div class="info-row"><span class="info-label">전문/일반</span><span class="info-value">${item.ETC_OTC_CODE||item.etcOtcCode||'-'}</span></div>
+      </div>
+    </div>
+  `;
+  goScreen('screen3', (item.ITEM_NAME||'').substring(0,6)+'...');
 }
 
-// ── UI 제어 함수 ────────────────────────────────────────────────
-function goScreen(id, label) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  document.getElementById('stepChip').textContent = label;
+
+function showDrug(id) {
+  const d = DRUGS.find(x=>x.id===id);
+  const comps = DRUGS.filter(x=>d.comps.includes(x.id));
+
+  document.getElementById('drugDetail').innerHTML = `
+    <div class="detail-section">
+      <div style="margin-bottom:16px;">
+        <div style="font-size:1.3rem;font-weight:800;letter-spacing:-0.03em;">${d.name}</div>
+        <div style="color:var(--sub);font-size:0.88rem;margin-top:4px;">${d.ingredient} · ${d.company}</div>
+        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+          <span class="badge badge-green">${d.insurance}</span>
+          <span class="badge badge-blue">${d.type}</span>
+          <span class="badge badge-gray">${d.form}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <div class="section-title">기본 정보</div>
+      <div class="info-card">
+        <div class="info-row"><span class="info-label">약가</span><span class="info-value" style="color:var(--green2);">${d.price}원</span></div>
+        <div class="info-row"><span class="info-label">보험코드</span><span class="info-value">${d.code}</span></div>
+        <div class="info-row"><span class="info-label">성분</span><span class="info-value">${d.ingredient}</span></div>
+        <div class="info-row"><span class="info-label">FDA 승인</span><span class="info-value">${d.fda}</span></div>
+        <div class="info-row"><span class="info-label">제형</span><span class="info-value">${d.form}</span></div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <div class="section-title">관련 상병코드</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;">
+        ${d.icd.map(c => {
+          const info = ICD_DB.find(i=>i.code===c);
+          return `<div class="icd-chip"><span class="icd-code">${c}</span><span class="icd-name">${info?info.name:''}</span></div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <div class="section-title">삭감 위험</div>
+      ${d.risks.map(r=>`
+        <div class="risk-bar risk-${r.level}">
+          <div class="risk-dot risk-dot-${r.level}"></div>
+          <div class="risk-text">${r.text}</div>
+        </div>
+      `).join('')}
+    </div>
+
+    ${drawChart(d.id)}
+
+    <div class="detail-section">
+      <div class="section-title">경쟁품 비교</div>
+      ${comps.map(c=>`
+        <div class="comp-card">
+          <div>
+            <div class="comp-name">${c.name}</div>
+            <div class="comp-co">${c.ingredient} · ${c.company}</div>
+            <div style="margin-top:6px;display:flex;gap:5px;">
+              <span class="badge badge-blue" style="font-size:0.7rem;">${c.type}</span>
+              <span class="badge badge-green" style="font-size:0.7rem;">${c.insurance}</span>
+            </div>
+          </div>
+          <div class="comp-price">${c.price}원</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+
+  goScreen('screen3', d.name.substring(0,6)+'...');
 }
 
-// 랜덤 멘트 (지윤이 아빠 화이팅!)
-const MSGS = ["FDA 승인 여부 확인했어? 🤔", "경쟁사 신제품 나왔나? 🔍", "행정처분 리스크 체크 필수! ⚠️", "오늘도 동원/경원/지윤 아빠 화이팅! ❤️"];
-let mIdx = 0;
+// ── 랜덤 멘트 (자동 페이드) ─────────────────────────────────────
+const MSGS = [
+  "아맞다! FDA 승인 받았었나? 🤔",
+  "진짜 유사제품이 없을까? 🔍",
+  "또 약가인하된거 아닌가? 💸",
+  "삭감?? 헷갈려 😅",
+  "아 행정처분 언제 받았지? 😬",
+  "임상재평가는 어떻게 되지? 🧪",
+];
+let msgIdx = 0;
+const msgEl = document.getElementById('heroMsg');
+msgEl.textContent = MSGS[msgIdx];
+msgEl.style.transition = 'opacity 0.5s';
+
 setInterval(() => {
-  const el = document.getElementById('heroMsg');
-  el.style.opacity = 0;
-  setTimeout(() => {
-    mIdx = (mIdx + 1) % MSGS.length;
-    el.textContent = MSGS[mIdx];
-    el.style.opacity = 1;
-  }, 500);
-}, 4000);
-document.getElementById('heroMsg').textContent = MSGS[0];
-</script>
+  msgEl.style.opacity = '0';
+  setTimeout(() => {
+    msgIdx = (msgIdx + 1) % MSGS.length;
+    msgEl.textContent = MSGS[msgIdx];
+    msgEl.style.opacity = '1';
+  }, 500);
+}, 3000);
 
+
+let statType = 'region';
+
+function setStatType(type, el) {
+  statType = type;
+  document.querySelectorAll('#statTypeTabs .tab-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderStat();
+}
+
+function renderStat() {
+  const el = document.getElementById('statContent');
+  if(!el) return;
+
+  if(statType === 'region') {
+    // 지역별: 케이캡 기준 전국/대구/서울 비교
+    const years = ['2021','2022','2023','2024','2025'];
+    const regions = { '전국': [12,28,52,78,95], '대구': [8,20,40,62,80], '서울': [15,32,58,85,102] };
+    const colors = { '전국': 'var(--green)', '대구': '#3b82f6', '서울': '#f59e0b' };
+    const maxVal = 110;
+
+    el.innerHTML = `
+      <div class="section-title" style="margin-bottom:8px;">케이캡 지역별 처방 추이 (만건)</div>
+      <div class="info-card" style="padding:16px 12px 12px; margin-bottom:14px;">
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-bottom:12px;">
+          ${Object.keys(regions).map(r=>`
+            <div style="display:flex;align-items:center;gap:4px;">
+              <div style="width:10px;height:10px;border-radius:50%;background:${colors[r]};"></div>
+              <span style="font-size:0.74rem;color:var(--sub);font-weight:600;">${r}</span>
+            </div>
+          `).join('')}
+        </div>
+        ${years.map((y,i) => `
+          <div style="margin-bottom:10px;">
+            <div style="font-size:0.76rem;color:var(--sub);margin-bottom:4px;">${y}</div>
+            ${Object.entries(regions).map(([r,vals]) => `
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
+                <div style="width:28px;font-size:0.7rem;color:var(--sub);">${r}</div>
+                <div style="flex:1;height:12px;background:rgba(0,0,0,0.06);border-radius:6px;overflow:hidden;">
+                  <div style="height:100%;width:${Math.round(vals[i]/maxVal*100)}%;background:${colors[r]};border-radius:6px;transition:width 0.4s;"></div>
+                </div>
+                <div style="font-size:0.72rem;font-weight:700;width:24px;text-align:right;">${vals[i]}</div>
+              </div>
+            `).join('')}
+          </div>
+        `).join('')}
+      </div>
+    `;
+
+  } else if(statType === 'ingredient') {
+    // 성분별: PPI vs P-CAB 추이
+    const years = ['2021','2022','2023','2024','2025'];
+    const groups = {
+      'P-CAB (테고프라잔)': [12,28,52,78,95],
+      'PPI (라베프라졸)':   [165,160,148,132,120],
+      'PPI (에소메프라졸)': [110,105,98,90,85],
+      'PPI (란소프라졸)':   [55,52,48,42,38],
+    };
+    const colors = ['var(--green)','#3b82f6','#f59e0b','#a78bfa'];
+    const entries = Object.entries(groups);
+    const maxVal = 180;
+
+    el.innerHTML = `
+      <div class="section-title" style="margin-bottom:8px;">성분별 처방 추이 (전국, 만건)</div>
+      <div class="info-card" style="padding:16px 12px 12px; margin-bottom:14px;">
+        ${entries.map(([name, vals], ci) => `
+          <div style="margin-bottom:14px;">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+              <div style="width:10px;height:10px;border-radius:50%;background:${colors[ci]};flex-shrink:0;"></div>
+              <span style="font-size:0.78rem;font-weight:700;">${name}</span>
+            </div>
+            <div style="display:flex;gap:3px;align-items:flex-end;height:60px;">
+              ${years.map((y,i) => `
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+                  <div style="width:100%;background:rgba(0,0,0,0.06);border-radius:4px 4px 0 0;height:50px;display:flex;align-items:flex-end;overflow:hidden;">
+                    <div style="width:100%;height:${Math.round(vals[i]/maxVal*100)}%;background:${colors[ci]};opacity:${0.4 + i*0.15};border-radius:4px 4px 0 0;"></div>
+                  </div>
+                  <div style="font-size:0.6rem;color:var(--sub);">${y.slice(2)}</div>
+                </div>
+              `).join('')}
+            </div>
+            <div style="text-align:right;font-size:0.72rem;color:${vals[4]>vals[0]?'var(--green2)':'var(--red)'};font-weight:700;margin-top:2px;">
+              ${vals[4]>vals[0]?'▲':'▼'} ${Math.abs(vals[4]-vals[0])}만건 (2021→2025)
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+
+  } else {
+    // 품목별: 5개 약품 2025년 처방량 순위
+    const ranking = [
+      { name:'넥시움정 20mg',  val:85, color:'#3b82f6' },
+      { name:'케이캡정 50mg',  val:95, color:'var(--green)' },
+      { name:'파리에트정 10mg',val:48, color:'#f59e0b' },
+      { name:'라베린정 10mg',  val:50, color:'#a78bfa' },
+      { name:'란스톤캡슐 30mg',val:38, color:'#fb923c' },
+    ].sort((a,b)=>b.val-a.val);
+    const maxVal = ranking[0].val;
+
+    el.innerHTML = `
+      <div class="section-title" style="margin-bottom:8px;">품목별 처방 순위 (2025년, 전국, 만건)</div>
+      <div class="info-card" style="padding:16px 12px; margin-bottom:14px;">
+        ${ranking.map((r,i) => `
+          <div style="margin-bottom:12px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+              <span style="font-size:0.82rem;font-weight:700;">${i+1}. ${r.name}</span>
+              <span style="font-size:0.82rem;font-weight:800;color:${r.color};">${r.val}만건</span>
+            </div>
+            <div style="height:14px;background:rgba(0,0,0,0.06);border-radius:7px;overflow:hidden;">
+              <div style="height:100%;width:${Math.round(r.val/maxVal*100)}%;background:${r.color};border-radius:7px;transition:width 0.5s;"></div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+      <div style="font-size:0.74rem;color:var(--sub);text-align:center;">※ 샘플 데이터 · API 연동 후 실시간 업데이트</div>
+    `;
+  }
+}
+
+// goScreen 후 통계 렌더링
+const _origGoScreen = goScreen;
+function goScreen(id, label) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById('stepChip').textContent = label;
+  if(id === 'screen_stat') renderStat();
+}
+
+
+function searchICD() {
+  const q = document.getElementById('icdSearch').value.trim().toLowerCase();
+  const el = document.getElementById('icdResults');
+  if(!q) { el.innerHTML='<div class="empty-text">질환명 또는 코드를 입력해주세요</div>'; return; }
+
+  const results = ICD_DB.filter(i =>
+    i.code.toLowerCase().includes(q) || i.name.toLowerCase().includes(q)
+  );
+
+  if(!results.length) { el.innerHTML='<div class="empty-text">검색 결과가 없습니다</div>'; return; }
+
+  el.innerHTML = results.map(i => {
+    const drugs = DRUGS.filter(d=>i.drugs.includes(d.id));
+    return `
+      <div class="result-item">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="badge badge-blue" style="font-size:0.9rem;">${i.code}</span>
+          <span style="font-weight:700;">${i.name}</span>
+        </div>
+        <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;">
+          ${drugs.length ? drugs.map(d=>`<span class="badge badge-green" style="cursor:pointer;" onclick="showDrug(${d.id});goScreen('screen3','')">${d.name}</span>`).join('') : '<span class="badge badge-gray">관련 약품 없음</span>'}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ── 경쟁품 검색 ──────────────────────────────────────────────────
+function searchComp() {
+  const q = document.getElementById('compSearch').value.trim().toLowerCase();
+  const el = document.getElementById('compResults');
+  if(!q) { el.innerHTML='<div class="empty-text">성분명 또는 약품명을 입력해주세요</div>'; return; }
+
+  const base = DRUGS.find(d =>
+    d.name.toLowerCase().includes(q) || d.ingredient.toLowerCase().includes(q) || d.type.toLowerCase().includes(q)
+  );
+
+  if(!base) { el.innerHTML='<div class="empty-text">검색 결과가 없습니다</div>'; return; }
+
+  const sameIngredient = DRUGS.filter(d=>d.ingredient===base.ingredient && d.id!==base.id);
+  const sameType = DRUGS.filter(d=>d.type===base.type && d.ingredient!==base.ingredient);
+
+  el.innerHTML = `
+    <div style="padding:12px 0 6px;font-size:0.8rem;font-weight:700;color:var(--sub);">기준 약품</div>
+    <div class="comp-card" style="border:1px solid rgba(0,192,127,0.2);">
+      <div><div class="comp-name">${base.name}</div><div class="comp-co">${base.ingredient} · ${base.company}</div></div>
+      <div class="comp-price">${base.price}원</div>
+    </div>
+    ${sameIngredient.length ? `
+      <div style="padding:12px 0 6px;font-size:0.8rem;font-weight:700;color:var(--sub);">동일 성분</div>
+      ${sameIngredient.map(d=>`
+        <div class="comp-card" onclick="showDrug(${d.id});goScreen('screen3','')" style="cursor:pointer;">
+          <div><div class="comp-name">${d.name}</div><div class="comp-co">${d.ingredient} · ${d.company}</div></div>
+          <div class="comp-price">${d.price}원</div>
+        </div>
+      `).join('')}
+    ` : ''}
+    ${sameType.length ? `
+      <div style="padding:12px 0 6px;font-size:0.8rem;font-weight:700;color:var(--sub);">동일 계열 (${base.type})</div>
+      ${sameType.map(d=>`
+        <div class="comp-card" onclick="showDrug(${d.id});goScreen('screen3','')" style="cursor:pointer;">
+          <div><div class="comp-name">${d.name}</div><div class="comp-co">${d.ingredient} · ${d.company}</div></div>
+          <div class="comp-price">${d.price}원</div>
+        </div>
+      `).join('')}
+    ` : ''}
+  `;
+}
+
+// ── 삭감 조회 ────────────────────────────────────────────────────
+function searchCut() {
+  const q = document.getElementById('cutSearch').value.trim().toLowerCase();
+  const el = document.getElementById('cutResults');
+  if(!q) { el.innerHTML='<div class="empty-text">약품명을 입력해주세요</div>'; return; }
+
+  const results = DRUGS.filter(d=>d.name.toLowerCase().includes(q)||d.ingredient.toLowerCase().includes(q));
+  if(!results.length) { el.innerHTML='<div class="empty-text">검색 결과가 없습니다</div>'; return; }
+
+  el.innerHTML = results.map(d=>`
+    <div class="result-item">
+      <div class="result-name">${d.name}</div>
+      <div class="result-sub">${d.ingredient} · ${d.company}</div>
+      <div style="margin-top:12px;">
+        ${d.risks.map(r=>`
+          <div class="risk-bar risk-${r.level}" style="margin-bottom:8px;">
+            <div class="risk-dot risk-dot-${r.level}"></div>
+            <div class="risk-text">${r.text}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+</script>
 </body>
 </html>

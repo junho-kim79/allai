@@ -1,82 +1,50 @@
 export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET");
 
-  const { name } = req.query;
+const { name } = req.query;
 
-  if (!name) {
-    return res.status(400).json({
-      error: "약품명을 입력해주세요"
-    });
-  }
+const MFDS_KEY = process.env.API_KEY_MFDS;
+const HIRA_KEY = process.env.API_KEY_HIRA;
 
-  const key = process.env.API_KEY_MFDS || process.env["API_KEY_MFDS"];
+try{
 
-  if (!key) {
-    return res.status(500).json({
-      error: "API_KEY_MFDS 환경변수가 없습니다"
-    });
-  }
+// 1️⃣ 식약처 검색
+const mfds = await fetch(
+`https://apis.data.go.kr/1471000/DrbEasyDrugInfoService/getDrbEasyDrugList
+?serviceKey=${MFDS_KEY}
+&itemName=${encodeURIComponent(name)}
+&pageNo=1
+&numOfRows=10
+&type=json`
+);
 
-  const url =
-    `https://apis.data.go.kr/1471000/DrbEasyDrugInfoService/getDrbEasyDrugList` +
-    `?ServiceKey=${key}` +
-    `&itemName=${encodeURIComponent(name)}` +
-    `&type=json&numOfRows=20&pageNo=1`;
+const mfdsData = await mfds.json();
 
-  try {
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        Accept: "application/json, text/plain, */*"
-      }
-    });
+let items = mfdsData?.body?.items || [];
 
-    const raw = await response.text();
-    const contentType = response.headers.get("content-type") || "";
+// 2️⃣ 결과 없으면 심평원 검색
+if(!items.length){
 
-    if (!response.ok) {
-      return res.status(response.status).json({
-        error: "공공데이터 API 응답 오류",
-        status: response.status,
-        contentType,
-        preview: raw.slice(0, 1000),
-        url
-      });
-    }
+const hira = await fetch(
+`https://apis.data.go.kr/B551182/durPrdlstInfoService/getDurPrdlstInfoList
+?serviceKey=${HIRA_KEY}
+&itemName=${encodeURIComponent(name)}
+&pageNo=1
+&numOfRows=10
+&_type=json`
+);
 
-    if (!raw) {
-      return res.status(502).json({
-        error: "빈 응답",
-        contentType,
-        url
-      });
-    }
+const hiraData = await hira.json();
 
-    let data;
-    try {
-      data = JSON.parse(raw);
-    } catch (e) {
-      return res.status(502).json({
-        error: "JSON 파싱 실패",
-        contentType,
-        preview: raw.slice(0, 1000),
-        url
-      });
-    }
+items = hiraData?.response?.body?.items?.item || [];
 
-    const body = data?.response?.body || data?.body || {};
-    const items = body?.items?.item || body?.items || [];
-    const list = Array.isArray(items) ? items : items ? [items] : [];
+}
 
-    return res.status(200).json({
-      items: list,
-      totalCount: Number(body?.totalCount || 0)
-    });
-  } catch (e) {
-    return res.status(500).json({
-      error: "API 호출 실패",
-      detail: e.message
-    });
-  }
+res.status(200).json({items});
+
+}catch(e){
+
+res.status(500).json({error:e.message});
+
+}
+
 }

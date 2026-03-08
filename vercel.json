@@ -1,13 +1,36 @@
-{
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://apis.data.go.kr https://openapi.neis.go.kr; img-src 'self' data: blob:;"
-        }
-      ]
+export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET');
+
+  const { name } = req.query;
+  if (!name) return res.status(400).json({ error: '약품명을 입력해주세요' });
+
+  const key = process.env.API_KEY_MFDS;
+  const url = `https://apis.data.go.kr/1471000/DrugPrdtPrmsnInfoService05/getDrugPrdtPrmsnDtlInq05?serviceKey=${key}&item_name=${encodeURIComponent(name)}&type=json&numOfRows=20&pageNo=1`;
+
+  try {
+    const response = await fetch(url);
+    const text = await response.text();
+    
+    // JSON 파싱 시도
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch(e) {
+      return res.status(200).json({ items: [], raw: text.substring(0, 200) });
     }
-  ]
+
+    // 응답 구조 유연하게 처리
+    const items = 
+      data?.body?.items ||
+      data?.response?.body?.items ||
+      data?.items ||
+      [];
+
+    const list = Array.isArray(items) ? items : (items.item ? [].concat(items.item) : []);
+    res.status(200).json({ items: list });
+
+  } catch (e) {
+    res.status(500).json({ error: 'API 호출 실패', detail: e.message });
+  }
 }

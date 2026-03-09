@@ -822,7 +822,7 @@ async function fetchDrug(q) {
   el.innerHTML = '<div class="empty-text">검색 중... ⏳</div>';
 
   try {
-    const res = await fetch(`/api/drug?name=${encodeURIComponent(q)}`);
+    const res = await fetch(`https://drug-ede5bi7c3q-du.a.run.app?name=${encodeURIComponent(q)}`);
     const data = await res.json();
     const items = data.items || [];
 

@@ -489,7 +489,7 @@ async function showDrugAPI(idx) {
         <div class="info-row"><span class="info-label">제형</span><span class="info-value">${form}</span></div>
         <div class="info-row"><span class="info-label">허가일</span><span class="info-value">${permitDate}</span></div>
         <div class="info-row"><span class="info-label">전문/일반</span><span class="info-value">${etcOtc}</span></div>
-        <div class="info-row"><span class="info-label">약가</span><span class="info-value">${item.DRUG_PRICE ?? "-"}</span>
+        <div class="info-row"><span class="info-label">약가</span><span class="info-value">${item.price || "-"}</span>
       </div>
     </div>
 

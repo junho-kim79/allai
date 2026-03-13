@@ -499,7 +499,7 @@ const price = (ediCode && ediCode !== '-' && priceMap[ediCode]) ? priceMap[ediCo
         <div class="info-row"><span class="info-label">제형</span><span class="info-value">${form}</span></div>
         <div class="info-row"><span class="info-label">허가일</span><span class="info-value">${permitDate}</span></div>
         <div class="info-row"><span class="info-label">전문/일반</span><span class="info-value">${etcOtc}</span></div>
-        <div class="info-row"><span class="info-label">약가</span><span class="info-value">${price ? price.toLocaleString()+'원' : '-'}</span></div>
+       <div class="info-row"><span class="info-label">약가</span><span class="info-value" style="color:var(--green2);">${price ? price.toLocaleString()+'원' : '-'}</span></div>
       </div>
     </div>
 

@@ -315,7 +315,7 @@
   let _priceMap = null;
 async function getPriceMap() {
   if (_priceMap) return _priceMap;
-  const res = await fetch('/public/data/drug_price_map.json');
+  const res = await fetch('/data/drug_price_map.json');
   _priceMap = await res.json();
   return _priceMap;
 }

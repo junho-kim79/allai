@@ -186,10 +186,10 @@ async function searchHIRA(q) {
     FORM_CODE_NAME: item.FORM_CODE_NAME || item.formCodeName || item.dosageFormNm || "-",
     ITEM_PERMIT_DATE: item.ITEM_PERMIT_DATE || item.itemPermitDate || "-",
     ETC_OTC_CODE: item.ETC_OTC_CODE || item.etcOtcCode || "-",
+    EDI_CODE: item.ediCode || item.EDI_CODE || "-",
+DRUG_PRICE: item.amt || item.AMT || item.price || item.unitPrice || "-"
 
     // 🔴 여기 추가
-    EDI_CODE: item.ediCode || item.EDI_CODE || "-",
-    DRUG_PRICE: item.amt || item.AMT || "-"
   }));
 }
 

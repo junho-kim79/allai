@@ -150,44 +150,48 @@ export default async function handler(req, res) {
     }));
   }
 
-  async function searchHIRA(q) {
-    if (!HIRA_KEY) return [];
+async function searchHIRA(q) {
+  if (!HIRA_KEY) return [];
 
-    const urls = [
-      `https://apis.data.go.kr/B551182/durPrdlstInfoService/getDurPrdlstInfoList?serviceKey=${HIRA_KEY}&itemName=${encodeURIComponent(q)}&pageNo=1&numOfRows=20&_type=json`,
-      `https://apis.data.go.kr/B551182/medicinesInfoService/getMdcinGrnIdntfcInfoList?serviceKey=${HIRA_KEY}&itemName=${encodeURIComponent(q)}&pageNo=1&numOfRows=20&_type=json`
-    ];
+  const urls = [
+    `https://apis.data.go.kr/B551182/durPrdlstInfoService/getDurPrdlstInfoList?serviceKey=${HIRA_KEY}&itemName=${encodeURIComponent(q)}&pageNo=1&numOfRows=20&_type=json`,
+    `https://apis.data.go.kr/B551182/medicinesInfoService/getMdcinGrnIdntfcInfoList?serviceKey=${HIRA_KEY}&itemName=${encodeURIComponent(q)}&pageNo=1&numOfRows=20&_type=json`
+  ];
 
-    const results = [];
+  const results = [];
 
-    for (const url of urls) {
-      try {
-        const data = await fetchJsonOrText(url);
-        if (!data) continue;
+  for (const url of urls) {
+    try {
+      const data = await fetchJsonOrText(url);
+      if (!data) continue;
 
-        const body = data?.response?.body || data?.body || {};
-        const items = body?.items?.item || body?.items || [];
+      const body = data?.response?.body || data?.body || {};
+      const items = body?.items?.item || body?.items || [];
 
-        if (Array.isArray(items)) {
-          results.push(...items);
-        } else if (items) {
-          results.push(items);
-        }
-      } catch (_) {
-        // 무시
+      if (Array.isArray(items)) {
+        results.push(...items);
+      } else if (items) {
+        results.push(items);
       }
+    } catch (_) {
+      // 무시
     }
-
-    return results.map((item) => ({
-      source: "HIRA",
-      ITEM_NAME: item.ITEM_NAME || item.itemName || item.prdlstNm || item.itemNm || "-",
-      ENTP_NAME: item.ENTP_NAME || item.entpName || item.entpNm || "-",
-      INGR_NAME_KOR: item.INGR_NAME_KOR || item.ingrNameKor || item.itemIngrNm || "-",
-      FORM_CODE_NAME: item.FORM_CODE_NAME || item.formCodeName || item.dosageFormNm || "-",
-      ITEM_PERMIT_DATE: item.ITEM_PERMIT_DATE || item.itemPermitDate || "-",
-      ETC_OTC_CODE: item.ETC_OTC_CODE || item.etcOtcCode || "-"
-    }));
   }
+
+  return results.map((item) => ({
+    source: "HIRA",
+    ITEM_NAME: item.ITEM_NAME || item.itemName || item.prdlstNm || item.itemNm || "-",
+    ENTP_NAME: item.ENTP_NAME || item.entpName || item.entpNm || "-",
+    INGR_NAME_KOR: item.INGR_NAME_KOR || item.ingrNameKor || item.itemIngrNm || "-",
+    FORM_CODE_NAME: item.FORM_CODE_NAME || item.formCodeName || item.dosageFormNm || "-",
+    ITEM_PERMIT_DATE: item.ITEM_PERMIT_DATE || item.itemPermitDate || "-",
+    ETC_OTC_CODE: item.ETC_OTC_CODE || item.etcOtcCode || "-",
+
+    // 🔴 여기 추가
+    EDI_CODE: item.ediCode || item.EDI_CODE || "-",
+    DRUG_PRICE: item.amt || item.AMT || "-"
+  }));
+}
 
   try {
     let merged = [];

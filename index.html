@@ -312,10 +312,21 @@
 
 <script>
 /* ===== 샘플 데이터 ===== */
+function normalizeDrugName(n) {
+  return String(n)
+    .replace(/\(.*?\)/g, '')
+    .replace(/_.*$/g, '')
+    .replace(/\s+/g, '')
+    .trim();
+}
+
 function getDrugPrice(itemName) {
   if (typeof DRUG_PRICE_DB === 'undefined') return '-';
-  const name = String(itemName).trim();
-  const found = DRUG_PRICE_DB.find(d => d.n.startsWith(name) || name.startsWith(d.n.split('_')[0]));
+  const name = normalizeDrugName(itemName);
+  const found = DRUG_PRICE_DB.find(d => {
+    const dn = normalizeDrugName(d.n);
+    return dn === name || dn.startsWith(name) || name.startsWith(dn);
+  });
   return found ? found.p.toLocaleString() + '원' : '-';
 }
 const DRUGS = [

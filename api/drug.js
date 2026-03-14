@@ -1,3 +1,27 @@
+import admin from 'firebase-admin';
+
+if (!admin.apps.length) {
+  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+  });
+}
+
+const db = admin.firestore();
+
+async function getDrugPriceFromFirestore(itemName) {
+  try {
+    const name = String(itemName).trim();
+    // 완전일치
+    let snap = await db.collection('drugPrices').where('name', '==', name).limit(1).get();
+    if (!snap.empty) return snap.docs[0].data().price;
+    // 없으면 null
+    return null;
+  } catch(e) {
+    return null;
+  }
+}
+
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET");
@@ -15,7 +39,6 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "API 키가 없습니다" });
   }
 
-  // 현장 별칭 보정
   const aliasMap = {
     "트리손키트": "트리손",
     "트리손": "트리손",
@@ -30,7 +53,6 @@ export default async function handler(req, res) {
 
   const searchName = aliasMap[rawName] || rawName;
 
-  // 검색어 변형 후보
   const queryCandidates = Array.from(
     new Set([
       searchName,
@@ -41,36 +63,14 @@ export default async function handler(req, res) {
   );
 
   function normalizeText(v) {
-    return String(v || "")
-      .replace(/\s+/g, "")
-      .toLowerCase();
+    return String(v || "").replace(/\s+/g, "").toLowerCase();
   }
 
   function scoreItem(item, q) {
-    const name =
-      item.ITEM_NAME ||
-      item.itemName ||
-      item.prdlstNm ||
-      item.bizrnoNm ||
-      "";
-
-    const company =
-      item.ENTP_NAME ||
-      item.entpName ||
-      item.entpNm ||
-      "";
-
-    const ingredient =
-      item.INGR_NAME_KOR ||
-      item.ingrNameKor ||
-      item.itemIngrNm ||
-      "";
-
-    const form =
-      item.FORM_CODE_NAME ||
-      item.formCodeName ||
-      item.dosageFormNm ||
-      "";
+    const name = item.ITEM_NAME || item.itemName || item.prdlstNm || item.bizrnoNm || "";
+    const company = item.ENTP_NAME || item.entpName || item.entpNm || "";
+    const ingredient = item.INGR_NAME_KOR || item.ingrNameKor || item.itemIngrNm || "";
+    const form = item.FORM_CODE_NAME || item.formCodeName || item.dosageFormNm || "";
 
     const nq = normalizeText(q);
     const nn = normalizeText(name);
@@ -79,149 +79,110 @@ export default async function handler(req, res) {
     const nf = normalizeText(form);
 
     let score = 0;
-
     if (nn === nq) score += 100;
     if (nn.includes(nq)) score += 60;
     if (ni.includes(nq)) score += 35;
     if (nc.includes(nq)) score += 10;
     if (nf.includes(nq)) score += 5;
-
-    // 주사/키트 검색 보정
-    if (/주사|주|키트/i.test(q) && /주|키트|inj|kit/i.test(name + " " + form)) {
-      score += 15;
-    }
+    if (/주사|주|키트/i.test(q) && /주|키트|inj|kit/i.test(name + " " + form)) score += 15;
 
     return score;
   }
 
   async function fetchJsonOrText(url) {
-    const response = await fetch(url, {
-      method: "GET",
-      headers: { Accept: "application/json, text/plain, */*" }
-    });
-
+    const response = await fetch(url, { method: "GET", headers: { Accept: "application/json, text/plain, */*" } });
     const raw = await response.text();
-
     if (!raw) return null;
-
-    try {
-      return JSON.parse(raw);
-    } catch {
-      return { _raw: raw };
-    }
+    try { return JSON.parse(raw); } catch { return { _raw: raw }; }
   }
 
   async function searchMFDS(q) {
     if (!MFDS_KEY) return [];
-
     const urls = [
       `https://apis.data.go.kr/1471000/DrbEasyDrugInfoService/getDrbEasyDrugList?serviceKey=${MFDS_KEY}&itemName=${encodeURIComponent(q)}&pageNo=1&numOfRows=20&type=json`,
       `https://apis.data.go.kr/1471000/DrugPrdtPrmsnInfoService06/getDrugPrdtPrmsnInq06?serviceKey=${MFDS_KEY}&item_name=${encodeURIComponent(q)}&pageNo=1&numOfRows=20&type=json`
     ];
-
     const results = [];
-
     for (const url of urls) {
       try {
         const data = await fetchJsonOrText(url);
         if (!data) continue;
-
         const body = data?.body || data?.response?.body || {};
         const items = body?.items?.item || body?.items || [];
-
-        if (Array.isArray(items)) {
-          results.push(...items);
-        } else if (items) {
-          results.push(items);
-        }
-      } catch (_) {
-        // 무시
-      }
+        if (Array.isArray(items)) results.push(...items);
+        else if (items) results.push(items);
+      } catch (_) {}
     }
-
     return results.map((item) => ({
-      source: "MFDS",
+      source: "식약처",
       ITEM_NAME: item.ITEM_NAME || item.itemName || item.item_name || item.prdlstNm || "-",
       ENTP_NAME: item.ENTP_NAME || item.entpName || item.entp_name || item.entpNm || "-",
       INGR_NAME_KOR: item.INGR_NAME_KOR || item.ingrNameKor || item.itemIngrNm || "-",
       FORM_CODE_NAME: item.FORM_CODE_NAME || item.formCodeName || item.dosageFormNm || "-",
       ITEM_PERMIT_DATE: item.ITEM_PERMIT_DATE || item.itemPermitDate || item.permitDate || "-",
-      ETC_OTC_CODE: item.ETC_OTC_CODE || item.etcOtcCode || item.etcOtcNm || "-"
+      ETC_OTC_CODE: item.ETC_OTC_CODE || item.etcOtcCode || item.etcOtcNm || "-",
+      efcyQesitm: item.efcyQesitm || "",
+      useMethodQesitm: item.useMethodQesitm || "",
+      atpnWarnQesitm: item.atpnWarnQesitm || "",
+      depositMethodQesitm: item.depositMethodQesitm || ""
     }));
   }
 
-async function searchHIRA(q) {
-  if (!HIRA_KEY) return [];
-
-  const urls = [
-    `https://apis.data.go.kr/B551182/durPrdlstInfoService/getDurPrdlstInfoList?serviceKey=${HIRA_KEY}&itemName=${encodeURIComponent(q)}&pageNo=1&numOfRows=20&_type=json`,
-    `https://apis.data.go.kr/B551182/medicinesInfoService/getMdcinGrnIdntfcInfoList?serviceKey=${HIRA_KEY}&itemName=${encodeURIComponent(q)}&pageNo=1&numOfRows=20&_type=json`
-  ];
-
-  const results = [];
-
-  for (const url of urls) {
-    try {
-      const data = await fetchJsonOrText(url);
-      if (!data) continue;
-
-      const body = data?.response?.body || data?.body || {};
-      const items = body?.items?.item || body?.items || [];
-
-      if (Array.isArray(items)) {
-        results.push(...items);
-      } else if (items) {
-        results.push(items);
-      }
-    } catch (_) {
-      // 무시
+  async function searchHIRA(q) {
+    if (!HIRA_KEY) return [];
+    const urls = [
+      `https://apis.data.go.kr/B551182/durPrdlstInfoService/getDurPrdlstInfoList?serviceKey=${HIRA_KEY}&itemName=${encodeURIComponent(q)}&pageNo=1&numOfRows=20&_type=json`,
+      `https://apis.data.go.kr/B551182/medicinesInfoService/getMdcinGrnIdntfcInfoList?serviceKey=${HIRA_KEY}&itemName=${encodeURIComponent(q)}&pageNo=1&numOfRows=20&_type=json`
+    ];
+    const results = [];
+    for (const url of urls) {
+      try {
+        const data = await fetchJsonOrText(url);
+        if (!data) continue;
+        const body = data?.response?.body || data?.body || {};
+        const items = body?.items?.item || body?.items || [];
+        if (Array.isArray(items)) results.push(...items);
+        else if (items) results.push(items);
+      } catch (_) {}
     }
+    return results.map((item) => ({
+      source: "HIRA",
+      ITEM_NAME: item.ITEM_NAME || item.itemName || item.prdlstNm || item.itemNm || "-",
+      ENTP_NAME: item.ENTP_NAME || item.entpName || item.entpNm || "-",
+      INGR_NAME_KOR: item.INGR_NAME_KOR || item.ingrNameKor || item.itemIngrNm || "-",
+      FORM_CODE_NAME: item.FORM_CODE_NAME || item.formCodeName || item.dosageFormNm || "-",
+      ITEM_PERMIT_DATE: item.ITEM_PERMIT_DATE || item.itemPermitDate || "-",
+      ETC_OTC_CODE: item.ETC_OTC_CODE || item.etcOtcCode || "-",
+      EDI_CODE: item.ediCode || item.EDI_CODE || "-",
+      DRUG_PRICE: item.amt || item.AMT || item.price || item.unitPrice || "-"
+    }));
   }
-
-  return results.map((item) => ({
-    source: "HIRA",
-    ITEM_NAME: item.ITEM_NAME || item.itemName || item.prdlstNm || item.itemNm || "-",
-    ENTP_NAME: item.ENTP_NAME || item.entpName || item.entpNm || "-",
-    INGR_NAME_KOR: item.INGR_NAME_KOR || item.ingrNameKor || item.itemIngrNm || "-",
-    FORM_CODE_NAME: item.FORM_CODE_NAME || item.formCodeName || item.dosageFormNm || "-",
-    ITEM_PERMIT_DATE: item.ITEM_PERMIT_DATE || item.itemPermitDate || "-",
-    ETC_OTC_CODE: item.ETC_OTC_CODE || item.etcOtcCode || "-",
-    EDI_CODE: item.ediCode || item.EDI_CODE || "-",
-DRUG_PRICE: item.amt || item.AMT || item.price || item.unitPrice || "-"
-
-    // 🔴 여기 추가
-  }));
-}
 
   try {
     let merged = [];
-
     for (const q of queryCandidates) {
-      const [mfdsItems, hiraItems] = await Promise.all([
-        searchMFDS(q),
-        searchHIRA(q)
-      ]);
-
+      const [mfdsItems, hiraItems] = await Promise.all([searchMFDS(q), searchHIRA(q)]);
       merged.push(...mfdsItems, ...hiraItems);
     }
 
-    // 중복 제거
     const dedupMap = new Map();
     for (const item of merged) {
       const key = `${normalizeText(item.ITEM_NAME)}|${normalizeText(item.ENTP_NAME)}`;
-      if (!dedupMap.has(key)) {
-        dedupMap.set(key, item);
-      }
+      if (!dedupMap.has(key)) dedupMap.set(key, item);
     }
 
     const uniqueItems = Array.from(dedupMap.values());
 
-    // 점수 부여 후 정렬
-    const scored = uniqueItems
-      .map((item) => ({
-        ...item,
-        _score: Math.max(...queryCandidates.map((q) => scoreItem(item, q)))
-      }))
+    // Firestore에서 약가 조회
+    const itemsWithPrice = await Promise.all(
+      uniqueItems.map(async (item) => {
+        const price = await getDrugPriceFromFirestore(item.ITEM_NAME);
+        return { ...item, DRUG_PRICE: price ? price.toLocaleString() + '원' : (item.DRUG_PRICE || '-') };
+      })
+    );
+
+    const scored = itemsWithPrice
+      .map((item) => ({ ...item, _score: Math.max(...queryCandidates.map((q) => scoreItem(item, q))) }))
       .filter((item) => item._score > 0)
       .sort((a, b) => b._score - a._score)
       .slice(0, 30)
@@ -234,9 +195,6 @@ DRUG_PRICE: item.amt || item.AMT || item.price || item.unitPrice || "-"
       items: scored
     });
   } catch (e) {
-    return res.status(500).json({
-      error: "통합 검색 실패",
-      detail: e.message
-    });
+    return res.status(500).json({ error: "통합 검색 실패", detail: e.message });
   }
 }

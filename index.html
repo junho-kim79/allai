@@ -495,7 +495,7 @@ async function showDrugAPI(idx) {
         <div class="info-row"><span class="info-label">제형</span><span class="info-value">${form}</span></div>
         <div class="info-row"><span class="info-label">허가일</span><span class="info-value">${permitDate}</span></div>
         <div class="info-row"><span class="info-label">전문/일반</span><span class="info-value">${etcOtc}</span></div>
-        <div class="info-row"><span class="info-label">약가</span><span class="info-value" style="color:var(--green2);">${getDrugPrice(item.ITEM_NAME || item.itemName || '')}</span></div>
+        <div class="info-row"><span class="info-label">약가</span><span class="info-value" style="color:var(--green2);" id="drugPriceValue">조회 중...</span></div>
       </div>
     </div>
 
@@ -541,9 +541,41 @@ async function showDrugAPI(idx) {
 
   // AI 요약 + MR 포인트 비동기 생성
   fetchAISummary(name, ingr, company, efcy, useMethod);
+  fetchDrugPriceAI(name, ingr);
 }
 
 /* ===== AI 요약 (Claude API) ===== */
+  async function fetchDrugPriceAI(name, ingr) {
+  const localPrice = getDrugPrice(name);
+  const el = document.getElementById('drugPriceValue');
+  if (!el) return;
+
+  if (localPrice !== '-') {
+    el.textContent = localPrice;
+    return;
+  }
+
+  try {
+    const prompt = `다음 약품의 한국 건강보험 급여 약가(원/정 또는 원/mL)를 숫자만 알려주세요. 모르면 "모름"이라고만 답하세요.\n약품명: ${name}\n성분: ${ingr}`;
+    
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDtAbYqn0zt2wZsHMZok4P1r9GWJIiMIgk`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+    });
+    const data = await res.json();
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+    
+    if (text && text !== '모름') {
+      el.textContent = text + ' ⚠️참고용';
+      el.style.color = 'var(--yellow)';
+    } else {
+      el.textContent = '-';
+    }
+  } catch(e) {
+    el.textContent = '-';
+  }
+}
 async function fetchAISummary(name, ingr, company, efcy, useMethod) {
   try {
     const prompt = `당신은 제약 영업사원(MR) 전문 AI입니다.

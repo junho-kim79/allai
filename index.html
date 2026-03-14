@@ -11,7 +11,7 @@
     connect-src *;
   ">
   <title>Allai - 제약 영업 실무 도구</title>
-
+<script src="/drugPriceDB.js"></script>
   <style>
     :root {
       --green: #00C07F;
@@ -312,6 +312,12 @@
 
 <script>
 /* ===== 샘플 데이터 ===== */
+  function getDrugPrice(itemCode) {
+  if (typeof DRUG_PRICE_DB === 'undefined') return '-';
+  const code = String(itemCode).trim();
+  const found = DRUG_PRICE_DB.find(d => d.c === code);
+  return found ? found.p.toLocaleString() + '원' : '-';
+}
 const DRUGS = [
   { id:1, name:'케이캡정 50mg', ingredient:'테고프라잔', company:'HK이노엔', type:'P-CAB', price:850, insurance:'급여', code:'215700ATB', icd:['K21','K25','K26','K29'], fda:'미승인 (국내 허가)', form:'정', efcy:'위식도역류질환(GERD), 위궤양, 헬리코박터 제균요법', useMethod:'1일 1회, 1정 경구투여 (50mg)', risks:[{level:'low',text:'GERD(K21) 상병 코드 정확히 기재 시 삭감 위험 낮음'},{level:'mid',text:'상병코드 없이 장기 처방 시 심사 주의'},{level:'high',text:'헬리코박터 제균 목적 외 PPI 병용 처방 시 삭감 가능'}], comps:[2,3,4,5], mrPoints:['P-CAB 계열로 PPI 대비 산 억제 속도 2배, 야간 산 돌파 없음','헬리코박터 제균 1차요법 병용 가능 — 처방 확장 포인트','국내 임상 데이터 풍부, 오리지널 강점 강조'] },
   { id:2, name:'파리에트정 10mg', ingredient:'라베프라졸나트륨', company:'에자이', type:'PPI', price:650, insurance:'급여', code:'196600ATB', icd:['K21','K25','K27','K29','K30'], fda:'승인 (GERD)', form:'정', efcy:'위식도역류질환, 위궤양, 십이지장궤양, 비스테로이드 소염제 투여 환자', useMethod:'1일 1회 10mg~20mg, 4~8주 투여', risks:[{level:'low',text:'표준 GERD 처방 시 삭감 위험 낮음'},{level:'mid',text:'BID 처방은 내시경 검사 결과 있어야 인정'},{level:'high',text:'타과 장기 처방 시 심사 위험 존재'}], comps:[1,3,4,5], mrPoints:['라베프라졸 오리지널 — 제네릭 대비 흡수 안정성 우위','NSAIDs 병용 환자 위 보호 처방 확대 가능','10mg/20mg 용량 선택 폭 넓음'] },
@@ -489,7 +495,7 @@ async function showDrugAPI(idx) {
         <div class="info-row"><span class="info-label">제형</span><span class="info-value">${form}</span></div>
         <div class="info-row"><span class="info-label">허가일</span><span class="info-value">${permitDate}</span></div>
         <div class="info-row"><span class="info-label">전문/일반</span><span class="info-value">${etcOtc}</span></div>
-        <div class="info-row"><span class="info-label">약가</span><span class="info-value">${item.DRUG_PRICE ?? "-"}</span>
+        <div class="info-row"><span class="info-label">약가</span><span class="info-value" style="color:var(--green2);">${getDrugPrice(item.ITEM_SEQ || item.itemSeq || '')}</span></div>
       </div>
     </div>
 

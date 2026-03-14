@@ -313,21 +313,71 @@
 <script>
 /* ===== 샘플 데이터 ===== */
 function normalizeDrugName(n) {
+  if (!n) return '';
+
   return String(n)
-    .replace(/\(.*?\)/g, '')
-    .replace(/_.*$/g, '')
-    .replace(/\s+/g, '')
+    .toLowerCase()
+    .replace(/_.*$/g, '')                 // _(20mg/1정) 같은 뒤쪽 포장정보 제거
+    .replace(/㎎/g, 'mg')
+    .replace(/밀리그람/g, 'mg')
+    .replace(/밀리그램/g, 'mg')
+    .replace(/그램/g, 'g')
+    .replace(/밀리리터/g, 'ml')
+    .replace(/리터/g, 'l')
+    .replace(/\s+/g, '')                 // 공백 제거
+    .replace(/[·•ㆍ]/g, '')              // 점류 제거
+    .replace(/[(){}\[\]]/g, '')          // 괄호 문자만 제거, 안의 내용은 살림
+    .replace(/\/+/g, '')                 // 슬래시 제거
+    .replace(/-+/g, '')                  // 하이픈 제거
+    .replace(/,+/g, '')                  // 쉼표 제거
     .trim();
 }
 
 function getDrugPrice(itemName) {
   if (typeof DRUG_PRICE_DB === 'undefined') return '-';
-  const name = normalizeDrugName(itemName);
-  const found = DRUG_PRICE_DB.find(d => {
-    const dn = normalizeDrugName(d.n);
-    return dn === name || dn.startsWith(name) || name.startsWith(dn);
-  });
-  return found ? found.p.toLocaleString() + '원' : '-';
+  if (!itemName) return '-';
+
+  const raw = String(itemName);
+  const name = normalizeDrugName(raw);
+
+  // 비교용 보조 키
+  const nameNoParenText = normalizeDrugName(raw.replace(/\(.*?\)/g, '')); // 괄호 내용 통째 제거 버전
+  const nameHead = name.split(/mg|g|ml|l/)[0]; // 용량 앞부분까지만
+
+  let best = null;
+  let bestScore = -1;
+
+  for (const d of DRUG_PRICE_DB) {
+    const rawDbName = d.n || '';
+    const dbName = normalizeDrugName(rawDbName);
+    const dbNoParenText = normalizeDrugName(String(rawDbName).replace(/\(.*?\)/g, ''));
+    const dbHead = dbName.split(/mg|g|ml|l/)[0];
+
+    let score = 0;
+
+    // 1. 완전일치
+    if (dbName === name) score = 100;
+    else if (dbNoParenText === nameNoParenText) score = 95;
+
+    // 2. 앞부분 일치
+    else if (dbName.startsWith(name) || name.startsWith(dbName)) score = 90;
+    else if (dbNoParenText.startsWith(nameNoParenText) || nameNoParenText.startsWith(dbNoParenText)) score = 85;
+
+    // 3. 용량 전 핵심명 일치
+    else if (dbHead && nameHead && (dbHead === nameHead)) score = 80;
+    else if (dbHead && nameHead && (dbHead.startsWith(nameHead) || nameHead.startsWith(dbHead))) score = 75;
+
+    // 4. 포함 일치
+    else if (dbName.includes(name) || name.includes(dbName)) score = 70;
+    else if (dbNoParenText.includes(nameNoParenText) || nameNoParenText.includes(dbNoParenText)) score = 65;
+
+    if (score > bestScore) {
+      bestScore = score;
+      best = d;
+    }
+  }
+
+  return best && bestScore >= 65 ? best.p.toLocaleString() + '원' : '-';
 }
 const DRUGS = [
   { id:1, name:'케이캡정 50mg', ingredient:'테고프라잔', company:'HK이노엔', type:'P-CAB', price:850, insurance:'급여', code:'215700ATB', icd:['K21','K25','K26','K29'], fda:'미승인 (국내 허가)', form:'정', efcy:'위식도역류질환(GERD), 위궤양, 헬리코박터 제균요법', useMethod:'1일 1회, 1정 경구투여 (50mg)', risks:[{level:'low',text:'GERD(K21) 상병 코드 정확히 기재 시 삭감 위험 낮음'},{level:'mid',text:'상병코드 없이 장기 처방 시 심사 주의'},{level:'high',text:'헬리코박터 제균 목적 외 PPI 병용 처방 시 삭감 가능'}], comps:[2,3,4,5], mrPoints:['P-CAB 계열로 PPI 대비 산 억제 속도 2배, 야간 산 돌파 없음','헬리코박터 제균 1차요법 병용 가능 — 처방 확장 포인트','국내 임상 데이터 풍부, 오리지널 강점 강조'] },

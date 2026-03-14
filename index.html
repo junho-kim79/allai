@@ -545,7 +545,7 @@ async function showDrugAPI(idx) {
 }
 
 /* ===== AI 요약 (Claude API) ===== */
-  async function fetchDrugPriceAI(name, ingr) {
+async function fetchDrugPriceAI(name, ingr) {
   const localPrice = getDrugPrice(name);
   const el = document.getElementById('drugPriceValue');
   if (!el) return;
@@ -556,16 +556,18 @@ async function showDrugAPI(idx) {
   }
 
   try {
-    const prompt = `다음 약품의 한국 건강보험 급여 약가(원/정 또는 원/mL)를 숫자만 알려주세요. 모르면 "모름"이라고만 답하세요.\n약품명: ${name}\n성분: ${ingr}`;
-    
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDtAbYqn0zt2wZsHMZok4P1r9GWJIiMIgk`, {
+    const res = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer sk-6a13884a9e7c418f847664a89e8598b2' },
+      body: JSON.stringify({
+        model: 'deepseek-chat',
+        max_tokens: 100,
+        messages: [{ role: 'user', content: `다음 약품의 한국 건강보험 급여 약가(원/정 또는 원/mL)를 숫자만 알려주세요. 모르면 "모름"이라고만 답하세요.\n약품명: ${name}\n성분: ${ingr}` }]
+      })
     });
     const data = await res.json();
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
-    
+    const text = data?.choices?.[0]?.message?.content?.trim() || '';
+
     if (text && text !== '모름') {
       el.textContent = text + ' ⚠️참고용';
       el.style.color = 'var(--yellow)';
@@ -595,14 +597,18 @@ async function fetchAISummary(name, ingr, company, efcy, useMethod) {
 
 반드시 [AI_SUMMARY]와 [MR_POINTS] 태그를 포함해서 응답하세요.`;
 
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDtAbYqn0zt2wZsHMZok4P1r9GWJIiMIgk`, {
+    const res = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer sk-6a13884a9e7c418f847664a89e8598b2' },
+      body: JSON.stringify({
+        model: 'deepseek-chat',
+        max_tokens: 600,
+        messages: [{ role: 'user', content: prompt }]
+      })
     });
 
     const data = await res.json();
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+    const text = data?.choices?.[0]?.message?.content?.trim() || '';
 
     const summaryMatch = text.match(/\[AI_SUMMARY\]([\s\S]*?)(?=\[MR_POINTS\]|$)/);
     const mrMatch = text.match(/\[MR_POINTS\]([\s\S]*?)$/);

@@ -11,11 +11,12 @@ const db = admin.firestore();
 
 async function getDrugPriceFromFirestore(itemName) {
   try {
-    const name = String(itemName).trim();
-    // 완전일치
-    let snap = await db.collection('drugPrices').where('name', '==', name).limit(1).get();
+    const cleanName = String(itemName).trim().replace(/_.*/g, '').trim();
+    
+    // cleanName으로 조회
+    let snap = await db.collection('drugPrices').where('cleanName', '==', cleanName).limit(1).get();
     if (!snap.empty) return snap.docs[0].data().price;
-    // 없으면 null
+    
     return null;
   } catch(e) {
     return null;

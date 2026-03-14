@@ -315,7 +315,7 @@
 function getDrugPrice(itemName) {
   if (typeof DRUG_PRICE_DB === 'undefined') return '-';
   const name = String(itemName).trim();
-  const found = DRUG_PRICE_DB.find(d => d.n === name);
+  const found = DRUG_PRICE_DB.find(d => d.n.startsWith(name) || name.startsWith(d.n.split('_')[0]));
   return found ? found.p.toLocaleString() + '원' : '-';
 }
 const DRUGS = [

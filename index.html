@@ -627,7 +627,7 @@ async function fetchDrugPriceAI(name, ingr) {
   }
 
   try {
-    const res = await fetch('https://api.deepseek.com/v1/chat/completions', {
+    const res = await fetch('/api/ai', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer sk-6a13884a9e7c418f847664a89e8598b2' },
       body: JSON.stringify({
@@ -670,7 +670,7 @@ async function fetchAISummary(name, ingr, company, efcy, useMethod) {
 
     const res = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer sk-6a13884a9e7c418f847664a89e8598b2' },
+      headers: { 'Content-Type': 'application/json'  },
       body: JSON.stringify({
         model: 'deepseek-chat',
         max_tokens: 600,

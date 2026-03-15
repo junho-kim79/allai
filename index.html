@@ -600,9 +600,19 @@ async function showDrugAPI(idx) {
 
   goDetail('screen2', '약품 검색');
 
+  // 약가 먼저 즉시 표시
+  const priceEl = document.getElementById('drugPriceValue');
+  if (priceEl) {
+    priceEl.textContent = getDrugPrice(name);
+  }
+
   // AI 요약 + MR 포인트 비동기 생성
   fetchAISummary(name, ingr, company, efcy, useMethod);
-  fetchDrugPriceAI(name, ingr);
+
+  // 로컬 약가가 없을 때만 AI 보조
+  if (priceEl && priceEl.textContent === '-') {
+    fetchDrugPriceAI(name, ingr);
+  }
 }
 
 /* ===== AI 요약 (Claude API) ===== */

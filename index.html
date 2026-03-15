@@ -756,11 +756,37 @@
       box-shadow: 0 1px 4px rgba(0,0,0,0.2);
     }
     .toggle.on::after { transform: translateX(18px); }
+ /* ── 스플래시 ── */
+    .splash {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(160deg, #1E7A54 0%, #155C3E 100%);
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      animation: splashOut 0.4s ease 1.8s forwards;
+    }
+    @keyframes splashOut {
+      to { opacity: 0; pointer-events: none; }
+    }
+    .splash-icon { font-size: 3.5rem; }
+    .splash-title { font-size: 2rem; font-weight: 900; letter-spacing: -0.05em; color: #fff; }
+    .splash-title em { color: #7FDBB6; font-style: normal; }
+    .splash-sub { font-size: 0.85rem; color: rgba(255,255,255,0.55); letter-spacing: 0.04em; }
   </style>
 </head>
 <body>
 <div class="app" id="app">
-
+<!-- 스플래시 -->
+  <div class="splash" id="splash">
+    <div class="splash-icon">💊</div>
+    <div class="splash-title">All<em>ai</em></div>
+    <div class="splash-sub">면담 1분 전</div>
+  </div>
+  
   <!-- 탑바 -->
   <div class="topbar">
     <div class="logo" id="logoBtn">

@@ -36,10 +36,12 @@
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     html { scroll-behavior: smooth; }
     body {
-      margin: 0; padding: 0;
+      margin: 0; padding: 16px;
       min-height: 100vh;
       font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: var(--bg);
+      background:
+        radial-gradient(circle at top left, rgba(0,192,127,0.10), transparent 40%),
+        linear-gradient(180deg, #F0FAF5 0%, #E4F5EC 100%);
       color: var(--text);
       display: flex;
       justify-content: center;
@@ -49,12 +51,8 @@
     /* ── 앱 껍데기 ── */
     .app {
       width: 100%;
-      max-width: 420px;
-      min-height: 100vh;
-      background: var(--bg);
-      position: relative;
-      overflow: hidden;
-    }
+      max-width: 430px;
+      min-height: calc(100vh - 32
 
     /* ── 상단바 ── */
     .topbar {
@@ -130,20 +128,12 @@
       overflow: hidden;
       position: relative;
       height: 200px;
-      background: linear-gradient(135deg, #0D2E1F 0%, #0A4030 100%);
+      background: #111;
     }
-    .hero-bg {
-      position: absolute; inset: 0;
-      background:
-        radial-gradient(circle at 20% 50%, rgba(0,192,127,0.25) 0%, transparent 60%),
-        radial-gradient(circle at 80% 20%, rgba(0,160,100,0.15) 0%, transparent 50%);
-    }
-    .hero-grid {
-      position: absolute; inset: 0; opacity: 0.08;
-      background-image:
-        linear-gradient(rgba(0,192,127,0.5) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,192,127,0.5) 1px, transparent 1px);
-      background-size: 28px 28px;
+    .hero img {
+      width: 100%; height: 200px;
+      object-fit: cover; object-position: center 20%;
+      opacity: 0.55; display: block;
     }
     .hero-content {
       position: absolute; inset: 0;
@@ -767,8 +757,7 @@
     <!-- 히어로 -->
     <div style="padding:12px 16px 0;">
       <div class="hero">
-        <div class="hero-bg"></div>
-        <div class="hero-grid"></div>
+        <img src="/sales.jpg" alt="영업사원" />
         <div class="hero-content">
           <div class="hero-eyebrow">
             <div class="hero-dot"></div>

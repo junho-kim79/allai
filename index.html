@@ -140,7 +140,6 @@
     .tab-btn { padding: 7px 14px; border-radius: 999px; background: rgba(0,0,0,0.05); border: none; font-size: 0.82rem; font-weight: 700; cursor: pointer; color: var(--sub); transition: all 0.15s; }
     .tab-btn.active { background: var(--green); color: #fff; }
 
-    /* AI 요약 카드 */
     .ai-card {
       background: linear-gradient(135deg, rgba(0,192,127,0.08), rgba(59,130,246,0.06));
       border: 1px solid rgba(0,192,127,0.2);
@@ -151,7 +150,6 @@
     .ai-card-title { font-size: 0.78rem; font-weight: 800; color: var(--green2); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
     .ai-card-body { font-size: 0.88rem; line-height: 1.65; color: var(--text); }
 
-    /* MR 포인트 카드 */
     .mr-card {
       background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(245,158,11,0.04));
       border: 1px solid rgba(245,158,11,0.2);
@@ -163,7 +161,6 @@
     .mr-point { display: flex; gap: 8px; margin-bottom: 8px; font-size: 0.86rem; line-height: 1.5; }
     .mr-num { width: 20px; height: 20px; border-radius: 50%; background: rgba(245,158,11,0.2); color: #92400e; font-size: 0.72rem; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
 
-    /* 적응증/용법 한줄 */
     .drug-efcy { font-size: 0.82rem; color: var(--sub); margin-top: 6px; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
     @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -182,7 +179,6 @@
       <div class="step-chip" id="stepChip">홈</div>
     </div>
 
-    <!-- 화면 1: 메인 -->
     <div class="screen active" id="screen1">
       <div class="hero">
         <img src="/sales.jpg" alt="영업사원" />
@@ -226,9 +222,8 @@
       </div>
     </div>
 
-    <!-- 화면 2: 약품 검색 -->
     <div class="screen" id="screen2">
-      <button class="btn-back" onclick="goScreen('screen1','홈')">← 홈</button>
+      <button class="btn-back" onclick="history.back()">← 홈</button>
       <div class="hero-title">약품 검색</div>
       <p class="subtext">제품명, 성분명, 보험코드 입력</p>
       <div class="search-wrap">
@@ -246,15 +241,13 @@
       </div>
     </div>
 
-    <!-- 화면 3: 약품 상세 -->
     <div class="screen" id="screen3">
-      <button class="btn-back" id="backBtn" onclick="goScreen('screen2','약품 검색')">← 검색</button>
+      <button class="btn-back" id="backBtn" onclick="history.back()">← 검색</button>
       <div id="drugDetail"></div>
     </div>
 
-    <!-- 화면: 상병코드 조회 -->
     <div class="screen" id="screen_icd">
-      <button class="btn-back" onclick="goScreen('screen1','홈')">← 홈</button>
+      <button class="btn-back" onclick="history.back()">← 홈</button>
       <div class="hero-title">상병코드 조회</div>
       <p class="subtext">질환명 또는 ICD코드로 검색</p>
       <div class="search-wrap">
@@ -266,9 +259,8 @@
       </div>
     </div>
 
-    <!-- 화면: 경쟁품 비교 -->
     <div class="screen" id="screen_comp">
-      <button class="btn-back" onclick="goScreen('screen1','홈')">← 홈</button>
+      <button class="btn-back" onclick="history.back()">← 홈</button>
       <div class="hero-title">경쟁품 비교</div>
       <p class="subtext">성분·계열로 경쟁제품 비교</p>
       <div class="search-wrap">
@@ -280,9 +272,8 @@
       </div>
     </div>
 
-    <!-- 화면: 삭감 조회 -->
     <div class="screen" id="screen_cut">
-      <button class="btn-back" onclick="goScreen('screen1','홈')">← 홈</button>
+      <button class="btn-back" onclick="history.back()">← 홈</button>
       <div class="hero-title">삭감 위험 조회</div>
       <p class="subtext">처방 전 삭감 가능성 확인</p>
       <div class="search-wrap">
@@ -294,9 +285,8 @@
       </div>
     </div>
 
-    <!-- 화면: 처방 통계 -->
     <div class="screen" id="screen_stat">
-      <button class="btn-back" onclick="goScreen('screen1','홈')">← 홈</button>
+      <button class="btn-back" onclick="history.back()">← 홈</button>
       <div class="hero-title">처방 통계 추이</div>
       <p class="subtext">지역별 · 성분별 · 품목별 비교</p>
       <div class="tabs" id="statTypeTabs">
@@ -311,25 +301,24 @@
 </div>
 
 <script>
-/* ===== 샘플 데이터 ===== */
 function normalizeDrugName(n) {
   if (!n) return '';
 
   return String(n)
     .toLowerCase()
-    .replace(/_.*$/g, '')                 // _(20mg/1정) 같은 뒤쪽 포장정보 제거
+    .replace(/_.*$/g, '')
     .replace(/㎎/g, 'mg')
     .replace(/밀리그람/g, 'mg')
     .replace(/밀리그램/g, 'mg')
     .replace(/그램/g, 'g')
     .replace(/밀리리터/g, 'ml')
     .replace(/리터/g, 'l')
-    .replace(/\s+/g, '')                 // 공백 제거
-    .replace(/[·•ㆍ]/g, '')              // 점류 제거
-    .replace(/[(){}\[\]]/g, '')          // 괄호 문자만 제거, 안의 내용은 살림
-    .replace(/\/+/g, '')                 // 슬래시 제거
-    .replace(/-+/g, '')                  // 하이픈 제거
-    .replace(/,+/g, '')                  // 쉼표 제거
+    .replace(/\s+/g, '')
+    .replace(/[·•ㆍ]/g, '')
+    .replace(/[(){}\[\]]/g, '')
+    .replace(/\/+/g, '')
+    .replace(/-+/g, '')
+    .replace(/,+/g, '')
     .trim();
 }
 
@@ -339,10 +328,8 @@ function getDrugPrice(itemName) {
 
   const raw = String(itemName);
   const name = normalizeDrugName(raw);
-
-  // 비교용 보조 키
-  const nameNoParenText = normalizeDrugName(raw.replace(/\(.*?\)/g, '')); // 괄호 내용 통째 제거 버전
-  const nameHead = name.split(/mg|g|ml|l/)[0]; // 용량 앞부분까지만
+  const nameNoParenText = normalizeDrugName(raw.replace(/\(.*?\)/g, ''));
+  const nameHead = name.split(/mg|g|ml|l/)[0];
 
   let best = null;
   let bestScore = -1;
@@ -355,19 +342,12 @@ function getDrugPrice(itemName) {
 
     let score = 0;
 
-    // 1. 완전일치
     if (dbName === name) score = 100;
     else if (dbNoParenText === nameNoParenText) score = 95;
-
-    // 2. 앞부분 일치
     else if (dbName.startsWith(name) || name.startsWith(dbName)) score = 90;
     else if (dbNoParenText.startsWith(nameNoParenText) || nameNoParenText.startsWith(dbNoParenText)) score = 85;
-
-    // 3. 용량 전 핵심명 일치
     else if (dbHead && nameHead && (dbHead === nameHead)) score = 80;
     else if (dbHead && nameHead && (dbHead.startsWith(nameHead) || nameHead.startsWith(dbHead))) score = 75;
-
-    // 4. 포함 일치
     else if (dbName.includes(name) || name.includes(dbName)) score = 70;
     else if (dbNoParenText.includes(nameNoParenText) || nameNoParenText.includes(dbNoParenText)) score = 65;
 
@@ -379,6 +359,7 @@ function getDrugPrice(itemName) {
 
   return best && bestScore >= 65 ? best.p.toLocaleString() + '원' : '-';
 }
+
 const DRUGS = [
   { id:1, name:'케이캡정 50mg', ingredient:'테고프라잔', company:'HK이노엔', type:'P-CAB', price:850, insurance:'급여', code:'215700ATB', icd:['K21','K25','K26','K29'], fda:'미승인 (국내 허가)', form:'정', efcy:'위식도역류질환(GERD), 위궤양, 헬리코박터 제균요법', useMethod:'1일 1회, 1정 경구투여 (50mg)', risks:[{level:'low',text:'GERD(K21) 상병 코드 정확히 기재 시 삭감 위험 낮음'},{level:'mid',text:'상병코드 없이 장기 처방 시 심사 주의'},{level:'high',text:'헬리코박터 제균 목적 외 PPI 병용 처방 시 삭감 가능'}], comps:[2,3,4,5], mrPoints:['P-CAB 계열로 PPI 대비 산 억제 속도 2배, 야간 산 돌파 없음','헬리코박터 제균 1차요법 병용 가능 — 처방 확장 포인트','국내 임상 데이터 풍부, 오리지널 강점 강조'] },
   { id:2, name:'파리에트정 10mg', ingredient:'라베프라졸나트륨', company:'에자이', type:'PPI', price:650, insurance:'급여', code:'196600ATB', icd:['K21','K25','K27','K29','K30'], fda:'승인 (GERD)', form:'정', efcy:'위식도역류질환, 위궤양, 십이지장궤양, 비스테로이드 소염제 투여 환자', useMethod:'1일 1회 10mg~20mg, 4~8주 투여', risks:[{level:'low',text:'표준 GERD 처방 시 삭감 위험 낮음'},{level:'mid',text:'BID 처방은 내시경 검사 결과 있어야 인정'},{level:'high',text:'타과 장기 처방 시 심사 위험 존재'}], comps:[1,3,4,5], mrPoints:['라베프라졸 오리지널 — 제네릭 대비 흡수 안정성 우위','NSAIDs 병용 환자 위 보호 처방 확대 가능','10mg/20mg 용량 선택 폭 넓음'] },
@@ -412,23 +393,38 @@ let statType = 'region';
 let searchTimer = null;
 let _apiResults = [];
 let _prevScreen = 'screen2';
+let _isPopState = false;
 
-/* ===== 네비게이션 ===== */
-function goScreen(id, label) {
+const SCREEN_LABELS = {
+  screen1: '홈',
+  screen2: '약품 검색',
+  screen3: '약품 상세',
+  screen_icd: '상병코드',
+  screen_comp: '경쟁품 비교',
+  screen_cut: '삭감 조회',
+  screen_stat: '처방 통계'
+};
+
+function goScreen(id, label, push = true) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   document.getElementById('stepChip').textContent = label;
+
   if (id === 'screen_stat') renderStat();
+
+  if (push && !_isPopState) {
+    history.pushState({ screen: id, label }, '', `#${id}`);
+  }
+
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function goDetail(prevScreen, prevLabel) {
+function goDetail(prevScreen, prevLabel, push = true) {
   _prevScreen = prevScreen;
-  document.getElementById('backBtn').onclick = () => goScreen(prevScreen, prevLabel);
-  goScreen('screen3', '약품 상세');
+  document.getElementById('backBtn').onclick = () => history.back();
+  goScreen('screen3', '약품 상세', push);
 }
 
-/* ===== 약품 검색 ===== */
 function setSearchType(type, el) {
   searchType = type;
   document.querySelectorAll('#screen2 .tab-btn').forEach(b => b.classList.remove('active'));
@@ -501,7 +497,6 @@ function renderDrugListLocal(q, el) {
     </div>`).join('');
 }
 
-/* ===== 약품 상세 (API) ===== */
 async function showDrugAPI(idx) {
   const item = _apiResults[idx];
   if (!item) return;
@@ -517,7 +512,6 @@ async function showDrugAPI(idx) {
   const atpnWarn = (item.atpnWarnQesitm || '').replace(/<[^>]+>/g,'').trim();
   const depositMethod = (item.depositMethodQesitm || '').replace(/<[^>]+>/g,'').trim();
 
-  // 경쟁품: 같은 성분명 포함 다른 약품
   const ingrKey = ingr.split('(')[0].split('/')[0].trim().toLowerCase().substring(0,6);
   const compItems = _apiResults.filter((it, i) => {
     if (i === idx) return false;
@@ -536,13 +530,11 @@ async function showDrugAPI(idx) {
       </div>
     </div>
 
-    <!-- AI 요약 -->
     <div class="ai-card" id="aiSummaryCard">
       <div class="ai-card-title">🤖 AI 요약 <span style="font-weight:400;color:var(--sub);font-size:0.72rem;">생성 중...</span></div>
       <div class="ai-card-body loading-dot" id="aiSummaryBody">분석 중입니다...</div>
     </div>
 
-    <!-- MR 면담 포인트 -->
     <div class="mr-card" id="mrPointCard">
       <div class="mr-card-title">💼 MR 면담 포인트 <span style="font-weight:400;color:#92400e;font-size:0.72rem;">생성 중...</span></div>
       <div id="mrPointBody" class="loading-dot" style="font-size:0.86rem;color:var(--sub);">분석 중입니다...</div>
@@ -600,22 +592,18 @@ async function showDrugAPI(idx) {
 
   goDetail('screen2', '약품 검색');
 
-  // 약가 먼저 즉시 표시
   const priceEl = document.getElementById('drugPriceValue');
   if (priceEl) {
     priceEl.textContent = getDrugPrice(name);
   }
 
-  // AI 요약 + MR 포인트 비동기 생성
   fetchAISummary(name, ingr, company, efcy, useMethod);
 
-  // 로컬 약가가 없을 때만 AI 보조
   if (priceEl && priceEl.textContent === '-') {
     fetchDrugPriceAI(name, ingr);
   }
 }
 
-/* ===== AI 요약 (Claude API) ===== */
 async function fetchDrugPriceAI(name, ingr) {
   const localPrice = getDrugPrice(name);
   const el = document.getElementById('drugPriceValue');
@@ -648,6 +636,7 @@ const res = await fetch('/api/ai', {
     el.textContent = '-';
   }
 }
+
 async function fetchAISummary(name, ingr, company, efcy, useMethod) {
   try {
     const prompt = `당신은 제약 영업사원(MR) 전문 AI입니다.
@@ -710,7 +699,6 @@ const res = await fetch('/api/ai', {
   }
 }
 
-/* ===== 약품 상세 (샘플) ===== */
 function showDrug(id) {
   const d = DRUGS.find(x => x.id === id);
   if (!d) return;
@@ -728,13 +716,11 @@ function showDrug(id) {
       </div>
     </div>
 
-    <!-- AI 요약 (샘플) -->
     <div class="ai-card">
       <div class="ai-card-title">🤖 AI 요약</div>
       <div class="ai-card-body">${getSampleAISummary(d)}</div>
     </div>
 
-    <!-- MR 면담 포인트 -->
     <div class="mr-card">
       <div class="mr-card-title">💼 MR 면담 포인트</div>
       ${d.mrPoints.map((p, i) => `
@@ -817,7 +803,6 @@ function getSampleAISummary(d) {
   return map[d.id] || `${d.name}에 대한 AI 요약입니다.`;
 }
 
-/* ===== 차트 ===== */
 function drawChart(drugId) {
   const data = TREND_DATA[drugId];
   if (!data) return '';
@@ -855,7 +840,6 @@ function drawChart(drugId) {
     </div>`;
 }
 
-/* ===== 처방 통계 ===== */
 function setStatType(type, el) {
   statType = type;
   document.querySelectorAll('#statTypeTabs .tab-btn').forEach(b => b.classList.remove('active'));
@@ -947,7 +931,6 @@ function renderStat() {
   }
 }
 
-/* ===== 상병코드 ===== */
 function searchICD() {
   const q = document.getElementById('icdSearch').value.trim().toLowerCase();
   const el = document.getElementById('icdResults');
@@ -969,7 +952,6 @@ function searchICD() {
   }).join('');
 }
 
-/* ===== 경쟁품 비교 ===== */
 function searchComp() {
   const q = document.getElementById('compSearch').value.trim().toLowerCase();
   const el = document.getElementById('compResults');
@@ -979,7 +961,6 @@ function searchComp() {
   searchTimer = setTimeout(async () => {
     el.innerHTML = '<div class="empty-text loading-dot">검색 중... ⏳</div>';
 
-    // API에서 먼저 검색
     try {
       const res = await fetch(`https://drug-ede5bi7c3q-du.a.run.app?name=${encodeURIComponent(q)}`);
       const data = await res.json();
@@ -987,7 +968,6 @@ function searchComp() {
 
       if (items.length > 0) {
         _apiResults = items;
-        // 첫번째 결과 기준으로 동일성분 그룹핑
         const base = items[0];
         const baseIngr = (base.INGR_NAME_KOR || base.ingrNameKor || '').split('(')[0].split('/')[0].trim().toLowerCase().substring(0,6);
         const sameIngr = items.filter((it, i) => {
@@ -1039,7 +1019,6 @@ function searchComp() {
       }
     } catch(e) {}
 
-    // fallback: 샘플 데이터
     const base = DRUGS.find(d => d.name.toLowerCase().includes(q) || d.ingredient.toLowerCase().includes(q) || d.type.toLowerCase().includes(q));
     if (!base) { el.innerHTML = '<div class="empty-text">검색 결과가 없습니다</div>'; return; }
     const sameIngredient = DRUGS.filter(d => d.ingredient === base.ingredient && d.id !== base.id);
@@ -1060,7 +1039,6 @@ function searchComp() {
   }, 350);
 }
 
-/* ===== 삭감 조회 ===== */
 function searchCut() {
   const q = document.getElementById('cutSearch').value.trim().toLowerCase();
   const el = document.getElementById('cutResults');
@@ -1077,7 +1055,6 @@ function searchCut() {
     </div>`).join('');
 }
 
-/* ===== 히어로 메시지 ===== */
 const MSGS = ['아맞다! FDA 승인 받았었나? 🤔','진짜 유사제품이 없을까? 🔍','또 약가인하된거 아닌가? 💸','삭감?? 헷갈려 😅','아 행정처분 언제 받았지? 😬','임상재평가는 어떻게 되지? 🧪'];
 const msgEl = document.getElementById('heroMsg');
 let msgIdx = 0;
@@ -1087,6 +1064,39 @@ setInterval(() => {
   msgEl.style.opacity = '0';
   setTimeout(() => { msgIdx = (msgIdx+1)%MSGS.length; msgEl.textContent = MSGS[msgIdx]; msgEl.style.opacity = '1'; }, 500);
 }, 3000);
+
+window.addEventListener('popstate', (event) => {
+  const state = event.state;
+
+  if (!state || !state.screen) {
+    _isPopState = true;
+    goScreen('screen1', '홈', false);
+    _isPopState = false;
+    return;
+  }
+
+  _isPopState = true;
+
+  if (state.screen === 'screen3') {
+    goDetail(_prevScreen, SCREEN_LABELS[_prevScreen] || '약품 검색', false);
+  } else {
+    goScreen(state.screen, state.label || SCREEN_LABELS[state.screen] || '홈', false);
+  }
+
+  _isPopState = false;
+});
+
+window.addEventListener('load', () => {
+  const hash = location.hash.replace('#', '');
+  const firstScreen = hash && document.getElementById(hash) ? hash : 'screen1';
+  const firstLabel = SCREEN_LABELS[firstScreen] || '홈';
+
+  history.replaceState({ screen: firstScreen, label: firstLabel }, '', firstScreen === 'screen1' ? location.pathname : `#${firstScreen}`);
+
+  if (firstScreen !== 'screen1') {
+    goScreen(firstScreen, firstLabel, false);
+  }
+});
 </script>
 </body>
 </html>

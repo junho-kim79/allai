@@ -801,7 +801,7 @@
     <div class="search-area">
       <div class="search-box">
         <span class="search-icon">🔍</span>
-        <input class="search-input" id="homeSearch" placeholder="제품명, 성분명, 보험코드" />
+        <input class="search-input" id="homeSearch" placeholder="제품명, 성분명, 보험코드" autofocus />
         <button class="search-btn" onclick="doHomeSearch()">검색</button>
       </div>
     </div>
@@ -830,7 +830,7 @@
         <div class="menu-name">상병코드</div>
         <div class="menu-desc">질환명으로 관련 약품 확인</div>
       </button>
-      <button class="menu-card c-yellow" onclick="goScreen('screen_comp','경쟁품 비교')">
+      <button class="menu-card c-yellow" onclick="goScreen('screen_comp','경쟁품 비교');initCompare();">
         <div class="menu-icon">⚔️</div>
         <div class="menu-name">경쟁품 비교</div>
         <div class="menu-desc">성분·계열별 한눈에 비교</div>
@@ -847,6 +847,17 @@
       </button>
     </div>
 
+    <!-- 통계 카운터 -->
+    <div style="margin:20px 16px 0;display:flex;gap:12px;">
+      <div style="flex:1;background:rgba(255,255,255,0.85);border:1px solid rgba(180,140,80,0.10);border-radius:var(--r-md);padding:14px;text-align:center;box-shadow:var(--shadow-sm);">
+        <div style="font-size:1.3rem;font-weight:900;letter-spacing:-0.03em;color:var(--g1);" id="statUsers">—</div>
+        <div style="font-size:0.7rem;color:var(--sub2);margin-top:3px;font-weight:500;">사용자 수</div>
+      </div>
+      <div style="flex:1;background:rgba(255,255,255,0.85);border:1px solid rgba(180,140,80,0.10);border-radius:var(--r-md);padding:14px;text-align:center;box-shadow:var(--shadow-sm);">
+        <div style="font-size:1.3rem;font-weight:900;letter-spacing:-0.03em;color:var(--g1);" id="statSearches">—</div>
+        <div style="font-size:0.7rem;color:var(--sub2);margin-top:3px;font-weight:500;">검색 조회수</div>
+      </div>
+    </div>
     <!-- 피드백 -->
     <div class="feedback-bar">
       <span class="feedback-text">📬 의견·버그 제보</span>
@@ -886,6 +897,11 @@
           <div style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-size:0.7rem;font-weight:800;border-radius:999px;padding:5px 12px;box-shadow:0 4px 12px rgba(245,158,11,0.35);white-space:nowrap;">상담 문의</div>
         </div>
       </div>
+    </div>
+    <div style="margin:20px 16px 0;padding-top:20px;border-top:1px solid rgba(180,140,80,0.10);text-align:center;font-size:0.7rem;color:var(--sub2);line-height:1.9;">
+      면담 1분 전, 필요한 정보만 제공합니다.<br>
+      더 깊은 정보는 전문 DB 유료 사이트를 이용해 주세요.<br>
+      <span style="color:#bbb;">※ 본 서비스는 참고용 정보입니다.</span>
     </div>
     <div style="height:24px;"></div>
 
@@ -949,25 +965,30 @@
     </div>
   </div>
 
-  <!-- ═══════════════ 경쟁품 비교 ═══════════════ -->
+<!-- ═══════════════ 경쟁품 비교 ═══════════════ -->
   <div class="screen" id="screen_comp">
     <div class="back-bar">
       <button class="back-btn" onclick="history.back()">← 홈</button>
     </div>
     <div style="padding:0 16px 14px;">
       <div style="font-size:1.3rem;font-weight:900;letter-spacing:-0.04em;">경쟁품 비교</div>
-      <div style="font-size:0.85rem;color:var(--sub);margin-top:4px;">성분·계열로 경쟁제품 비교</div>
+      <div style="font-size:0.85rem;color:var(--sub);margin-top:4px;">최대 3개 제품 비교</div>
     </div>
-    <div class="search-area">
-      <div class="search-box">
-        <span class="search-icon">🔍</span>
-        <input class="search-input" id="compSearch" placeholder="예) 라베프라졸, PPI, 케이캡" oninput="searchComp()" />
-        <button class="search-btn" onclick="searchComp()">검색</button>
+    <div style="padding:0 16px;">
+      <div id="compareSlots" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;"></div>
+      <div id="compareTable"></div>
+    </div>
+
+    <!-- 약품 선택 모달 -->
+    <div id="compModalOverlay" onclick="closeCompModalIfBg(event)" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;align-items:flex-end;justify-content:center;">
+      <div style="width:100%;max-width:430px;max-height:85vh;background:var(--bg);border-radius:var(--r-xl) var(--r-xl) 0 0;padding:16px 16px 40px;overflow-y:auto;animation:slideUp 0.22s ease;">
+        <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px;"></div>
+        <div class="search-box" style="margin-bottom:12px;">
+          <span class="search-icon">🔍</span>
+          <input class="search-input" id="compModalSearch" placeholder="약품명 검색" autocomplete="off" oninput="renderCompModalList(this.value)" />
+        </div>
+        <div id="compModalList"></div>
       </div>
-    </div>
-    <div style="height:12px;"></div>
-    <div class="result-wrap" id="compResults">
-      <div class="empty">성분명 또는 약품명을 입력해주세요</div>
     </div>
   </div>
 
@@ -1027,11 +1048,11 @@
    DATA
 ════════════════════════════════════════ */
 const DRUGS = [
-  { id:1, name:'케이캡정 50mg', ingredient:'테고프라잔', company:'HK이노엔', type:'P-CAB', price:850, insurance:'급여', code:'215700ATB', icd:['K21','K25','K26','K29'], fda:'미승인 (국내 허가)', form:'정', efcy:'위식도역류질환(GERD), 위궤양, 헬리코박터 제균요법', useMethod:'1일 1회, 1정 경구투여 (50mg)', risks:[{level:'low',text:'GERD(K21) 상병코드 정확히 기재 시 삭감 위험 낮음'},{level:'mid',text:'상병코드 없이 장기 처방 시 심사 주의'},{level:'high',text:'헬리코박터 제균 목적 외 PPI 병용 처방 시 삭감 가능'}], comps:[2,3,4,5], mrPoints:['P-CAB 계열로 PPI 대비 산 억제 속도 2배, 야간 산 돌파 없음','헬리코박터 제균 1차요법 병용 가능 — 처방 확장 포인트','국내 임상 데이터 풍부, 오리지널 강점 강조'] },
-  { id:2, name:'파리에트정 10mg', ingredient:'라베프라졸나트륨', company:'에자이', type:'PPI', price:650, insurance:'급여', code:'196600ATB', icd:['K21','K25','K27','K29','K30'], fda:'승인 (GERD)', form:'정', efcy:'위식도역류질환, 위궤양, 십이지장궤양, NSAIDs 병용 환자', useMethod:'1일 1회 10mg~20mg, 4~8주 투여', risks:[{level:'low',text:'표준 GERD 처방 시 삭감 위험 낮음'},{level:'mid',text:'BID 처방은 내시경 검사 결과 있어야 인정'},{level:'high',text:'타과 장기 처방 시 심사 위험 존재'}], comps:[1,3,4,5], mrPoints:['라베프라졸 오리지널 — 제네릭 대비 흡수 안정성 우위','NSAIDs 병용 환자 위 보호 처방 확대 가능','10mg/20mg 용량 선택 폭 넓음'] },
-  { id:3, name:'라베린정 10mg', ingredient:'라베프라졸나트륨', company:'일양약품', type:'PPI', price:454, insurance:'급여', code:'200401ATB', icd:['K21','K25','K27','K29'], fda:'해당없음 (제네릭)', form:'정', efcy:'위식도역류질환, 위궤양 (라베프라졸 동일성분 제네릭)', useMethod:'1일 1회 10mg, 경구투여', risks:[{level:'low',text:'동일성분 오리지널 대비 저가 — 삭감 위험 낮음'},{level:'mid',text:'BID 처방 시 적응증 명확해야 함'}], comps:[1,2,4,5], mrPoints:['파리에트 동일성분 30% 저가 — 약가 민감 거래처 공략','국내사 제품으로 유통 신뢰도 강조 가능','저가 입찰 병원 공략 시 우선 제안'] },
-  { id:4, name:'넥시움정 20mg', ingredient:'에소메프라졸마그네슘삼수화물', company:'아스트라제네카', type:'PPI', price:720, insurance:'급여', code:'197800ATB', icd:['K21','K25','K26','K29','K30'], fda:'승인 (GERD, 헬리코박터)', form:'정', efcy:'위식도역류질환, 위궤양, 헬리코박터 제균, 졸링거-엘리슨 증후군', useMethod:'1일 1회 20mg~40mg, 식사 1시간 전 투여', risks:[{level:'low',text:'FDA 승인 적응증 내 처방 시 안전'},{level:'mid',text:'40mg 고용량 장기 처방 시 심사 주의'}], comps:[1,2,3,5], mrPoints:['글로벌 PPI 1위 — 논문 근거 압도적','헬리코박터 3제요법 기준약 지위','졸링거-엘리슨 등 희귀 적응증 유일 급여'] },
-  { id:5, name:'란스톤캡슐 30mg', ingredient:'란소프라졸', company:'일동제약', type:'PPI', price:520, insurance:'급여', code:'193700ACE', icd:['K21','K25','K27'], fda:'승인 (GERD)', form:'캡슐', efcy:'위식도역류질환, 위궤양, 십이지장궤양', useMethod:'1일 1회 30mg, 경구투여 4~8주', risks:[{level:'low',text:'표준 처방 범위 내 삭감 위험 낮음'},{level:'mid',text:'중복 PPI 처방 시 삭감 주의'}], comps:[1,2,3,4], mrPoints:['캡슐 제형으로 연하곤란 환자 복약순응도 우위','국내사 오리지널 — 로컬 영업 신뢰 활용','저렴한 약가로 장기처방 환자 경제적 부담 낮음'] }
+  { id:1, name:'케이캡정 50mg', ingredient:'테고프라잔', company:'HK이노엔', type:'P-CAB', price:850, insurance:'급여', code:'215700ATB', pack:'30정/박스', icd:['K21','K25','K26','K29'], fda:'미승인 (국내 허가)', form:'정', efcy:'위식도역류질환(GERD), 위궤양, 헬리코박터 제균요법', useMethod:'1일 1회, 1정 경구투여 (50mg)', risks:[{level:'low',text:'GERD(K21) 상병코드 정확히 기재 시 삭감 위험 낮음'},{level:'mid',text:'상병코드 없이 장기 처방 시 심사 주의'},{level:'high',text:'헬리코박터 제균 목적 외 PPI 병용 처방 시 삭감 가능'}], comps:[2,3,4,5], mrPoints:['P-CAB 계열로 PPI 대비 산 억제 속도 2배, 야간 산 돌파 없음','헬리코박터 제균 1차요법 병용 가능 — 처방 확장 포인트','국내 임상 데이터 풍부, 오리지널 강점 강조'] },
+  { id:2, name:'파리에트정 10mg', ingredient:'라베프라졸나트륨', company:'에자이', type:'PPI', price:650, insurance:'급여', code:'196600ATB', pack:'28정/박스', icd:['K21','K25','K27','K29','K30'], fda:'승인 (GERD)', form:'정', efcy:'위식도역류질환, 위궤양, 십이지장궤양, NSAIDs 병용 환자', useMethod:'1일 1회 10mg~20mg, 4~8주 투여', risks:[{level:'low',text:'표준 GERD 처방 시 삭감 위험 낮음'},{level:'mid',text:'BID 처방은 내시경 검사 결과 있어야 인정'},{level:'high',text:'타과 장기 처방 시 심사 위험 존재'}], comps:[1,3,4,5], mrPoints:['라베프라졸 오리지널 — 제네릭 대비 흡수 안정성 우위','NSAIDs 병용 환자 위 보호 처방 확대 가능','10mg/20mg 용량 선택 폭 넓음'] },
+  { id:3, name:'라베린정 10mg', ingredient:'라베프라졸나트륨', company:'일양약품', type:'PPI', price:454, insurance:'급여', code:'200401ATB', pack:'28정/박스', icd:['K21','K25','K27','K29'], fda:'해당없음 (제네릭)', form:'정', efcy:'위식도역류질환, 위궤양 (라베프라졸 동일성분 제네릭)', useMethod:'1일 1회 10mg, 경구투여', risks:[{level:'low',text:'동일성분 오리지널 대비 저가 — 삭감 위험 낮음'},{level:'mid',text:'BID 처방 시 적응증 명확해야 함'}], comps:[1,2,4,5], mrPoints:['파리에트 동일성분 30% 저가 — 약가 민감 거래처 공략','국내사 제품으로 유통 신뢰도 강조 가능','저가 입찰 병원 공략 시 우선 제안'] },
+  { id:4, name:'넥시움정 20mg', ingredient:'에소메프라졸마그네슘삼수화물', company:'아스트라제네카', type:'PPI', price:720, insurance:'급여', code:'197800ATB', pack:'28정/박스', icd:['K21','K25','K26','K29','K30'], fda:'승인 (GERD, 헬리코박터)', form:'정', efcy:'위식도역류질환, 위궤양, 헬리코박터 제균, 졸링거-엘리슨 증후군', useMethod:'1일 1회 20mg~40mg, 식사 1시간 전 투여', risks:[{level:'low',text:'FDA 승인 적응증 내 처방 시 안전'},{level:'mid',text:'40mg 고용량 장기 처방 시 심사 주의'}], comps:[1,2,3,5], mrPoints:['글로벌 PPI 1위 — 논문 근거 압도적','헬리코박터 3제요법 기준약 지위','졸링거-엘리슨 등 희귀 적응증 유일 급여'] },
+  { id:5, name:'란스톤캡슐 30mg', ingredient:'란소프라졸', company:'일동제약', type:'PPI', price:520, insurance:'급여', code:'193700ACE', pack:'30캡슐/박스', icd:['K21','K25','K27'], fda:'승인 (GERD)', form:'캡슐', efcy:'위식도역류질환, 위궤양, 십이지장궤양', useMethod:'1일 1회 30mg, 경구투여 4~8주', risks:[{level:'low',text:'표준 처방 범위 내 삭감 위험 낮음'},{level:'mid',text:'중복 PPI 처방 시 삭감 주의'}], comps:[1,2,3,4], mrPoints:['캡슐 제형으로 연하곤란 환자 복약순응도 우위','국내사 오리지널 — 로컬 영업 신뢰 활용','저렴한 약가로 장기처방 환자 경제적 부담 낮음'] }
 ];
 
 const ICD_DB = [
@@ -1370,6 +1391,7 @@ async function fetchDrug(q) {
     const items = data.items || [];
     if (!items.length) { renderDrugListLocal(q, el); return; }
     _apiResults = items;
+    incSearch();
     el.innerHTML = items.map((item, i) => {
       const name = item.ITEM_NAME || item.itemName || '-';
       const ingr = item.INGR_NAME_KOR || item.ingrNameKor || '';
@@ -1670,6 +1692,7 @@ function showDrug(id) {
       <div class="info-card">
         <div class="info-row"><span class="info-l">약가</span><span class="info-v" style="color:var(--g2);">${d.price}원</span></div>
         <div class="info-row"><span class="info-l">보험코드</span><span class="info-v">${d.code}</span></div>
+        <div class="info-row"><span class="info-l">포장단위</span><span class="info-v">${d.pack||'-'}</span></div>
         <div class="info-row"><span class="info-l">성분</span><span class="info-v">${d.ingredient}</span></div>
         <div class="info-row"><span class="info-l">FDA 승인</span><span class="info-v">${d.fda}</span></div>
         <div class="info-row"><span class="info-l">제형</span><span class="info-v">${d.form}</span></div>
@@ -1792,53 +1815,113 @@ function searchICD() {
 /* ════════════════════════════════════════
    경쟁품 비교
 ════════════════════════════════════════ */
-function searchComp() {
-  const q = document.getElementById('compSearch').value.trim().toLowerCase();
-  const el = document.getElementById('compResults');
-  if (!q) { el.innerHTML = '<div class="empty">성분명 또는 약품명을 입력해주세요</div>'; return; }
-  clearTimeout(searchTimer);
-  searchTimer = setTimeout(async () => {
-    el.innerHTML = `<div class="empty"><div style="display:flex;justify-content:center;gap:6px;margin-bottom:8px;"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div></div>검색 중...</div>`;
-    try {
-      const res = await fetch(`https://drug-ede5bi7c3q-du.a.run.app?name=${encodeURIComponent(q)}`);
-      const data = await res.json();
-      const items = data.items || [];
-      if (items.length > 0) {
-        _apiResults = items;
-        const base = items[0];
-        const baseIngr = (base.INGR_NAME_KOR || base.ingrNameKor || '').split('(')[0].split('/')[0].trim().toLowerCase().substring(0,6);
-        const sameIngr = items.filter((it,i) => i!==0 && (it.INGR_NAME_KOR||it.ingrNameKor||'').toLowerCase().includes(baseIngr));
-        el.innerHTML = `
-          <div class="sec-label" style="padding:0 2px 8px;">기준 약품 <span class="badge bg" style="margin-left:4px;">🌐 실시간</span></div>
-          <div class="comp-item" style="border-color:rgba(0,192,127,0.25);" onclick="showDrugAPI(0)">
-            <div><div class="comp-name">${base.ITEM_NAME||base.itemName}</div><div class="comp-sub">${base.INGR_NAME_KOR||base.ingrNameKor||''} · ${base.ENTP_NAME||base.entpName||''}</div></div>
-            <span class="badge bk">${base.FORM_CODE_NAME||base.formCodeName||''}</span>
-          </div>
-          ${sameIngr.length ? `<div class="sec-label" style="padding:12px 2px 8px;">동일성분 (${sameIngr.length}건)</div>
-          ${sameIngr.slice(0,5).map(c => {
-            const ci = items.indexOf(c);
-            return `<div class="comp-item" onclick="showDrugAPI(${ci})">
-              <div><div class="comp-name">${c.ITEM_NAME||c.itemName}</div><div class="comp-sub">${c.INGR_NAME_KOR||c.ingrNameKor||''} · ${c.ENTP_NAME||c.entpName||''}</div></div>
-              <span class="badge bk">${c.FORM_CODE_NAME||c.formCodeName||''}</span>
-            </div>`;
-          }).join('')}` : ''}`;
-        return;
-      }
-    } catch(e) {}
+let cList = [];
+let addingSlotIdx = -1;
 
-    const base = DRUGS.find(d => d.name.toLowerCase().includes(q) || d.ingredient.toLowerCase().includes(q) || d.type.toLowerCase().includes(q));
-    if (!base) { el.innerHTML = '<div class="empty">검색 결과가 없습니다</div>'; return; }
-    const sameIngr = DRUGS.filter(d => d.ingredient === base.ingredient && d.id !== base.id);
-    const sameType = DRUGS.filter(d => d.type === base.type && d.ingredient !== base.ingredient);
-    el.innerHTML = `
-      <div class="sec-label" style="padding:0 2px 8px;">기준 약품 <span class="badge bk" style="margin-left:4px;">📦 샘플</span></div>
-      <div class="comp-item" style="border-color:rgba(0,192,127,0.25);">
-        <div><div class="comp-name">${base.name}</div><div class="comp-sub">${base.ingredient} · ${base.company}</div></div>
-        <div class="comp-price">${base.price}원</div>
-      </div>
-      ${sameIngr.length ? `<div class="sec-label" style="padding:12px 2px 8px;">동일성분</div>${sameIngr.map(d=>`<div class="comp-item" onclick="showDrug(${d.id})"><div><div class="comp-name">${d.name}</div><div class="comp-sub">${d.ingredient} · ${d.company}</div></div><div class="comp-price">${d.price}원</div></div>`).join('')}` : ''}
-      ${sameType.length ? `<div class="sec-label" style="padding:12px 2px 8px;">동일계열 (${base.type})</div>${sameType.map(d=>`<div class="comp-item" onclick="showDrug(${d.id})"><div><div class="comp-name">${d.name}</div><div class="comp-sub">${d.ingredient} · ${d.company}</div></div><div class="comp-price">${d.price}원</div></div>`).join('')}` : ''}`;
-  }, 350);
+function initCompare() {
+  cList = [];
+  renderCompareSlots();
+  renderCompareTable();
+}
+
+function renderCompareSlots() {
+  const el = document.getElementById('compareSlots');
+  if (!el) return;
+  el.innerHTML = Array.from({length:3}, (_,i) => {
+    const d = cList[i];
+    return d
+      ? `<div style="border:1.5px solid var(--border);border-radius:var(--r-md);padding:14px 16px;display:flex;align-items:center;gap:12px;background:var(--card);box-shadow:var(--shadow-sm);">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--g1);color:#fff;font-size:0.8rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${i+1}</div>
+          <div style="flex:1;">
+            <div style="font-size:0.92rem;font-weight:700;">${d.name}</div>
+            <div style="font-size:0.78rem;color:var(--sub);margin-top:2px;">${d.ingredient} · ${d.company}</div>
+          </div>
+          <button onclick="removeCompare(${d.id})" style="background:none;border:none;cursor:pointer;color:var(--sub2);font-size:0.8rem;padding:4px 8px;border-radius:4px;font-family:inherit;">✕</button>
+        </div>`
+      : `<div onclick="openCompModal(${i})" style="border:1.5px dashed var(--border);border-radius:var(--r-md);padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;min-height:64px;transition:border-color 0.15s;" onmouseover="this.style.borderColor='var(--g1)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="width:28px;height:28px;border-radius:50%;background:#F1F3F4;color:var(--sub);font-size:0.8rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${i+1}</div>
+          <div style="font-size:0.85rem;color:var(--sub2);">+ 비교 제품 추가</div>
+        </div>`;
+  }).join('');
+}
+
+function removeCompare(id) {
+  cList = cList.filter(x => x.id !== id);
+  renderCompareSlots();
+  renderCompareTable();
+}
+
+function renderCompareTable() {
+  const el = document.getElementById('compareTable');
+  if (!el || !cList.length) { if(el) el.innerHTML=''; return; }
+  const rows = [
+    {lbl:'성분', fn: d=>d.ingredient},
+    {lbl:'회사', fn: d=>d.company},
+    {lbl:'계열', fn: d=>d.type},
+    {lbl:'약가', fn: d=>d.price.toLocaleString()+'원'},
+    {lbl:'보험', fn: d=>d.insurance},
+    {lbl:'FDA',  fn: d=>d.fda.includes('승인')&&!d.fda.includes('미승인')?'✅ 승인':'❌ 미승인'},
+    {lbl:'제형', fn: d=>d.form},
+    {lbl:'주적응증', fn: d=>d.efcy.substring(0,25)+'…'},
+  ];
+  el.innerHTML = `
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -16px;padding:0 16px;">
+      <table style="width:100%;border-collapse:collapse;font-size:0.82rem;">
+        <thead>
+          <tr>
+            <th style="background:#F8F9FA;padding:10px;text-align:left;font-weight:700;border-bottom:2px solid var(--border);color:var(--sub2);font-size:0.75rem;">항목</th>
+            ${cList.map(d=>`<th style="background:#F8F9FA;padding:10px;text-align:center;font-weight:700;border-bottom:2px solid var(--border);font-size:0.78rem;white-space:nowrap;">${d.name.length>8?d.name.substring(0,8)+'…':d.name}</th>`).join('')}
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(r=>`
+            <tr>
+              <td style="padding:10px;border-bottom:1px solid var(--border);color:var(--sub);font-weight:600;white-space:nowrap;">${r.lbl}</td>
+              ${cList.map(d=>`<td style="padding:10px;border-bottom:1px solid var(--border);text-align:center;line-height:1.5;">${r.fn(d)}</td>`).join('')}
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function openCompModal(slotIdx) {
+  addingSlotIdx = slotIdx;
+  const overlay = document.getElementById('compModalOverlay');
+  overlay.style.display = 'flex';
+  document.getElementById('compModalSearch').value = '';
+  renderCompModalList('');
+  setTimeout(() => document.getElementById('compModalSearch').focus(), 100);
+}
+
+function closeCompModalIfBg(e) {
+  if (e.target === document.getElementById('compModalOverlay')) {
+    document.getElementById('compModalOverlay').style.display = 'none';
+  }
+}
+
+function renderCompModalList(q) {
+  const el = document.getElementById('compModalList');
+  const query = q.trim().toLowerCase();
+  const drugs = query
+    ? DRUGS.filter(d => d.name.toLowerCase().includes(query) || d.ingredient.toLowerCase().includes(query))
+    : DRUGS;
+  el.innerHTML = drugs.map(d => `
+    <div onclick="selectForCompare(${d.id})" style="padding:12px 4px;border-bottom:1px solid var(--border);cursor:pointer;" onmouseover="this.style.background='#FAFAFA'" onmouseout="this.style.background=''">
+      <div style="font-weight:700;font-size:0.9rem;">${d.name}</div>
+      <div style="font-size:0.78rem;color:var(--sub);margin-top:2px;">${d.ingredient} · ${d.company} · ${d.type}</div>
+    </div>`).join('');
+}
+
+function selectForCompare(id) {
+  const d = DRUGS.find(x => x.id === id);
+  if (!d || cList.find(x => x.id === id)) {
+    document.getElementById('compModalOverlay').style.display = 'none';
+    return;
+  }
+  if (cList.length < 3) cList.push(d);
+  document.getElementById('compModalOverlay').style.display = 'none';
+  renderCompareSlots();
+  renderCompareTable();
 }
 
 /* ════════════════════════════════════════
@@ -1988,8 +2071,18 @@ if (savedEmail) {
 /* ════════════════════════════════════════
    초기화
 ═════════════════════════════════════════ */
+/* ════════════════════════════════════════
+   통계
+════════════════════════════════════════ */
+const SKEY = 'allai_stats';
+function getStats() { try { return JSON.parse(localStorage.getItem(SKEY)||'{"users":128,"searches":2341}'); } catch { return {users:128,searches:2341}; } }
+function incSearch() { const s=getStats(); s.searches=(s.searches||0)+1; localStorage.setItem(SKEY,JSON.stringify(s)); renderStats(); }
+function renderStats() { const s=getStats(); const ue=document.getElementById('statUsers'); const se=document.getElementById('statSearches'); if(ue) ue.textContent=s.users.toLocaleString()+'명'; if(se) se.textContent=s.searches.toLocaleString()+'회'; }
+
 renderRecent();
 renderMrSay();
+initCompare();
+renderStats()
 </script>
 </body>
 </html>

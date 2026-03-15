@@ -12,10 +12,15 @@ export default async function handler(req, res) {
   }
 
   try {
-    const DEEPSEEK_KEY = process.env.API_KEY_DEEPSEEK;
+    const DEEPSEEK_KEY =
+      process.env.DEEPSEEK_API_KEY || process.env.API_KEY_DEEPSEEK;
 
     if (!DEEPSEEK_KEY) {
-      return res.status(500).json({ error: "API_KEY_DEEPSEEK 없음" });
+      return res.status(500).json({
+        error: "DeepSeek 환경변수 없음",
+        has_DEEPSEEK_API_KEY: !!process.env.DEEPSEEK_API_KEY,
+        has_API_KEY_DEEPSEEK: !!process.env.API_KEY_DEEPSEEK
+      });
     }
 
     const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
@@ -53,17 +58,16 @@ export default async function handler(req, res) {
       data = JSON.parse(rawText);
     } catch {
       return res.status(500).json({
-        error: "DeepSeek 응답 JSON 파싱 실패",
+        error: "DeepSeek 응답 파싱 실패",
         detail: rawText
       });
     }
 
     const text = data?.choices?.[0]?.message?.content?.trim() || "";
     return res.status(200).json({ text });
-
   } catch (e) {
     return res.status(500).json({
-      error: "서버 내부 오류",
+      error: "server catch",
       detail: e.message
     });
   }

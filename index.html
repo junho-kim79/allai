@@ -1497,7 +1497,8 @@ async function showDrugAPI(idx) {
         <div class="info-row"><span class="info-l">제형</span><span class="info-v">${form}</span></div>
         <div class="info-row"><span class="info-l">허가일</span><span class="info-v">${permitDate}</span></div>
         <div class="info-row"><span class="info-l">전문/일반</span><span class="info-v">${etcOtc}</span></div>
-        <div class="info-row"><span class="info-l">FDA 승인</span><span class="info-v" id="fdaVal">${cached ? (cached.fda || '-') : '<span style="color:var(--sub2);font-weight:400;">조회 중...</span>'}</span></div>
+        <div class="info-row"><span class="info-l">임상재평가 <span style="font-size:0.68rem;font-weight:600;color:var(--sub2);">AI참고</span></span><span class="info-v" id="clinicalVal">${cached ? (cached.clinical || '-') : '<span style="color:var(--sub2);font-weight:400;">조회 중...</span>'}</span></div>
+        <div class="info-row"><span class="info-l">FDA 승인 <span style="font-size:0.68rem;font-weight:600;color:var(--sub2);">AI참고</span></span><span class="info-v" id="fdaVal">${cached ? (cached.fda || '-') : '<span style="color:var(--sub2);font-weight:400;">조회 중...</span>'}</span></div>
       </div>
     </div>
 
@@ -1569,9 +1570,12 @@ async function fetchAISummary(name, ingr, company, efcy, useMethod, cacheKey) {
 면담 시 의사에게 강조할 포인트 3가지를 번호 목록으로. 각 1~2문장.
 
 [FDA]
-이 약품의 FDA 승인 여부를 한 줄로. 예) "승인 (GERD, 소화성궤양)" 또는 "미승인 (국내 허가)" 또는 "성분 FDA 승인, 해당 제품은 국내 허가". 모르면 "확인 필요".
+이 약품의 FDA 승인 여부를 한 줄로. 예) "승인 (GERD, 소화성궤양)" 또는 "미승인 (국내 허가)". 모르면 "확인 필요".
 
-반드시 [AI_SUMMARY], [MR_POINTS], [FDA] 태그 모두 포함.`;
+[CLINICAL]
+이 약품의 한국 임상재평가 대상 여부를 한 줄로. 예) "재평가 대상 (2024년)" 또는 "해당 없음" 또는 "재평가 완료". 모르면 "확인 필요".
+
+반드시 [AI_SUMMARY], [MR_POINTS], [FDA], [CLINICAL] 태그 모두 포함.`;
 
     const res = await fetch('/api/ai', {
       method:'POST',
@@ -1583,14 +1587,16 @@ async function fetchAISummary(name, ingr, company, efcy, useMethod, cacheKey) {
 
     const summaryMatch = text.match(/\[AI_SUMMARY\]([\s\S]*?)(?=\[MR_POINTS\]|$)/);
     const mrMatch = text.match(/\[MR_POINTS\]([\s\S]*?)(?=\[FDA\]|$)/);
-    const fdaMatch = text.match(/\[FDA\]([\s\S]*?)$/);
+    const fdaMatch = text.match(/\[FDA\]([\s\S]*?)(?=\[CLINICAL\]|$)/);
+    const clinicalMatch = text.match(/\[CLINICAL\]([\s\S]*?)$/);
     const summary = summaryMatch ? summaryMatch[1].trim() : text.substring(0,200);
     const mrRaw = mrMatch ? mrMatch[1].trim() : '';
     const mrPoints = mrRaw.split(/\n?\d+\.\s+/).filter(p => p.trim());
     const fda = fdaMatch ? fdaMatch[1].trim() : '-';
+    const clinical = clinicalMatch ? clinicalMatch[1].trim() : '-';
 
     // 캐시 저장
-    AI_CACHE[cacheKey] = { summary, mrPoints, fda };
+    AI_CACHE[cacheKey] = { summary, mrPoints, fda, clinical };
 
     // UI 업데이트
     const aiBody = document.getElementById('aiBody');
@@ -1598,6 +1604,7 @@ async function fetchAISummary(name, ingr, company, efcy, useMethod, cacheKey) {
     const aiCard = document.getElementById('aiCard');
     const mrCard = document.getElementById('mrCard');
     const fdaEl = document.getElementById('fdaVal');
+    const clinicalEl = document.getElementById('clinicalVal');
 
     if (aiBody) {
       aiBody.textContent = summary;
@@ -1612,6 +1619,10 @@ async function fetchAISummary(name, ingr, company, efcy, useMethod, cacheKey) {
     if (fdaEl) {
       fdaEl.textContent = fda;
       fdaEl.style.color = fda.includes('승인') && !fda.includes('미승인') ? 'var(--g2)' : 'var(--sub)';
+    }
+    if (clinicalEl) {
+      clinicalEl.textContent = clinical;
+      clinicalEl.style.color = clinical.includes('대상') ? 'var(--red)' : clinical.includes('완료') ? 'var(--g2)' : 'var(--sub)';
     }
   } catch(e) {
     const aiBody = document.getElementById('aiBody');

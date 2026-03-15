@@ -1091,10 +1091,12 @@ window.addEventListener('load', () => {
   const firstScreen = hash && document.getElementById(hash) ? hash : 'screen1';
   const firstLabel = SCREEN_LABELS[firstScreen] || '홈';
 
-  history.replaceState({ screen: firstScreen, label: firstLabel }, '', firstScreen === 'screen1' ? location.pathname : `#${firstScreen}`);
+  history.replaceState({ screen: firstScreen, label: firstLabel }, '', `#${firstScreen}`);
 
   if (firstScreen !== 'screen1') {
     goScreen(firstScreen, firstLabel, false);
+  }
+});
   }
 });
 </script>

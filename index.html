@@ -600,10 +600,57 @@ async function showDrugAPI(idx) {
 
   goDetail('screen2', '약품 검색');
 
+  // 약가는 로컬 DB에서 즉시 표시
+  const localPrice = getDrugPrice(name);
+  const priceEl = document.getElementById('drugPriceValue');
+  if (priceEl) {
+    priceEl.textContent = localPrice;
+  }
+
   // AI 요약 + MR 포인트 비동기 생성
   fetchAISummary(name, ingr, company, efcy, useMethod);
-  fetchDrugPriceAI(name, ingr);
+  async function fetchDrugPriceAI(name, ingr) {
+  const el = document.getElementById('drugPriceValue');
+  if (!el) return;
+
+  // 이미 로컬 약가가 있으면 종료
+  if (el.textContent && el.textContent !== '조회 중...' && el.textContent !== '-') {
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/ai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt: `다음 약품의 한국 건강보험 급여 약가를 추정해서 알려주세요.
+숫자와 단위만 아주 짧게 답하세요. 모르면 "모름"이라고만 답하세요.
+
+약품명: ${name}
+성분: ${ingr}`,
+        maxTokens: 80
+      })
+    });
+
+    const data = await res.json();
+    const text = (data?.text || '').trim();
+
+    if (!text || text === '모름') {
+      el.textContent = '-';
+      return;
+    }
+
+    el.textContent = `${text} ⚠️참고용`;
+    el.style.color = 'var(--yellow)';
+  } catch (e) {
+    el.textContent = '-';
+  }
 }
+
+  // 로컬 매칭 실패한 경우에만 AI 보조
+  if (localPrice === '-') {
+    fetchDrugPriceAI(name, ingr);
+  }
 
 /* ===== AI 요약 (Claude API) ===== */
 async function fetchAISummary(name, ingr, company, efcy, useMethod) {

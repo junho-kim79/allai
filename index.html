@@ -852,11 +852,7 @@
         <div class="menu-name">경쟁품 비교</div>
         <div class="menu-desc">성분·계열별 한눈에 비교</div>
       </button>
-      <button class="menu-card c-red" onclick="goScreen('screen_cut','삭감 조회')">
-        <div class="menu-icon">🛡️</div>
-        <div class="menu-name">삭감 조회</div>
-        <div class="menu-desc">처방 전 삭감 위험 확인</div>
-      </button>
+
       <button class="menu-card c-purple" onclick="goScreen('screen_stat','처방 통계')">
         <div class="menu-icon">📈</div>
         <div class="menu-name">처방 통계</div>
@@ -1009,27 +1005,7 @@
     </div>
   </div>
 
-  <!-- ═══════════════ 삭감 조회 ═══════════════ -->
-  <div class="screen" id="screen_cut">
-    <div class="back-bar">
-      <button class="back-btn" onclick="history.back()">← 홈</button>
-    </div>
-    <div style="padding:0 16px 14px;">
-      <div style="font-size:1.3rem;font-weight:900;letter-spacing:-0.04em;">삭감 위험 조회</div>
-      <div style="font-size:0.85rem;color:var(--sub);margin-top:4px;">처방 전 삭감 가능성 확인</div>
-    </div>
-    <div class="search-area">
-      <div class="search-box">
-        <span class="search-icon">🔍</span>
-        <input class="search-input" id="cutSearch" placeholder="예) 라베프라졸, 케이캡" oninput="searchCut()" />
-        <button class="search-btn" onclick="searchCut()">검색</button>
-      </div>
-    </div>
-    <div style="height:12px;"></div>
-    <div class="result-wrap" id="cutResults">
-      <div class="empty">약품명을 입력해주세요</div>
-    </div>
-  </div>
+
 
   <!-- ═══════════════ 처방 통계 ═══════════════ -->
   <div class="screen" id="screen_stat">

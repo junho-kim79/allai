@@ -985,7 +985,7 @@
     </div>
     <div style="padding:0 16px 14px;">
       <div style="font-size:1.3rem;font-weight:900;letter-spacing:-0.04em;">경쟁품 비교</div>
-      <div style="font-size:0.85rem;color:var(--sub);margin-top:4px;">최대 3개 제품 비교</div>
+      <div style="font-size:0.85rem;color:var(--sub);margin-top:4px;">내 제품 + 최대 5개 경쟁품 비교</div>
     </div>
     <div style="padding:0 16px;">
       <div id="compareSlots" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;"></div>
@@ -1514,6 +1514,7 @@ async function showDrugAPI(idx) {
         <div class="info-row"><span class="info-l">전문/일반</span><span class="info-v">${etcOtc}</span></div>
         <div class="info-row"><span class="info-l">임상재평가 <span style="font-size:0.68rem;font-weight:600;color:var(--sub2);">AI참고</span></span><span class="info-v" id="clinicalVal">${cached ? (cached.clinical || '-') : '<span style="color:var(--sub2);font-weight:400;">조회 중...</span>'}</span></div>
         <div class="info-row"><span class="info-l">FDA 승인 <span style="font-size:0.68rem;font-weight:600;color:var(--sub2);">AI참고</span></span><span class="info-v" id="fdaVal">${cached ? (cached.fda || '-') : '<span style="color:var(--sub2);font-weight:400;">조회 중...</span>'}</span></div>
+        ${useMethod ? `<div class="info-row"><span class="info-l">용법용량</span><span class="info-v" style="font-size:0.82rem;">${useMethod.length > 80 ? useMethod.substring(0,80) + '…' : useMethod}</span></div>` : ''}
       </div>
     </div>
 
@@ -1568,29 +1569,58 @@ function renderMrPoints(points) {
   return points.map((p, i) => `<div class="mr-point"><div class="mr-num">${i+1}</div><div class="mr-txt">${p}</div></div>`).join('');
 }
 
+/* 웹서치 헬퍼 */
+async function fetchWebSearch(q) {
+  try {
+    const r = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+    const data = await r.json();
+    return (data.results || []).slice(0, 3);
+  } catch (_) { return []; }
+}
+
 /* AI 요약 (순차 호출) */
 async function fetchAISummary(name, ingr, company, efcy, useMethod, cacheKey) {
   try {
-    const prompt = `당신은 제약 영업사원(MR) 전문 AI입니다.
+    // 실시간 웹서치: 급여/이슈 + 임상재평가 병렬 조회
+    const [insuranceHits, clinicalHits] = await Promise.all([
+      fetchWebSearch(`${name} 급여기준 변경 이슈`),
+      fetchWebSearch(`${name} 임상재평가`)
+    ]);
+
+    const fmtHits = (hits) => hits.length
+      ? hits.map(h => `• ${h.title}: ${h.snippet}`).join('\n')
+      : '검색 결과 없음';
+
+    const prompt = `당신은 한국 제약 MR(의약품 영업사원) 전문 AI입니다. 아래 정보를 바탕으로 정확하고 실용적인 분석을 제공하세요.
+
+[약품 기본 정보]
 약품명: ${name}
 성분: ${ingr}
 제조사: ${company}
-적응증: ${efcy ? efcy.substring(0,200) : '정보없음'}
-용법: ${useMethod ? useMethod.substring(0,150) : '정보없음'}
+적응증: ${efcy ? efcy.substring(0,300) : '정보없음'}
+용법용량: ${useMethod ? useMethod.substring(0,200) : '정보없음'}
+
+[실시간 웹서치 - 급여/이슈]
+${fmtHits(insuranceHits)}
+
+[실시간 웹서치 - 임상재평가]
+${fmtHits(clinicalHits)}
+
+아래 태그를 모두 포함하여 응답하세요:
 
 [AI_SUMMARY]
-계열, 작용기전, 핵심 적응증을 2문장으로 간결하게 요약. MR이 30초 안에 이해할 수 있도록.
+약물 계열·작용기전·핵심 적응증을 2문장으로 요약. MR이 30초 안에 파악할 수 있도록 핵심만.
 
 [MR_POINTS]
-면담 시 의사에게 강조할 포인트 3가지를 번호 목록으로. 각 1~2문장.
+의사 면담 시 강조할 차별화 포인트 3가지를 번호 목록으로. 경쟁품 대비 우위, 최신 급여 이슈, 처방 확대 기회 중심. 각 1~2문장.
 
 [FDA]
-이 약품의 FDA 승인 여부를 한 줄로. 예) "승인 (GERD, 소화성궤양)" 또는 "미승인 (국내 허가)". 모르면 "확인 필요".
+FDA 승인 여부를 한 줄로. 예) "승인 (GERD, 소화성궤양, 2001년)" 또는 "미승인 (국내 허가만)". 확실하지 않으면 "확인 필요".
 
 [CLINICAL]
-이 약품의 한국 임상재평가 대상 여부를 한 줄로. 예) "재평가 대상 (2024년)" 또는 "해당 없음" 또는 "재평가 완료". 모르면 "확인 필요".
+한국 임상재평가 현황을 한 줄로. 위 웹서치 결과 우선 반영. 예) "재평가 대상 (2025년 예정)", "재평가 완료 (2023년, 효능 인정)", "해당 없음 (허가 5년 미만 또는 신약)". 확실하지 않으면 반드시 "확인 필요" 기재.
 
-반드시 [AI_SUMMARY], [MR_POINTS], [FDA], [CLINICAL] 태그 모두 포함.`;
+반드시 [AI_SUMMARY], [MR_POINTS], [FDA], [CLINICAL] 4개 태그 모두 포함.`;
 
     const res = await fetch('/api/ai', {
       method:'POST',
@@ -1704,6 +1734,22 @@ function showDrug(id) {
     </div>
 
     <div class="detail-section">
+      <div class="sec-label">경쟁품 비교</div>
+      ${comps.map(c => `
+        <div class="comp-item" onclick="showDrug(${c.id})">
+          <div>
+            <div class="comp-name">${c.name}</div>
+            <div class="comp-sub">${c.ingredient} · ${c.company}</div>
+            <div class="badges" style="margin-top:6px;">
+              <span class="badge bb" style="font-size:0.7rem;">${c.type}</span>
+              <span class="badge bg" style="font-size:0.7rem;">${c.insurance}</span>
+            </div>
+          </div>
+          <div class="comp-price">${c.price}원</div>
+        </div>`).join('')}
+    </div>
+
+    <div class="detail-section">
       <div class="sec-label">관련 상병코드</div>
       <div style="display:flex;flex-wrap:wrap;padding:0 2px;">
         ${d.icd.map(c => {
@@ -1719,22 +1765,6 @@ function showDrug(id) {
     </div>
 
     ${drawChart(d.id)}
-
-    <div class="detail-section">
-      <div class="sec-label">경쟁품 비교</div>
-      ${comps.map(c => `
-        <div class="comp-item" onclick="showDrug(${c.id})">
-          <div>
-            <div class="comp-name">${c.name}</div>
-            <div class="comp-sub">${c.ingredient} · ${c.company}</div>
-            <div class="badges" style="margin-top:6px;">
-              <span class="badge bb" style="font-size:0.7rem;">${c.type}</span>
-              <span class="badge bg" style="font-size:0.7rem;">${c.insurance}</span>
-            </div>
-          </div>
-          <div class="comp-price">${c.price}원</div>
-        </div>`).join('')}
-    </div>
   `;
 
   goDetail('screen2');
@@ -1809,10 +1839,12 @@ function searchICD() {
 /* ════════════════════════════════════════
    경쟁품 비교
 ════════════════════════════════════════ */
-let cList = [];
-let addingSlotIdx = -1;
+let myProduct = null;   // 내 제품 (1개)
+let cList = [];         // 경쟁품 (최대 5개)
+let addingSlotIdx = -1; // -1 = 내 제품, 0~4 = 경쟁품
 
 function initCompare() {
+  myProduct = null;
   cList = [];
   renderCompareSlots();
   renderCompareTable();
@@ -1821,22 +1853,47 @@ function initCompare() {
 function renderCompareSlots() {
   const el = document.getElementById('compareSlots');
   if (!el) return;
-  el.innerHTML = Array.from({length:3}, (_,i) => {
+
+  // 내 제품 슬롯
+  const mySlot = myProduct
+    ? `<div style="border:2px solid var(--g1);border-radius:var(--r-md);padding:14px 16px;display:flex;align-items:center;gap:12px;background:rgba(45,155,111,0.06);box-shadow:var(--shadow-sm);">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--g1);color:#fff;font-size:0.72rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">내</div>
+        <div style="flex:1;">
+          <div style="font-size:0.92rem;font-weight:700;">${myProduct.name}</div>
+          <div style="font-size:0.78rem;color:var(--sub);margin-top:2px;">${myProduct.ingredient} · ${myProduct.company}</div>
+        </div>
+        <button onclick="removeMyProduct()" style="background:none;border:none;cursor:pointer;color:var(--sub2);font-size:0.8rem;padding:4px 8px;border-radius:4px;font-family:inherit;">✕</button>
+      </div>`
+    : `<div onclick="openCompModal(-1)" style="border:2px dashed var(--g1);border-radius:var(--r-md);padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;min-height:64px;transition:border-color 0.15s;background:rgba(45,155,111,0.03);" onmouseover="this.style.background='rgba(45,155,111,0.08)'" onmouseout="this.style.background='rgba(45,155,111,0.03)'">
+        <div style="width:28px;height:28px;border-radius:50%;background:rgba(45,155,111,0.15);color:var(--g1);font-size:0.72rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">내</div>
+        <div style="font-size:0.85rem;color:var(--g1);font-weight:600;">+ 내 제품 등록</div>
+      </div>`;
+
+  // 경쟁품 슬롯 5개
+  const compSlots = Array.from({length:5}, (_,i) => {
     const d = cList[i];
     return d
       ? `<div style="border:1.5px solid var(--border);border-radius:var(--r-md);padding:14px 16px;display:flex;align-items:center;gap:12px;background:var(--card);box-shadow:var(--shadow-sm);">
-          <div style="width:28px;height:28px;border-radius:50%;background:var(--g1);color:#fff;font-size:0.8rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${i+1}</div>
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--blue);color:#fff;font-size:0.8rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${i+1}</div>
           <div style="flex:1;">
             <div style="font-size:0.92rem;font-weight:700;">${d.name}</div>
             <div style="font-size:0.78rem;color:var(--sub);margin-top:2px;">${d.ingredient} · ${d.company}</div>
           </div>
           <button onclick="removeCompare(${d.id})" style="background:none;border:none;cursor:pointer;color:var(--sub2);font-size:0.8rem;padding:4px 8px;border-radius:4px;font-family:inherit;">✕</button>
         </div>`
-      : `<div onclick="openCompModal(${i})" style="border:1.5px dashed var(--border);border-radius:var(--r-md);padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;min-height:64px;transition:border-color 0.15s;" onmouseover="this.style.borderColor='var(--g1)'" onmouseout="this.style.borderColor='var(--border)'">
+      : `<div onclick="openCompModal(${i})" style="border:1.5px dashed var(--border);border-radius:var(--r-md);padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;min-height:64px;transition:border-color 0.15s;" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border)'">
           <div style="width:28px;height:28px;border-radius:50%;background:#F1F3F4;color:var(--sub);font-size:0.8rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${i+1}</div>
-          <div style="font-size:0.85rem;color:var(--sub2);">+ 비교 제품 추가</div>
+          <div style="font-size:0.85rem;color:var(--sub2);">+ 경쟁품 추가</div>
         </div>`;
   }).join('');
+
+  el.innerHTML = mySlot + compSlots;
+}
+
+function removeMyProduct() {
+  myProduct = null;
+  renderCompareSlots();
+  renderCompareTable();
 }
 
 function removeCompare(id) {
@@ -1847,35 +1904,69 @@ function removeCompare(id) {
 
 function renderCompareTable() {
   const el = document.getElementById('compareTable');
-  if (!el || !cList.length) { if(el) el.innerHTML=''; return; }
+  if (!el) return;
+  const allDrugs = [myProduct, ...cList].filter(Boolean);
+  if (!allDrugs.length) { el.innerHTML = ''; return; }
+
   const rows = [
-    {lbl:'성분', fn: d=>d.ingredient},
-    {lbl:'회사', fn: d=>d.company},
-    {lbl:'계열', fn: d=>d.type},
-    {lbl:'약가', fn: d=>d.price.toLocaleString()+'원'},
-    {lbl:'보험', fn: d=>d.insurance},
-    {lbl:'FDA',  fn: d=>d.fda.includes('승인')&&!d.fda.includes('미승인')?'✅ 승인':'❌ 미승인'},
-    {lbl:'제형', fn: d=>d.form},
-    {lbl:'주적응증', fn: d=>d.efcy.substring(0,25)+'…'},
+    {lbl:'성분',    fn: d=>d.ingredient},
+    {lbl:'회사',    fn: d=>d.company},
+    {lbl:'계열',    fn: d=>d.type},
+    {lbl:'약가',    fn: d=>d.price.toLocaleString()+'원'},
+    {lbl:'보험',    fn: d=>d.insurance},
+    {lbl:'용법용량', fn: d=>d.useMethod||'-'},
+    {lbl:'FDA',     fn: d=>d.fda.includes('승인')&&!d.fda.includes('미승인')?'✅ 승인':'❌ 미승인'},
+    {lbl:'제형',    fn: d=>d.form},
+    {lbl:'주적응증', fn: d=>d.efcy.length>30?d.efcy.substring(0,30)+'…':d.efcy},
   ];
+
+  const myIdx = myProduct ? 0 : -1;
+
   el.innerHTML = `
-    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -16px;padding:0 16px;">
-      <table style="width:100%;border-collapse:collapse;font-size:0.82rem;">
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -16px;padding:0 16px 4px;">
+      <table style="border-collapse:collapse;font-size:0.82rem;min-width:${Math.max(300, allDrugs.length*110+80)}px;">
         <thead>
           <tr>
-            <th style="background:#F8F9FA;padding:10px;text-align:left;font-weight:700;border-bottom:2px solid var(--border);color:var(--sub2);font-size:0.75rem;">항목</th>
-            ${cList.map(d=>`<th style="background:#F8F9FA;padding:10px;text-align:center;font-weight:700;border-bottom:2px solid var(--border);font-size:0.78rem;white-space:nowrap;">${d.name.length>8?d.name.substring(0,8)+'…':d.name}</th>`).join('')}
+            <th style="position:sticky;left:0;background:#F8F9FA;padding:10px 12px;text-align:left;font-weight:700;border-bottom:2px solid var(--border);color:var(--sub2);font-size:0.75rem;white-space:nowrap;z-index:1;">항목</th>
+            ${allDrugs.map((d,i)=>`<th style="background:${i===myIdx?'rgba(45,155,111,0.08)':'#F8F9FA'};padding:10px 12px;text-align:center;font-weight:700;border-bottom:2px solid ${i===myIdx?'var(--g1)':'var(--border)'};font-size:0.78rem;white-space:nowrap;min-width:100px;">${d.name.length>8?d.name.substring(0,8)+'…':d.name}${i===myIdx?'<br><span style="font-size:0.65rem;color:var(--g1);font-weight:600;">내 제품</span>':''}</th>`).join('')}
           </tr>
         </thead>
         <tbody>
           ${rows.map(r=>`
             <tr>
-              <td style="padding:10px;border-bottom:1px solid var(--border);color:var(--sub);font-weight:600;white-space:nowrap;">${r.lbl}</td>
-              ${cList.map(d=>`<td style="padding:10px;border-bottom:1px solid var(--border);text-align:center;line-height:1.5;">${r.fn(d)}</td>`).join('')}
+              <td style="position:sticky;left:0;background:#fff;padding:10px 12px;border-bottom:1px solid var(--border);color:var(--sub);font-weight:600;white-space:nowrap;z-index:1;">${r.lbl}</td>
+              ${allDrugs.map((d,i)=>`<td style="padding:10px 12px;border-bottom:1px solid var(--border);text-align:center;line-height:1.5;background:${i===myIdx?'rgba(45,155,111,0.04)':''};">${r.fn(d)}</td>`).join('')}
             </tr>`).join('')}
         </tbody>
       </table>
-    </div>`;
+    </div>
+    ${allDrugs.length >= 2 ? `<button onclick="exportCompareCSV()" style="margin-top:12px;width:100%;padding:11px;border-radius:var(--r-md);border:1.5px solid var(--border);background:var(--card);font-size:0.85rem;font-weight:700;font-family:inherit;cursor:pointer;color:var(--sub);display:flex;align-items:center;justify-content:center;gap:6px;">📊 엑셀 내보내기</button>` : ''}
+  `;
+}
+
+function exportCompareCSV() {
+  const allDrugs = [myProduct, ...cList].filter(Boolean);
+  if (!allDrugs.length) return;
+  const rows = [
+    ['항목', ...allDrugs.map(d => d.name)],
+    ['성분',  ...allDrugs.map(d => d.ingredient)],
+    ['회사',  ...allDrugs.map(d => d.company)],
+    ['계열',  ...allDrugs.map(d => d.type)],
+    ['약가',  ...allDrugs.map(d => d.price.toLocaleString()+'원')],
+    ['보험',  ...allDrugs.map(d => d.insurance)],
+    ['용법용량', ...allDrugs.map(d => d.useMethod||'-')],
+    ['FDA',   ...allDrugs.map(d => d.fda)],
+    ['제형',  ...allDrugs.map(d => d.form)],
+    ['주적응증', ...allDrugs.map(d => d.efcy)],
+  ];
+  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\r\n');
+  const blob = new Blob(['\uFEFF' + csv], {type: 'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = '경쟁품비교.csv';
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function openCompModal(slotIdx) {
@@ -1908,11 +1999,18 @@ function renderCompModalList(q) {
 
 function selectForCompare(id) {
   const d = DRUGS.find(x => x.id === id);
-  if (!d || cList.find(x => x.id === id)) {
-    document.getElementById('compModalOverlay').style.display = 'none';
-    return;
+  if (!d) { document.getElementById('compModalOverlay').style.display = 'none'; return; }
+  if (addingSlotIdx === -1) {
+    // 내 제품 슬롯
+    myProduct = d;
+  } else {
+    // 이미 등록된 약품이면 무시
+    if (cList.find(x => x.id === id) || (myProduct && myProduct.id === id)) {
+      document.getElementById('compModalOverlay').style.display = 'none';
+      return;
+    }
+    if (cList.length < 5) cList.push(d);
   }
-  if (cList.length < 3) cList.push(d);
   document.getElementById('compModalOverlay').style.display = 'none';
   renderCompareSlots();
   renderCompareTable();

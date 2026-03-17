@@ -852,7 +852,7 @@ async function fetchDrug(q) {
   el.innerHTML = `<div class="empty"><div style="display:flex;justify-content:center;gap:6px;margin-bottom:8px;"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div></div>검색 중...</div>`;
   try {
     console.log('[fetchDrug] query =', q);
-    const res = await fetch(`/api/drug?name=${encodeURIComponent(q)}`);
+    const res = await fetch(`https://drug-ede5bi7c3q-du.a.run.app?name=${encodeURIComponent(q)}`);
     console.log('[fetchDrug] status =', res.status, res.ok);
     const data = await res.json();
     console.log('[fetchDrug] raw data =', data);
@@ -1303,7 +1303,7 @@ window.renderCompModalList = async function(q) {
   el.innerHTML = '<div style="padding:8px 4px;font-size:0.78rem;color:var(--sub);display:flex;align-items:center;gap:6px;"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div> 검색 중...</div>' + prevHTML;
 
   try {
-    const res  = await fetch(`/api/drug?name=${encodeURIComponent(query)}`);
+    const res  = await fetch(`https://drug-ede5bi7c3q-du.a.run.app?name=${encodeURIComponent(query)}`);
     const data = await res.json();
     const items = data.items || [];
     if (!items.length) throw new Error('empty');

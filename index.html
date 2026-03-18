@@ -1897,15 +1897,89 @@ function closeCompModalIfBg(e) {
 
 function renderCompModalList(q) {
   const el = document.getElementById('compModalList');
-  const query = q.trim().toLowerCase();
-  const drugs = query
-    ? DRUGS.filter(d => d.name.toLowerCase().includes(query) || d.ingredient.toLowerCase().includes(query))
-    : DRUGS;
+  const query = q.trim();
+
+  clearTimeout(compSearchTimer);
+
+  if (!query) {
+    _compApiResults = [];
+    el.innerHTML = DRUGS.map(d => `
+      <div onclick="selectForCompare(${d.id}, 'local')" style="padding:12px 4px;border-bottom:1px solid var(--border);cursor:pointer;" onmouseover="this.style.background='#FAFAFA'" onmouseout="this.style.background=''">
+        <div style="font-weight:700;font-size:0.9rem;">${d.name}</div>
+        <div style="font-size:0.78rem;color:var(--sub);margin-top:2px;">${d.ingredient} · ${d.company} · ${d.type}</div>
+      </div>
+    `).join('');
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="empty" style="padding:24px 12px;">
+      <div style="display:flex;justify-content:center;gap:6px;margin-bottom:8px;">
+        <div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div>
+      </div>
+      검색 중...
+    </div>
+  `;
+
+  compSearchTimer = setTimeout(async () => {
+    try {
+      const res = await fetch(`https://drug-ede5bi7c3q-du.a.run.app?name=${encodeURIComponent(query)}`);
+      const data = await res.json();
+      const items = data.items || [];
+
+      if (items.length) {
+        _compApiResults = items;
+        el.innerHTML = items.map((item, i) => {
+          const name = item.ITEM_NAME || item.itemName || '-';
+          const ingr = item.INGR_NAME_KOR || item.ingrNameKor || '';
+          const company = item.ENTP_NAME || item.entpName || '';
+          const form = item.FORM_CODE_NAME || item.formCodeName || '-';
+          return `
+            <div onclick="selectForCompare(${i}, 'api')" style="padding:12px 4px;border-bottom:1px solid var(--border);cursor:pointer;" onmouseover="this.style.background='#FAFAFA'" onmouseout="this.style.background=''">
+              <div style="font-weight:700;font-size:0.9rem;">${name}</div>
+              <div style="font-size:0.78rem;color:var(--sub);margin-top:2px;">${ingr} · ${company}</div>
+              <div style="margin-top:6px;">
+                <span class="badge bg">🌐 실시간</span>
+                <span class="badge bk">${form}</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+        return;
+      }
+
+      renderCompModalListLocal(query, el);
+    } catch (e) {
+      renderCompModalListLocal(query, el);
+    }
+  }, 250);
+}
+
+function renderCompModalListLocal(query, el) {
+  const q = query.toLowerCase();
+  const drugs = DRUGS.filter(d =>
+    d.name.toLowerCase().includes(q) ||
+    d.ingredient.toLowerCase().includes(q) ||
+    d.code.toLowerCase().includes(q)
+  );
+
+  if (!drugs.length) {
+    el.innerHTML = `<div class="empty">검색 결과가 없습니다</div>`;
+    return;
+  }
+
+  _compApiResults = [];
   el.innerHTML = drugs.map(d => `
-    <div onclick="selectForCompare(${d.id})" style="padding:12px 4px;border-bottom:1px solid var(--border);cursor:pointer;" onmouseover="this.style.background='#FAFAFA'" onmouseout="this.style.background=''">
+    <div onclick="selectForCompare(${d.id}, 'local')" style="padding:12px 4px;border-bottom:1px solid var(--border);cursor:pointer;" onmouseover="this.style.background='#FAFAFA'" onmouseout="this.style.background=''">
       <div style="font-weight:700;font-size:0.9rem;">${d.name}</div>
       <div style="font-size:0.78rem;color:var(--sub);margin-top:2px;">${d.ingredient} · ${d.company} · ${d.type}</div>
-    </div>`).join('');
+      <div style="margin-top:6px;">
+        <span class="badge bg">${d.insurance}</span>
+        <span class="badge bb">${d.type}</span>
+        <span class="badge bk">${d.form}</span>
+      </div>
+    </div>
+  `).join('');
 }
 
 function selectForCompare(id) {

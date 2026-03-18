@@ -997,17 +997,11 @@
       <div style="width:100%;max-width:430px;max-height:85vh;background:var(--bg);border-radius:var(--r-xl) var(--r-xl) 0 0;padding:16px 16px 40px;overflow-y:auto;animation:slideUp 0.22s ease;">
         <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px;"></div>
         <div class="search-box" style="margin-bottom:12px;">
-  <span class="search-icon">🔍</span>
-  <input class="search-input" id="compModalSearch"
-    placeholder="약품명 검색"
-    autocomplete="off"
-    oninput="renderCompModalList(this.value)"
-    onkeydown="if(event.key==='Enter'){event.preventDefault();renderCompModalList(this.value, true);}">
-  <button class="search-btn" type="button" onclick="renderCompModalList(document.getElementById('compModalSearch').value, true)">확인</button>
-</div>
-<div style="font-size:0.78rem;color:var(--sub);margin:0 2px 12px;">
-  약품명 입력 후 <b>확인</b> 또는 <b>엔터</b>
-</div>
+          <span class="search-icon">🔍</span>
+         <input class="search-input" id="compModalSearch" placeholder="예) 케이캡, 라베프라졸, 215700ATB" autocomplete="off"
+  oninput="renderCompModalList(this.value)"
+  onkeydown="if(event.key==='Enter'){event.preventDefault();renderCompModalList(this.value, true);}">
+        </div>
         <div id="compModalList"></div>
       </div>
     </div>
@@ -1381,7 +1375,7 @@ function searchDrug() {
 
 async function fetchDrug(q) {
   const el = document.getElementById('drugResults');
-  el.innerHTML = `<div class="empty">검색 결과가 없습니다<br>제품명이나 성분명을 다시 입력해보세요</div>`;
+  el.innerHTML = `<div class="empty">
     <div style="display:flex;justify-content:center;gap:6px;margin-bottom:8px;">
       <div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div>
     </div>검색 중...
@@ -1880,7 +1874,7 @@ function renderCompareTable() {
     { lbl: '성분', fn: d => d.ingredient || '-' },
     { lbl: '회사', fn: d => d.company || '-' },
     { lbl: '계열', fn: d => d.type || '-' },
-    { lbl: '약가', fn: d => (typeof d.price === 'number' && d.price > 0) ? d.price.toLocaleString() + '원' : '-' },
+   { lbl: '약가', fn: d => (typeof d.price === 'number' && d.price > 0) ? d.price.toLocaleString() + '원' : (d.name ? getDrugPrice(d.name) : '-') },
     { lbl: '보험', fn: d => d.insurance || '-' },
     { lbl: 'FDA', fn: d => {
         const f = String(d.fda || '-');
@@ -2055,14 +2049,23 @@ function selectForCompare(identifier, source = 'local') {
     const item = _compApiResults[identifier];
     if (!item) return;
 
-    d = {
-      _key: `api_${identifier}_${(item.ITEM_NAME || item.itemName || '').replace(/\s+/g, '_')}`,
-      id: item.ITEM_SEQ || item.itemSeq || `api_${identifier}`,
-      name: item.ITEM_NAME || item.itemName || '-',
-      ingredient: item.INGR_NAME_KOR || item.ingrNameKor || '-',
-      company: item.ENTP_NAME || item.entpName || '-',
-      type: item.ETC_OTC_CODE || item.etcOtcCode || '-',
-      price: 0,
+const apiName = item.ITEM_NAME || item.itemName || '-';
+const priceText = getDrugPrice(apiName);
+const priceNum = priceText !== '-' ? parseInt(String(priceText).replace(/[^\d]/g, ''), 10) : 0;
+
+d = {
+  _key: `api_${identifier}_${apiName.replace(/\s+/g, '_')}`,
+  id: item.ITEM_SEQ || item.itemSeq || `api_${identifier}`,
+  name: apiName,
+  ingredient: item.INGR_NAME_KOR || item.ingrNameKor || '-',
+  company: item.ENTP_NAME || item.entpName || '-',
+  type: item.ETC_OTC_CODE || item.etcOtcCode || '-',
+  price: priceNum,
+  insurance: '실시간',
+  fda: '-',
+  form: item.FORM_CODE_NAME || item.formCodeName || '-',
+  efcy: ((item.efcyQesitm || '').replace(/<[^>]+>/g, '').trim()) || '-'
+};
       insurance: '실시간',
       fda: '-',
       form: item.FORM_CODE_NAME || item.formCodeName || '-',

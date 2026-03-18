@@ -998,10 +998,9 @@
         <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px;"></div>
         <div class="search-box" style="margin-bottom:12px;">
           <span class="search-icon">🔍</span>
-          <input class="search-input" id="compModalSearch" placeholder="약품명, 성분명, 보험코드 검색" autocomplete="off"
+         <input class="search-input" id="compModalSearch" placeholder="예) 케이캡, 라베프라졸, 215700ATB" autocomplete="off"
   oninput="renderCompModalList(this.value)"
-  onkeydown="if(event.key==='Enter'){event.preventDefault();renderCompModalList(this.value, true);}" />
-  onkeydown="if(event.key==='Enter'){event.preventDefault();renderCompModalList(this.value, true);}" />
+  onkeydown="if(event.key==='Enter'){event.preventDefault();renderCompModalList(this.value, true);}">
         </div>
         <div id="compModalList"></div>
       </div>

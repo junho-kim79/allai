@@ -1854,7 +1854,7 @@ function renderCompareTable() {
     {lbl:'성분', fn: d=>d.ingredient},
     {lbl:'회사', fn: d=>d.company},
     {lbl:'계열', fn: d=>d.type},
-    {lbl:'약가', fn: d=>d.price.toLocaleString()+'원'},
+   {lbl:'약가', fn: d => d.price && d.price !== 0 ? d.price.toLocaleString() + '원' : '-'},
     {lbl:'보험', fn: d=>d.insurance},
     {lbl:'FDA',  fn: d=>d.fda.includes('승인')&&!d.fda.includes('미승인')?'✅ 승인':'❌ 미승인'},
     {lbl:'제형', fn: d=>d.form},

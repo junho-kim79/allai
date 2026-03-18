@@ -1811,13 +1811,17 @@ function searchICD() {
 /* ════════════════════════════════════════
    경쟁품 비교
 ════════════════════════════════════════ */
+/* ════════════════════════════════════════
+   경쟁품 비교
+════════════════════════════════════════ */
 let cList = [];
 let addingSlotIdx = -1;
-  let compSearchTimer = null;
+let compSearchTimer = null;
 let _compApiResults = [];
 
 function initCompare() {
   cList = [];
+  _compApiResults = [];
   renderCompareSlots();
   renderCompareTable();
 }
@@ -1825,70 +1829,104 @@ function initCompare() {
 function renderCompareSlots() {
   const el = document.getElementById('compareSlots');
   if (!el) return;
-  el.innerHTML = Array.from({length:3}, (_,i) => {
+
+  el.innerHTML = Array.from({ length: 3 }, (_, i) => {
     const d = cList[i];
-    return d
-      ? `<div style="border:1.5px solid var(--border);border-radius:var(--r-md);padding:14px 16px;display:flex;align-items:center;gap:12px;background:var(--card);box-shadow:var(--shadow-sm);">
-          <div style="width:28px;height:28px;border-radius:50%;background:var(--g1);color:#fff;font-size:0.8rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${i+1}</div>
+
+    if (d) {
+      return `
+        <div style="border:1.5px solid var(--border);border-radius:var(--r-md);padding:14px 16px;display:flex;align-items:center;gap:12px;background:var(--card);box-shadow:var(--shadow-sm);">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--g1);color:#fff;font-size:0.8rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${i + 1}</div>
           <div style="flex:1;">
             <div style="font-size:0.92rem;font-weight:700;">${d.name}</div>
             <div style="font-size:0.78rem;color:var(--sub);margin-top:2px;">${d.ingredient} · ${d.company}</div>
           </div>
-          <button onclick="removeCompare(${d.id})" style="background:none;border:none;cursor:pointer;color:var(--sub2);font-size:0.8rem;padding:4px 8px;border-radius:4px;font-family:inherit;">✕</button>
-        </div>`
-      : `<div onclick="openCompModal(${i})" style="border:1.5px dashed var(--border);border-radius:var(--r-md);padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;min-height:64px;transition:border-color 0.15s;" onmouseover="this.style.borderColor='var(--g1)'" onmouseout="this.style.borderColor='var(--border)'">
-          <div style="width:28px;height:28px;border-radius:50%;background:#F1F3F4;color:var(--sub);font-size:0.8rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${i+1}</div>
-          <div style="font-size:0.85rem;color:var(--sub2);">+ 비교 제품 추가</div>
-        </div>`;
+          <button onclick='removeCompare(${JSON.stringify(d._key)})' style="background:none;border:none;cursor:pointer;color:var(--sub2);font-size:0.8rem;padding:4px 8px;border-radius:4px;font-family:inherit;">✕</button>
+        </div>
+      `;
+    }
+
+    return `
+      <div onclick="openCompModal(${i})" style="border:1.5px dashed var(--border);border-radius:var(--r-md);padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;min-height:64px;transition:border-color 0.15s;" onmouseover="this.style.borderColor='var(--g1)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="width:28px;height:28px;border-radius:50%;background:#F1F3F4;color:var(--sub);font-size:0.8rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${i + 1}</div>
+        <div style="font-size:0.85rem;color:var(--sub2);">+ 비교 제품 추가</div>
+      </div>
+    `;
   }).join('');
 }
 
-function removeCompare(id) {
-  cList = cList.filter(x => x.id !== id);
+function removeCompare(key) {
+  cList = cList.filter(x => x._key !== key);
   renderCompareSlots();
   renderCompareTable();
 }
 
 function renderCompareTable() {
   const el = document.getElementById('compareTable');
-  if (!el || !cList.length) { if(el) el.innerHTML=''; return; }
+  if (!el) return;
+
+  if (!cList.length) {
+    el.innerHTML = '';
+    return;
+  }
+
   const rows = [
-    {lbl:'성분', fn: d=>d.ingredient},
-    {lbl:'회사', fn: d=>d.company},
-    {lbl:'계열', fn: d=>d.type},
-   {lbl:'약가', fn: d => d.price && d.price !== 0 ? d.price.toLocaleString() + '원' : '-'},
-    {lbl:'보험', fn: d=>d.insurance},
-    {lbl:'FDA',  fn: d=>d.fda.includes('승인')&&!d.fda.includes('미승인')?'✅ 승인':'❌ 미승인'},
-    {lbl:'제형', fn: d=>d.form},
-    {lbl:'주적응증', fn: d=>d.efcy.substring(0,25)+'…'},
+    { lbl: '성분', fn: d => d.ingredient || '-' },
+    { lbl: '회사', fn: d => d.company || '-' },
+    { lbl: '계열', fn: d => d.type || '-' },
+    { lbl: '약가', fn: d => (typeof d.price === 'number' && d.price > 0) ? d.price.toLocaleString() + '원' : '-' },
+    { lbl: '보험', fn: d => d.insurance || '-' },
+    { lbl: 'FDA', fn: d => {
+        const f = String(d.fda || '-');
+        if (f.includes('승인') && !f.includes('미승인')) return '✅ 승인';
+        if (f === '-' || f === '') return '-';
+        return '❌ 미승인';
+      }
+    },
+    { lbl: '제형', fn: d => d.form || '-' },
+    { lbl: '주적응증', fn: d => (d.efcy && d.efcy.length > 25) ? d.efcy.substring(0, 25) + '…' : (d.efcy || '-') }
   ];
+
   el.innerHTML = `
     <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -16px;padding:0 16px;">
       <table style="width:100%;border-collapse:collapse;font-size:0.82rem;">
         <thead>
           <tr>
             <th style="background:#F8F9FA;padding:10px;text-align:left;font-weight:700;border-bottom:2px solid var(--border);color:var(--sub2);font-size:0.75rem;">항목</th>
-            ${cList.map(d=>`<th style="background:#F8F9FA;padding:10px;text-align:center;font-weight:700;border-bottom:2px solid var(--border);font-size:0.78rem;white-space:nowrap;">${d.name.length>8?d.name.substring(0,8)+'…':d.name}</th>`).join('')}
+            ${cList.map(d => `
+              <th style="background:#F8F9FA;padding:10px;text-align:center;font-weight:700;border-bottom:2px solid var(--border);font-size:0.78rem;white-space:nowrap;">
+                ${d.name.length > 8 ? d.name.substring(0, 8) + '…' : d.name}
+              </th>
+            `).join('')}
           </tr>
         </thead>
         <tbody>
-          ${rows.map(r=>`
+          ${rows.map(r => `
             <tr>
               <td style="padding:10px;border-bottom:1px solid var(--border);color:var(--sub);font-weight:600;white-space:nowrap;">${r.lbl}</td>
-              ${cList.map(d=>`<td style="padding:10px;border-bottom:1px solid var(--border);text-align:center;line-height:1.5;">${r.fn(d)}</td>`).join('')}
-            </tr>`).join('')}
+              ${cList.map(d => `
+                <td style="padding:10px;border-bottom:1px solid var(--border);text-align:center;line-height:1.5;">
+                  ${r.fn(d)}
+                </td>
+              `).join('')}
+            </tr>
+          `).join('')}
         </tbody>
       </table>
-    </div>`;
+    </div>
+  `;
 }
 
 function openCompModal(slotIdx) {
   addingSlotIdx = slotIdx;
   const overlay = document.getElementById('compModalOverlay');
   overlay.style.display = 'flex';
-  document.getElementById('compModalSearch').value = '';
+
+  const input = document.getElementById('compModalSearch');
+  input.value = '';
+
   renderCompModalList('');
-  setTimeout(() => document.getElementById('compModalSearch').focus(), 100);
+  setTimeout(() => input.focus(), 100);
 }
 
 function closeCompModalIfBg(e) {
@@ -1911,10 +1949,8 @@ function renderCompModalList(q, forceSearch = false) {
            onmouseover="this.style.background='#FAFAFA'"
            onmouseout="this.style.background=''">
         <div style="font-weight:700;font-size:0.9rem;">${d.name}</div>
-        <div style="font-size:0.78rem;color:var(--sub);margin-top:2px;">
-          ${d.ingredient} · ${d.company} · ${d.type}
-        </div>
-        <div style="margin-top:6px;">
+        <div style="font-size:0.78rem;color:var(--sub);margin-top:2px;">${d.ingredient} · ${d.company}</div>
+        <div class="badges" style="margin-top:6px;">
           <span class="badge bg">${d.insurance}</span>
           <span class="badge bb">${d.type}</span>
           <span class="badge bk">${d.form}</span>
@@ -1927,11 +1963,9 @@ function renderCompModalList(q, forceSearch = false) {
   el.innerHTML = `
     <div class="empty" style="padding:24px 12px;">
       <div style="display:flex;justify-content:center;gap:6px;margin-bottom:8px;">
-        <div class="ai-dot"></div>
-        <div class="ai-dot"></div>
-        <div class="ai-dot"></div>
+        <div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div>
       </div>
-      조회중...
+      검색 중...
     </div>
   `;
 
@@ -1943,25 +1977,23 @@ function renderCompModalList(q, forceSearch = false) {
 
       if (items.length) {
         _compApiResults = items;
+
         el.innerHTML = items.map((item, i) => {
           const name = item.ITEM_NAME || item.itemName || '-';
           const ingr = item.INGR_NAME_KOR || item.ingrNameKor || '';
           const company = item.ENTP_NAME || item.entpName || '';
           const form = item.FORM_CODE_NAME || item.formCodeName || '-';
+          const efcy = (item.efcyQesitm || '').replace(/<[^>]+>/g, '');
 
           return `
-            <div onclick="selectForCompare(${i}, 'api')"
-                 style="padding:12px 4px;border-bottom:1px solid var(--border);cursor:pointer;"
-                 onmouseover="this.style.background='#FAFAFA'"
-                 onmouseout="this.style.background=''">
-              <div style="font-weight:700;font-size:0.9rem;">${name}</div>
-              <div style="font-size:0.78rem;color:var(--sub);margin-top:2px;">
-                ${ingr} · ${company}
-              </div>
-              <div style="margin-top:6px;">
+            <div class="result-item" style="margin-bottom:8px;" onclick="selectForCompare(${i}, 'api')">
+              <div class="result-name">${name}</div>
+              <div class="result-sub">${ingr} · ${company}</div>
+              <div class="badges">
                 <span class="badge bg">🌐 실시간</span>
                 <span class="badge bk">${form}</span>
               </div>
+              ${efcy ? `<div class="result-efcy">📌 ${efcy.substring(0, 80)}</div>` : ''}
             </div>
           `;
         }).join('');
@@ -1977,50 +2009,83 @@ function renderCompModalList(q, forceSearch = false) {
   if (forceSearch) {
     runSearch();
   } else {
-    compSearchTimer = setTimeout(runSearch, 250);
+    compSearchTimer = setTimeout(runSearch, 350);
   }
 }
 
-function renderCompModalListLocal(query, el) {
-  const q = query.toLowerCase();
-  const drugs = DRUGS.filter(d =>
-    d.name.toLowerCase().includes(q) ||
-    d.ingredient.toLowerCase().includes(q) ||
-    d.code.toLowerCase().includes(q)
+function renderCompModalListLocal(q, el) {
+  const list = DRUGS.filter(d =>
+    d.name.toLowerCase().includes(q.toLowerCase()) ||
+    d.ingredient.toLowerCase().includes(q.toLowerCase()) ||
+    d.code.toLowerCase().includes(q.toLowerCase())
   );
 
   _compApiResults = [];
 
-  if (!drugs.length) {
-    el.innerHTML = `<div class="empty">검색 결과가 없습니다</div>`;
+  if (!list.length) {
+    el.innerHTML = '<div class="empty">검색 결과가 없습니다</div>';
     return;
   }
 
-  el.innerHTML = drugs.map(d => `
-    <div onclick="selectForCompare(${d.id}, 'local')"
-         style="padding:12px 4px;border-bottom:1px solid var(--border);cursor:pointer;"
-         onmouseover="this.style.background='#FAFAFA'"
-         onmouseout="this.style.background=''">
-      <div style="font-weight:700;font-size:0.9rem;">${d.name}</div>
-      <div style="font-size:0.78rem;color:var(--sub);margin-top:2px;">
-        ${d.ingredient} · ${d.company} · ${d.type}
-      </div>
-      <div style="margin-top:6px;">
+  el.innerHTML = list.map(d => `
+    <div class="result-item" style="margin-bottom:8px;" onclick="selectForCompare(${d.id}, 'local')">
+      <div class="result-name">${d.name}</div>
+      <div class="result-sub">${d.ingredient} · ${d.company}</div>
+      <div class="badges">
         <span class="badge bg">${d.insurance}</span>
         <span class="badge bb">${d.type}</span>
         <span class="badge bk">${d.form}</span>
+        <span class="badge bk" style="font-size:0.65rem;">📦 샘플</span>
       </div>
+      <div class="result-efcy">📌 ${d.efcy}</div>
     </div>
   `).join('');
 }
 
-function selectForCompare(id) {
-  const d = DRUGS.find(x => x.id === id);
-  if (!d || cList.find(x => x.id === id)) {
+function selectForCompare(identifier, source = 'local') {
+  let d = null;
+
+  if (source === 'api') {
+    const item = _compApiResults[identifier];
+    if (!item) return;
+
+    d = {
+      _key: `api_${identifier}_${(item.ITEM_NAME || item.itemName || '').replace(/\s+/g, '_')}`,
+      id: item.ITEM_SEQ || item.itemSeq || `api_${identifier}`,
+      name: item.ITEM_NAME || item.itemName || '-',
+      ingredient: item.INGR_NAME_KOR || item.ingrNameKor || '-',
+      company: item.ENTP_NAME || item.entpName || '-',
+      type: item.ETC_OTC_CODE || item.etcOtcCode || '-',
+      price: 0,
+      insurance: '실시간',
+      fda: '-',
+      form: item.FORM_CODE_NAME || item.formCodeName || '-',
+      efcy: ((item.efcyQesitm || '').replace(/<[^>]+>/g, '').trim()) || '-'
+    };
+  } else {
+    const local = DRUGS.find(x => x.id === identifier);
+    if (!local) return;
+
+    d = {
+      ...local,
+      _key: `local_${local.id}`
+    };
+  }
+
+  const exists = cList.find(x =>
+    x._key === d._key ||
+    (x.name === d.name && x.company === d.company)
+  );
+
+  if (exists) {
     document.getElementById('compModalOverlay').style.display = 'none';
     return;
   }
-  if (cList.length < 3) cList.push(d);
+
+  if (cList.length < 3) {
+    cList.push(d);
+  }
+
   document.getElementById('compModalOverlay').style.display = 'none';
   renderCompareSlots();
   renderCompareTable();

@@ -1982,13 +1982,47 @@ function renderCompModalListLocal(query, el) {
   `).join('');
 }
 
-function selectForCompare(id) {
-  const d = DRUGS.find(x => x.id === id);
-  if (!d || cList.find(x => x.id === id)) {
+function selectForCompare(id, source = 'local') {
+  let d = null;
+
+  if (source === 'api') {
+    const item = _compApiResults[id];
+    if (!item) return;
+
+    const name = item.ITEM_NAME || item.itemName || '-';
+    const ingr = item.INGR_NAME_KOR || item.ingrNameKor || '-';
+    const company = item.ENTP_NAME || item.entpName || '-';
+    const form = item.FORM_CODE_NAME || item.formCodeName || '-';
+    const etcOtc = item.ETC_OTC_CODE || item.etcOtcCode || '-';
+
+    d = {
+      id: `api_${name}_${company}`,
+      name,
+      ingredient: ingr,
+      company,
+      type: etcOtc || '실시간',
+      price: 0,
+      insurance: '실시간',
+      fda: '-',
+      form,
+      efcy: ((item.efcyQesitm || '').replace(/<[^>]+>/g,'').trim()) || '-'
+    };
+  } else {
+    d = DRUGS.find(x => x.id === id);
+  }
+
+  if (!d) {
     document.getElementById('compModalOverlay').style.display = 'none';
     return;
   }
+
+  if (cList.find(x => x.id === d.id || (x.name === d.name && x.company === d.company))) {
+    document.getElementById('compModalOverlay').style.display = 'none';
+    return;
+  }
+
   if (cList.length < 3) cList.push(d);
+
   document.getElementById('compModalOverlay').style.display = 'none';
   renderCompareSlots();
   renderCompareTable();

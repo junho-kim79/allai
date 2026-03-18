@@ -1001,6 +1001,7 @@
           <input class="search-input" id="compModalSearch" placeholder="약품명, 성분명, 보험코드 검색" autocomplete="off"
   oninput="renderCompModalList(this.value)"
   onkeydown="if(event.key==='Enter'){event.preventDefault();renderCompModalList(this.value, true);}" />
+  onkeydown="if(event.key==='Enter'){event.preventDefault();renderCompModalList(this.value, true);}" />
         </div>
         <div id="compModalList"></div>
       </div>

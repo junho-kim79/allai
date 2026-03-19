@@ -1576,13 +1576,20 @@ async function getOneLineSummary(name, ingredient, efcy) {
   if (SUMMARY_CACHE[key]) return SUMMARY_CACHE[key];
 
   try {
-    const prompt = `약품명: ${name}
+const prompt = `약품명: ${name}
 성분: ${ingredient}
 효능효과: ${efcy || '-'}
 
 위 약을 제약 영업사원이 의사에게 보여줄 수 있게
-15자~25자 정도의 짧은 한줄 요약으로 만들어줘.
-불필요한 설명 없이 계열/용도만 핵심만 써줘.`;
+반드시 10자~20자 정도의 매우 짧은 한줄 요약으로 만들어줘.
+계열/용도만 핵심만 써줘.
+문장형 설명 금지.
+따옴표 금지.
+줄바꿈 금지.
+예시:
+고혈압 복합제
+P-CAB 위산억제제
+간기능 개선제`;
 
     const res = await fetch('/api/ai', {
       method: 'POST',
@@ -1753,7 +1760,7 @@ if (save) saveRecent(d.name, d.id);
       ${d.risks.map(r => `<div class="risk-item ${r.level}"><div class="risk-dot-wrap"></div><div>${r.text}</div></div>`).join('')}
     </div>
 
-    ${drawChart(d.id)}
+  
 
     <div class="detail-section">
       <div class="sec-label">경쟁품 비교</div>
@@ -2127,15 +2134,17 @@ d = {
 };
   }
 
-  const exists = cList.find(x =>
-    x._key === d._key ||
-    (x.name === d.name && x.company === d.company)
-  );
+const exists = cList.find(x =>
+  x._key === d._key ||
+  (x.name === d.name && x.company === d.company)
+);
+
+if (exists) {
+  document.getElementById('compModalOverlay').style.display = 'none';
+  return;
+}
+
 d.oneLineSummary = await getOneLineSummary(d.name, d.ingredient, d.efcy);
-  if (exists) {
-    document.getElementById('compModalOverlay').style.display = 'none';
-    return;
-  }
 
 if (addingSlotIdx >= 0 && addingSlotIdx < 5) {
   cList[addingSlotIdx] = d;

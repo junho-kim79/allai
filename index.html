@@ -1837,16 +1837,22 @@ function renderCompareSlots() {
 
   el.innerHTML = Array.from({ length: 5 }, (_, i) => {
     const d = cList[i];
-
+const isMy = d && d._key === myDrugKey;
     if (d) {
       return `
-        <div style="border:1.5px solid var(--border);border-radius:var(--r-md);padding:14px 16px;display:flex;align-items:center;gap:12px;background:var(--card);box-shadow:var(--shadow-sm);">
+        <div style="border:${isMy ? '2px solid var(--g1)' : '1.5px solid var(--border)'};border-radius:var(--r-md);padding:14px 16px;display:flex;align-items:center;gap:12px;background:var(--card);box-shadow:var(--shadow-sm);">
           <div style="width:28px;height:28px;border-radius:50%;background:var(--g1);color:#fff;font-size:0.8rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${i + 1}</div>
           <div style="flex:1;">
-            <div style="font-size:0.92rem;font-weight:700;">${d.name}</div>
+            <div style="font-size:0.92rem;font-weight:700;">
+  ${isMy ? '🟢 MY ' : ''}${d.name}
+</div>
             <div style="font-size:0.78rem;color:var(--sub);margin-top:2px;">${d.ingredient} · ${d.company}</div>
           </div>
           <button onclick='removeCompare(${JSON.stringify(d._key)})' style="background:none;border:none;cursor:pointer;color:var(--sub2);font-size:0.8rem;padding:4px 8px;border-radius:4px;font-family:inherit;">✕</button>
+          <button onclick='setMyDrug(${JSON.stringify(d._key)})'
+  style="background:none;border:none;cursor:pointer;color:var(--g1);font-size:0.75rem;margin-left:4px;">
+  MY
+</button>
         </div>
       `;
     }
@@ -1865,7 +1871,11 @@ function removeCompare(key) {
   renderCompareSlots();
   renderCompareTable();
 }
-
+function setMyDrug(key) {
+  myDrugKey = key;
+  renderCompareSlots();
+}
+  
 function renderCompareTable() {
   const el = document.getElementById('compareTable');
   if (!el) return;
@@ -1875,6 +1885,7 @@ function renderCompareTable() {
     return;
   }
 
+  
   const rows = [
     { lbl: '성분', fn: d => d.ingredient || '-' },
     { lbl: '회사', fn: d => d.company || '-' },

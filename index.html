@@ -1571,40 +1571,47 @@ async function showDrugAPI(idx) {
   }
 }
 
-async function getOneLineSummary(name, ingredient, efcy) {
+async function getCompareAIInfo(name, ingredient, efcy) {
   const key = `${name}__${ingredient}`.toLowerCase().replace(/\s/g, '');
   if (SUMMARY_CACHE[key]) return SUMMARY_CACHE[key];
 
   try {
-const prompt = `약품명: ${name}
+    const prompt = `약품명: ${name}
 성분: ${ingredient}
 효능효과: ${efcy || '-'}
 
-위 약을 제약 영업사원이 의사에게 보여줄 수 있게
-반드시 10자~20자 정도의 매우 짧은 한줄 요약으로 만들어줘.
-계열/용도만 핵심만 써줘.
-문장형 설명 금지.
-따옴표 금지.
-줄바꿈 금지.
-예시:
-고혈압 복합제
-P-CAB 위산억제제
-간기능 개선제`;
+아래 형식으로만 답해줘.
+
+[ONE_LINE]
+10자~20자 한줄 요약
+
+[FDA]
+FDA 승인 여부만 아주 짧게
+예: 승인 / 미승인 / 확인 필요`;
 
     const res = await fetch('/api/ai', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt, maxTokens: 60 })
+      body: JSON.stringify({ prompt, maxTokens: 120 })
     });
 
     const data = await res.json();
     const text = (data?.text || '').trim();
-    SUMMARY_CACHE[key] = text || '-';
-    return SUMMARY_CACHE[key];
+
+    const oneLineMatch = text.match(/\[ONE_LINE\]([\s\S]*?)(?=\[FDA\]|$)/);
+    const fdaMatch = text.match(/\[FDA\]([\s\S]*?)$/);
+
+    const result = {
+      oneLineSummary: oneLineMatch ? oneLineMatch[1].trim() : '-',
+      fda: fdaMatch ? fdaMatch[1].trim() : '-'
+    };
+
+    SUMMARY_CACHE[key] = result;
+    return result;
   } catch (e) {
-    return '-';
+    return { oneLineSummary: '-', fda: '-' };
   }
-}  
+}
 function renderMrPoints(points) {
   if (!Array.isArray(points) || !points.length) return '';
   return points.map((p, i) => `<div class="mr-point"><div class="mr-num">${i+1}</div><div class="mr-txt">${p}</div></div>`).join('');
@@ -2145,7 +2152,9 @@ if (exists) {
   return;
 }
 
-d.oneLineSummary = await getOneLineSummary(d.name, d.ingredient, d.efcy);
+const aiInfo = await getCompareAIInfo(d.name, d.ingredient, d.efcy);
+d.oneLineSummary = aiInfo.oneLineSummary || '-';
+d.fda = aiInfo.fda || '-';
 
 if (addingSlotIdx >= 0 && addingSlotIdx < 5) {
   cList[addingSlotIdx] = d;
@@ -2317,7 +2326,7 @@ function renderStats() { const s=getStats(); const ue=document.getElementById('s
   function openRecentItem(id) {
   if (typeof id === 'string' && id.startsWith('api_')) {
     const idx = parseInt(id.replace('api_', ''), 10);
-    showDrugAPI(name);
+  showDrugAPI(idx);
   } else {
     showDrug(Number(id));
   }

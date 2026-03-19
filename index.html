@@ -1065,6 +1065,7 @@ const TREND_DATA = {
    AI 캐시
 ════════════════════════════════════════ */
 const AI_CACHE = {};
+  const SUMMARY_CACHE = {};
 
 function getAICacheKey(name, ingr) {
   return `${name}__${ingr}`.toLowerCase().replace(/\s/g,'');
@@ -1570,6 +1571,33 @@ async function showDrugAPI(idx) {
   }
 }
 
+async function getOneLineSummary(name, ingredient, efcy) {
+  const key = `${name}__${ingredient}`.toLowerCase().replace(/\s/g, '');
+  if (SUMMARY_CACHE[key]) return SUMMARY_CACHE[key];
+
+  try {
+    const prompt = `약품명: ${name}
+성분: ${ingredient}
+효능효과: ${efcy || '-'}
+
+위 약을 제약 영업사원이 의사에게 보여줄 수 있게
+15자~25자 정도의 짧은 한줄 요약으로 만들어줘.
+불필요한 설명 없이 계열/용도만 핵심만 써줘.`;
+
+    const res = await fetch('/api/ai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, maxTokens: 60 })
+    });
+
+    const data = await res.json();
+    const text = (data?.text || '').trim();
+    SUMMARY_CACHE[key] = text || '-';
+    return SUMMARY_CACHE[key];
+  } catch (e) {
+    return '-';
+  }
+}  
 function renderMrPoints(points) {
   if (!Array.isArray(points) || !points.length) return '';
   return points.map((p, i) => `<div class="mr-point"><div class="mr-num">${i+1}</div><div class="mr-txt">${p}</div></div>`).join('');
@@ -1888,7 +1916,7 @@ function renderCompareTable() {
 
   
   const rows = [
-   
+   { lbl: '한줄요약', fn: d => d.oneLineSummary || '-' },
     { lbl: '성분', fn: d => d.ingredient || '-' },
     { lbl: '회사', fn: d => d.company || '-' },
     { lbl: '전문/일반', fn: d => d.type || '-' },
@@ -2060,7 +2088,7 @@ function renderCompModalListLocal(q, el) {
   `).join('');
 }
 
-function selectForCompare(identifier, source = 'local') {
+async function selectForCompare(identifier, source = 'local') {
   let d = null;
 
   if (source === 'api') {
@@ -2083,7 +2111,8 @@ d = {
   fda: '-',
   form: item.FORM_CODE_NAME || item.formCodeName || '-',
   efcy: ((item.efcyQesitm || item.EE_DOC_DATA || '').replace(/<[^>]+>/g, '').trim()) || '-',
-  summary: `${apiName} · ${item.INGR_NAME_KOR || item.ingrNameKor || '-'} · ${item.ENTP_NAME || item.entpName || '-'}`
+  summary: `${apiName} · ${item.INGR_NAME_KOR || item.ingrNameKor || '-'} · ${item.ENTP_NAME || item.entpName || '-'}`,
+  oneLineSummary: '-'
 };
 
   } else {
@@ -2093,7 +2122,8 @@ d = {
 d = {
   ...local,
   _key: `local_${local.id}`,
-  summary: `${local.name} · ${local.ingredient} · ${local.company}`
+  summary: `${local.name} · ${local.ingredient} · ${local.company}`,
+  oneLineSummary: '-'
 };
   }
 
@@ -2101,7 +2131,7 @@ d = {
     x._key === d._key ||
     (x.name === d.name && x.company === d.company)
   );
-
+d.oneLineSummary = await getOneLineSummary(d.name, d.ingredient, d.efcy);
   if (exists) {
     document.getElementById('compModalOverlay').style.display = 'none';
     return;

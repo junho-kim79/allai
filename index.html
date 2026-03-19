@@ -1887,6 +1887,7 @@ function renderCompareTable() {
 
   
   const rows = [
+    { lbl: '품목요약', fn: d => (d.summary && d.summary.length > 28) ? d.summary.substring(0, 28) + '…' : (d.summary || '-') },
     { lbl: '성분', fn: d => d.ingredient || '-' },
     { lbl: '회사', fn: d => d.company || '-' },
     { lbl: '계열', fn: d => d.type || '-' },
@@ -1900,7 +1901,7 @@ function renderCompareTable() {
       }
     },
     { lbl: '제형', fn: d => d.form || '-' },
-    { lbl: '주적응증', fn: d => (d.efcy && d.efcy.length > 25) ? d.efcy.substring(0, 25) + '…' : (d.efcy || '-') }
+{ lbl: '주적응증', fn: d => (d.efcy && d.efcy.length > 40) ? d.efcy.substring(0, 40) + '…' : (d.efcy || '-') }
   ];
 
   el.innerHTML = `
@@ -2080,17 +2081,19 @@ d = {
   insurance: '실시간',
   fda: '-',
   form: item.FORM_CODE_NAME || item.formCodeName || '-',
-  efcy: ((item.efcyQesitm || '').replace(/<[^>]+>/g, '').trim()) || '-'
+  efcy: ((item.efcyQesitm || item.EE_DOC_DATA || '').replace(/<[^>]+>/g, '').trim()) || '-',
+  summary: `${apiName} · ${item.INGR_NAME_KOR || item.ingrNameKor || '-'} · ${item.ENTP_NAME || item.entpName || '-'}`
 };
 
   } else {
     const local = DRUGS.find(x => x.id === identifier);
     if (!local) return;
 
-    d = {
-      ...local,
-      _key: `local_${local.id}`
-    };
+d = {
+  ...local,
+  _key: `local_${local.id}`,
+  summary: `${local.name} · ${local.ingredient} · ${local.company}`
+};
   }
 
   const exists = cList.find(x =>

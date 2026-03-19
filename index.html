@@ -1100,7 +1100,7 @@ function renderRecent() {
   if (!list.length) { sec.style.display = 'none'; return; }
   sec.style.display = 'block';
   el.innerHTML = list.map(r => `
-    <div class="recent-chip" onclick="showDrug(${r.id})">
+    <div class="recent-chip" onclick='openRecentItem(${JSON.stringify(r.id)})'>
       <span>💊</span>
       <span>${r.name}</span>
       <span class="rc-del" onclick="event.stopPropagation();removeRecent(${r.id})">✕</span>

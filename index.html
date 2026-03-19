@@ -1399,12 +1399,25 @@ async function fetchDrug(q) {
 }
 
 function renderDrugListLocal(q, el) {
-  const list = DRUGS.filter(d =>
-    d.name.toLowerCase().includes(q.toLowerCase()) ||
-    d.ingredient.toLowerCase().includes(q.toLowerCase()) ||
-    d.code.toLowerCase().includes(q.toLowerCase())
-  );
-  if (!list.length) { el.innerHTML = '<div class="empty">검색 결과가 없습니다</div>'; return; }
+  const keyword = q.toLowerCase();
+
+  const list = DRUGS.filter(d => {
+    if (searchType === 'product') return d.name.toLowerCase().includes(keyword);
+    if (searchType === 'ingredient') return d.ingredient.toLowerCase().includes(keyword);
+    if (searchType === 'code') return d.code.toLowerCase().includes(keyword);
+
+    return (
+      d.name.toLowerCase().includes(keyword) ||
+      d.ingredient.toLowerCase().includes(keyword) ||
+      d.code.toLowerCase().includes(keyword)
+    );
+  });
+
+  if (!list.length) {
+    el.innerHTML = '<div class="empty">검색 결과가 없습니다</div>';
+    return;
+  }
+
   el.innerHTML = list.map(d => `
     <div class="result-item" onclick="showDrug(${d.id})">
       <div class="result-name">${d.name}</div>

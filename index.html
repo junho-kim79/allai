@@ -976,7 +976,7 @@
     </div>
     <div style="padding:0 16px 14px;">
       <div style="font-size:1.3rem;font-weight:900;letter-spacing:-0.04em;">경쟁품 비교</div>
-      <div style="font-size:0.85rem;color:var(--sub);margin-top:4px;">최대 3개 제품 비교</div>
+      <div style="font-size:0.85rem;color:var(--sub);margin-top:4px;">최대 5개 제품 비교</div>
     </div>
     <div style="padding:0 16px;">
       <div id="compareSlots" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;"></div>
@@ -1834,7 +1834,7 @@ function renderCompareSlots() {
   const el = document.getElementById('compareSlots');
   if (!el) return;
 
-  el.innerHTML = Array.from({ length: 3 }, (_, i) => {
+  el.innerHTML = Array.from({ length: 5 }, (_, i) => {
     const d = cList[i];
 
     if (d) {

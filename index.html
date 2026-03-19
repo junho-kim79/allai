@@ -2116,7 +2116,7 @@ d = {
   type: item.ETC_OTC_CODE || item.etcOtcCode || '-',
   price: priceNum,
   insurance: '실시간',
-  fda: '-',
+  fda: '조회중...',
   form: item.FORM_CODE_NAME || item.formCodeName || '-',
   efcy: ((item.efcyQesitm || item.EE_DOC_DATA || '').replace(/<[^>]+>/g, '').trim()) || '-',
   summary: `${apiName} · ${item.INGR_NAME_KOR || item.ingrNameKor || '-'} · ${item.ENTP_NAME || item.entpName || '-'}`,

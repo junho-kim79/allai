@@ -1888,10 +1888,10 @@ function renderCompareTable() {
 
   
   const rows = [
-    { lbl: '품목요약', fn: d => (d.summary && d.summary.length > 28) ? d.summary.substring(0, 28) + '…' : (d.summary || '-') },
+   
     { lbl: '성분', fn: d => d.ingredient || '-' },
     { lbl: '회사', fn: d => d.company || '-' },
-    { lbl: '계열', fn: d => d.type || '-' },
+    { lbl: '전문/일반', fn: d => d.type || '-' },
    { lbl: '약가', fn: d => (typeof d.price === 'number' && d.price > 0) ? d.price.toLocaleString() + '원' : (d.name ? getDrugPrice(d.name) : '-') },
     { lbl: '보험', fn: d => d.insurance || '-' },
     { lbl: 'FDA', fn: d => {
@@ -1901,8 +1901,8 @@ function renderCompareTable() {
         return '❌ 미승인';
       }
     },
-    { lbl: '제형', fn: d => d.form || '-' },
-{ lbl: '주적응증', fn: d => (d.efcy && d.efcy.length > 40) ? d.efcy.substring(0, 40) + '…' : (d.efcy || '-') }
+   
+
   ];
 
   el.innerHTML = `

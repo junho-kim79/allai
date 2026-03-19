@@ -1659,11 +1659,11 @@ async function fetchAISummary(name, ingr, company, efcy, useMethod, cacheKey) {
 ════════════════════════════════════════ */
 let currentRegion = '전국';
 
-function showDrug(id) {
+function showDrug(id, save = true) {
   const d = DRUGS.find(x => x.id === id);
   if (!d) return;
   const comps = DRUGS.filter(x => d.comps.includes(x.id));
-  saveRecent(d.name, d.id);
+if (save) saveRecent(d.name, d.id);
 
   document.getElementById('drugDetail').innerHTML = `
     <div class="detail-header">

@@ -2106,9 +2106,12 @@ d = {
     return;
   }
 
-  if (cList.length < 3) {
-    cList.push(d);
-  }
+if (addingSlotIdx >= 0 && addingSlotIdx < 5) {
+  cList[addingSlotIdx] = d;
+} else if (cList.length < 5) {
+  cList.push(d);
+}
+addingSlotIdx = -1;
 
   document.getElementById('compModalOverlay').style.display = 'none';
   renderCompareSlots();

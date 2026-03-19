@@ -142,7 +142,7 @@
       width: 100%; height: 210px;
       object-fit: cover; object-position: center 20%;
       opacity: 0.72; display: block;
-      filter: saturate(0.85) warm(1);
+      filter: saturate(0.85);
     }
     .hero::after {
       content: '';
@@ -914,7 +914,7 @@
   <!-- ═══════════════ 약품 검색 ═══════════════ -->
   <div class="screen" id="screen2">
     <div class="back-bar">
-      <button class="back-btn" id="back2" onclick="history.back()">← 홈</button>
+      <button class="back-btn" id="back2" onclick="goScreen('screen1','홈')">← 홈</button>
     </div>
     <div style="padding:0 16px 14px;">
       <div style="font-size:1.3rem;font-weight:900;letter-spacing:-0.04em;">약품 검색</div>
@@ -1559,7 +1559,7 @@ async function showDrugAPI(idx) {
   `;
 
   goDetail('screen2');
-  saveRecent(name, `api_${idx}`);
+  saveRecent(name, `api_${name, ingredient, company}`);
 
   // 약가
   const priceEl = document.getElementById('priceVal');
@@ -1903,6 +1903,7 @@ const isMy = d && d._key === myDrugKey;
 
 function removeCompare(key) {
   cList = cList.filter(x => x._key !== key);
+  if (myDrugKey === key) myDrugKey = null;
   renderCompareSlots();
   renderCompareTable();
 }
@@ -2316,7 +2317,7 @@ function renderStats() { const s=getStats(); const ue=document.getElementById('s
   function openRecentItem(id) {
   if (typeof id === 'string' && id.startsWith('api_')) {
     const idx = parseInt(id.replace('api_', ''), 10);
-    showDrugAPI(idx);
+    showDrugAPI(name);
   } else {
     showDrug(Number(id));
   }

@@ -1040,7 +1040,8 @@ const DRUGS = [
   { id:4, name:'넥시움정 20mg', ingredient:'에소메프라졸마그네슘삼수화물', company:'아스트라제네카', type:'PPI', price:720, insurance:'급여', code:'197800ATB', pack:'28정/박스', icd:['K21','K25','K26','K29','K30'], fda:'승인 (GERD, 헬리코박터)', form:'정', efcy:'위식도역류질환, 위궤양, 헬리코박터 제균, 졸링거-엘리슨 증후군', useMethod:'1일 1회 20mg~40mg, 식사 1시간 전 투여', risks:[{level:'low',text:'FDA 승인 적응증 내 처방 시 안전'},{level:'mid',text:'40mg 고용량 장기 처방 시 심사 주의'}], comps:[1,2,3,5], mrPoints:['글로벌 PPI 1위 — 논문 근거 압도적','헬리코박터 3제요법 기준약 지위','졸링거-엘리슨 등 희귀 적응증 유일 급여'] },
   { id:5, name:'란스톤캡슐 30mg', ingredient:'란소프라졸', company:'일동제약', type:'PPI', price:520, insurance:'급여', code:'193700ACE', pack:'30캡슐/박스', icd:['K21','K25','K27'], fda:'승인 (GERD)', form:'캡슐', efcy:'위식도역류질환, 위궤양, 십이지장궤양', useMethod:'1일 1회 30mg, 경구투여 4~8주', risks:[{level:'low',text:'표준 처방 범위 내 삭감 위험 낮음'},{level:'mid',text:'중복 PPI 처방 시 삭감 주의'}], comps:[1,2,3,4], mrPoints:['캡슐 제형으로 연하곤란 환자 복약순응도 우위','국내사 오리지널 — 로컬 영업 신뢰 활용','저렴한 약가로 장기처방 환자 경제적 부담 낮음'] }
 ];
-
+let myDrugKey = null;
+  
 const ICD_DB = [
   { code:'K21', name:'위식도역류질환 (GERD)', drugs:[1,2,3,4,5] },
   { code:'K25', name:'위궤양', drugs:[2,3,4,5] },

@@ -1482,7 +1482,7 @@ async function showDrugAPI(idx) {
     <!-- MR 포인트 -->
     <div class="mr-card" id="mrCard">
       <div class="mr-head">
-        <span class="mr-label">💼 MR 면담 포인트</span>
+        <span class="mr-label">💼 면담 포인트</span>
         ${cached ? '' : '<div class="ai-loading"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div></div>'}
       </div>
       <div id="mrBody">${cached ? renderMrPoints(cached.mrPoints) : '<div style="font-size:0.85rem;color:var(--sub);">분석 중...</div>'}</div>
@@ -1518,12 +1518,21 @@ async function showDrugAPI(idx) {
       <div class="info-card"><div style="padding:14px 16px;font-size:0.85rem;line-height:1.65;color:var(--sub);">${atpnWarn.substring(0,300)}${atpnWarn.length>300?'…':''}</div></div>
     </div>` : ''}
 
-    ${depositMethod ? `<div class="detail-section">
-      <div class="sec-label">보관 방법</div>
-      <div class="info-card"><div style="padding:14px 16px;font-size:0.85rem;line-height:1.65;">${depositMethod}</div></div>
-    </div>` : ''}
+${depositMethod ? `<div class="detail-section">
+  <div class="sec-label">보관 방법</div>
+  <div class="info-card"><div style="padding:14px 16px;font-size:0.85rem;line-height:1.65;">${depositMethod}</div></div>
+</div>` : ''}
 
-    ${compItems.length ? `<div class="detail-section">
+${cached && cached.clinicalTitles && cached.clinicalTitles.length ? `<div class="detail-section">
+  <div class="sec-label">📊 최신 임상 근거</div>
+  <div class="info-card">
+    <div style="padding:14px 16px;font-size:0.85rem;line-height:1.75;">
+      ${cached.clinicalTitles.map(t => `• ${t}`).join('<br>')}
+    </div>
+  </div>
+</div>` : ''}
+
+${compItems.length ? `<div class="detail-section">
       <div class="sec-label">🌐 동일성분 경쟁품</div>
       ${compItems.slice(0,5).map((c,ci) => `
         <div class="comp-item" onclick="showDrugAPI(${_apiResults.indexOf(c)})">
@@ -1598,7 +1607,7 @@ function renderMrPoints(points) {
 /* AI 요약 (순차 호출) */
 async function fetchAISummary(name, ingr, company, efcy, useMethod, cacheKey) {
   try {
-    const prompt = `당신은 제약 영업사원(MR) 전문 AI입니다.
+const prompt = `당신은 제약 영업사원(MR) 전문 AI입니다.
 약품명: ${name}
 성분: ${ingr}
 제조사: ${company}
@@ -1617,7 +1626,15 @@ async function fetchAISummary(name, ingr, company, efcy, useMethod, cacheKey) {
 [CLINICAL]
 이 약품의 한국 임상재평가 대상 여부를 한 줄로. 예) "재평가 대상 (2024년)" 또는 "해당 없음" 또는 "재평가 완료". 모르면 "확인 필요".
 
-반드시 [AI_SUMMARY], [MR_POINTS], [FDA], [CLINICAL] 태그 모두 포함.`;
+[CLINICAL_TITLES]
+이 약과 관련된 최신 임상 근거 제목 또는 비교 연구 제목을 2~3개 작성.
+제목만 짧게 작성하고, 가능하면 적응증 또는 연도 느낌을 포함.
+예:
+- GERD 환자 대상 tegoprazan 비교 연구 (2023)
+- Helicobacter 제균요법 비교 임상 (2022)
+- P-CAB 계열 야간 산분비 억제 연구
+
+반드시 [AI_SUMMARY], [MR_POINTS], [FDA], [CLINICAL], [CLINICAL_TITLES] 태그 모두 포함.`;
 
     const res = await fetch('/api/ai', {
       method:'POST',
@@ -1627,27 +1644,63 @@ async function fetchAISummary(name, ingr, company, efcy, useMethod, cacheKey) {
     const data = await res.json();
     const text = data?.text?.trim() || '';
 
-    const summaryMatch = text.match(/\[AI_SUMMARY\]([\s\S]*?)(?=\[MR_POINTS\]|$)/);
-    const mrMatch = text.match(/\[MR_POINTS\]([\s\S]*?)(?=\[FDA\]|$)/);
-    const fdaMatch = text.match(/\[FDA\]([\s\S]*?)(?=\[CLINICAL\]|$)/);
-    const clinicalMatch = text.match(/\[CLINICAL\]([\s\S]*?)$/);
-    const summary = summaryMatch ? summaryMatch[1].trim() : text.substring(0,200);
-    const mrRaw = mrMatch ? mrMatch[1].trim() : '';
-    const mrPoints = mrRaw.split(/\n?\d+\.\s+/).filter(p => p.trim());
-    const fda = fdaMatch ? fdaMatch[1].trim() : '-';
-    const clinical = clinicalMatch ? clinicalMatch[1].trim() : '-';
+const summaryMatch = text.match(/\[AI_SUMMARY\]([\s\S]*?)(?=\[MR_POINTS\]|$)/);
+const mrMatch = text.match(/\[MR_POINTS\]([\s\S]*?)(?=\[FDA\]|$)/);
+const fdaMatch = text.match(/\[FDA\]([\s\S]*?)(?=\[CLINICAL\]|$)/);
+const clinicalMatch = text.match(/\[CLINICAL\]([\s\S]*?)(?=\[CLINICAL_TITLES\]|$)/);
+const clinicalTitlesMatch = text.match(/\[CLINICAL_TITLES\]([\s\S]*?)$/);
 
-    // 캐시 저장
-    AI_CACHE[cacheKey] = { summary, mrPoints, fda, clinical };
+const summary = summaryMatch ? summaryMatch[1].trim() : text.substring(0,200);
+const mrRaw = mrMatch ? mrMatch[1].trim() : '';
+const mrPoints = mrRaw.split(/\n?\d+\.\s+/).filter(p => p.trim());
+const fda = fdaMatch ? fdaMatch[1].trim() : '-';
+const clinical = clinicalMatch ? clinicalMatch[1].trim() : '-';
+const clinicalTitles = clinicalTitlesMatch
+  ? clinicalTitlesMatch[1]
+      .trim()
+      .split('\n')
+      .map(x => x.replace(/^[-•]\s*/, '').trim())
+      .filter(Boolean)
+      .slice(0, 3)
+  : [];
+
+// 캐시 저장
+AI_CACHE[cacheKey] = { summary, mrPoints, fda, clinical, clinicalTitles };
+
 
     // UI 업데이트
     const aiBody = document.getElementById('aiBody');
     const mrBody = document.getElementById('mrBody');
     const aiCard = document.getElementById('aiCard');
     const mrCard = document.getElementById('mrCard');
-    const fdaEl = document.getElementById('fdaVal');
-    const clinicalEl = document.getElementById('clinicalVal');
-
+const fdaEl = document.getElementById('fdaVal');
+const clinicalEl = document.getElementById('clinicalVal');
+const drugDetail = document.getElementById('drugDetail');
+if (clinicalEl) {
+  clinicalEl.textContent = clinical;
+  clinicalEl.style.color = clinical.includes('대상') ? 'var(--red)' : clinical.includes('완료') ? 'var(--g2)' : 'var(--sub)';
+}
+    if (drugDetail && clinicalTitles.length) {
+  const existing = document.getElementById('clinicalTitlesBox');
+  if (!existing) {
+    const compSection = drugDetail.querySelector('.detail-section:last-child');
+    const html = `
+      <div class="detail-section" id="clinicalTitlesBox">
+        <div class="sec-label">📊 최신 임상 근거</div>
+        <div class="info-card">
+          <div style="padding:14px 16px;font-size:0.85rem;line-height:1.75;">
+            ${clinicalTitles.map(t => `• ${t}`).join('<br>')}
+          </div>
+        </div>
+      </div>
+    `;
+    if (compSection) {
+      compSection.insertAdjacentHTML('beforebegin', html);
+    } else {
+      drugDetail.insertAdjacentHTML('beforeend', html);
+    }
+  }
+}
     if (aiBody) {
       aiBody.textContent = summary;
       const loader = aiCard?.querySelector('.ai-loading');

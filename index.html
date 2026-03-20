@@ -1663,8 +1663,16 @@ async function fetchAISummary(name, ingr, company, efcy, useMethod, cacheKey) {
       clinicalEl.style.color = clinical.includes('대상') ? 'var(--red)' : clinical.includes('완료') ? 'var(--g2)' : 'var(--sub)';
     }
   } catch(e) {
+    console.error('[AI 호출 실패]', e);
+
     const aiBody = document.getElementById('aiBody');
     const mrBody = document.getElementById('mrBody');
+    const aiCard = document.getElementById('aiCard');
+    const mrCard = document.getElementById('mrCard');
+
+    aiCard?.querySelector('.ai-loading')?.remove();
+    mrCard?.querySelector('.ai-loading')?.remove();
+
     if (aiBody) aiBody.textContent = 'AI 요약을 불러올 수 없습니다.';
     if (mrBody) mrBody.innerHTML = '<div style="font-size:0.85rem;color:var(--sub);">MR 포인트를 불러올 수 없습니다.</div>';
   }
@@ -2084,59 +2092,60 @@ async function selectForCompare(identifier, source = 'local') {
     const item = _compApiResults[identifier];
     if (!item) return;
 
-const apiName = item.ITEM_NAME || item.itemName || '-';
-const priceText = getDrugPrice(apiName);
-const priceNum = priceText !== '-' ? parseInt(String(priceText).replace(/[^\d]/g, ''), 10) : 0;
+    const apiName = item.ITEM_NAME || item.itemName || '-';
+    const priceText = getDrugPrice(apiName);
+    const priceNum = priceText !== '-'
+      ? parseInt(String(priceText).replace(/[^\d]/g, ''), 10)
+      : 0;
 
-d = {
-  _key: `api_${identifier}_${apiName.replace(/\s+/g, '_')}`,
-  id: item.ITEM_SEQ || item.itemSeq || `api_${identifier}`,
-  name: apiName,
-  ingredient: item.INGR_NAME_KOR || item.ingrNameKor || '-',
-  company: item.ENTP_NAME || item.entpName || '-',
-  type: item.ETC_OTC_CODE || item.etcOtcCode || '-',
-  price: priceNum,
-  insurance: '실시간',
-  fda: '조회중...',
-  form: item.FORM_CODE_NAME || item.formCodeName || '-',
-  efcy: ((item.efcyQesitm || item.EE_DOC_DATA || '').replace(/<[^>]+>/g, '').trim()) || '-',
-  summary: `${apiName} · ${item.INGR_NAME_KOR || item.ingrNameKor || '-'} · ${item.ENTP_NAME || item.entpName || '-'}`,
-  oneLineSummary: '-'
-};
-
+    d = {
+      _key: `api_${identifier}_${apiName.replace(/\s+/g, '_')}`,
+      id: item.ITEM_SEQ || item.itemSeq || `api_${identifier}`,
+      name: apiName,
+      ingredient: item.INGR_NAME_KOR || item.ingrNameKor || '-',
+      company: item.ENTP_NAME || item.entpName || '-',
+      type: item.ETC_OTC_CODE || item.etcOtcCode || '-',
+      price: priceNum,
+      insurance: '실시간',
+      fda: '조회중...',
+      form: item.FORM_CODE_NAME || item.formCodeName || '-',
+      efcy: ((item.efcyQesitm || item.EE_DOC_DATA || '').replace(/<[^>]+>/g, '').trim()) || '-',
+      summary: `${apiName} · ${item.INGR_NAME_KOR || item.ingrNameKor || '-'} · ${item.ENTP_NAME || item.entpName || '-'}`,
+      oneLineSummary: '-'
+    };
   } else {
     const local = DRUGS.find(x => x.id === identifier);
     if (!local) return;
 
-d = {
-  ...local,
-  _key: `local_${local.id}`,
-  summary: `${local.name} · ${local.ingredient} · ${local.company}`,
-  oneLineSummary: '-'
-};
+    d = {
+      ...local,
+      _key: `local_${local.id}`,
+      summary: `${local.name} · ${local.ingredient} · ${local.company}`,
+      oneLineSummary: '-'
+    };
   }
 
-const exists = cList.find(x =>
-  x._key === d._key ||
-  (x.name === d.name && x.company === d.company)
-);
+  const exists = cList.find(x =>
+    x._key === d._key ||
+    (x.name === d.name && x.company === d.company)
+  );
 
-if (exists) {
-  document.getElementById('compModalOverlay').style.display = 'none';
-  return;
-}
+  if (exists) {
+    document.getElementById('compModalOverlay').style.display = 'none';
+    return;
+  }
 
-const aiInfo = await getCompareAIInfo(d.name, d.ingredient, d.efcy);
-d.oneLineSummary = aiInfo.oneLineSummary || '-';
-d.fda = aiInfo.fda || '-';
+  const aiInfo = await getCompareAIInfo(d.name, d.ingredient, d.efcy);
+  d.oneLineSummary = aiInfo.oneLineSummary || '-';
+  d.fda = aiInfo.fda || '-';
 
-if (addingSlotIdx >= 0 && addingSlotIdx < 5) {
-  cList[addingSlotIdx] = d;
-} else if (cList.length < 5) {
-  cList.push(d);
-}
-addingSlotIdx = -1;
+  if (addingSlotIdx >= 0 && addingSlotIdx < 5) {
+    cList[addingSlotIdx] = d;
+  } else if (cList.length < 5) {
+    cList.push(d);
+  }
 
+  addingSlotIdx = -1;
   document.getElementById('compModalOverlay').style.display = 'none';
   renderCompareSlots();
   renderCompareTable();

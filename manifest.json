@@ -1,0 +1,16 @@
+{
+  "name": "면담 1분전",
+  "short_name": "면담1분전",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1E6B45",
+  "theme_color": "#1E6B45",
+  "icons": [
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

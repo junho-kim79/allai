@@ -1162,11 +1162,14 @@ document.getElementById('logoBtn').addEventListener('click', () => {
   logoClickCount++;
   clearTimeout(logoClickTimer);
   logoClickTimer = setTimeout(() => { logoClickCount = 0; }, 1500);
-if (logoClickCount >= 5) {
-  logoClickCount = 0;
-  const pw = prompt('관리자 비밀번호 입력');
-  if (pw === '9811') openAdmin();
-}
+
+  if (logoClickCount >= 5) {
+    logoClickCount = 0;
+    const pw = prompt('관리자 비밀번호 입력');
+    if (pw === '9811') openAdmin();
+  }
+});
+  
 
 function openAdmin() {
   renderAdminContent();

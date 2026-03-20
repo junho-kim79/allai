@@ -1482,7 +1482,7 @@ async function showDrugAPI(idx) {
     <!-- MR 포인트 -->
     <div class="mr-card" id="mrCard">
       <div class="mr-head">
-        <span class="mr-label">💼 MR 면담 포인트</span>
+        <span class="mr-label">💼 면담 포인트</span>
         ${cached ? '' : '<div class="ai-loading"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div></div>'}
       </div>
       <div id="mrBody">${cached ? renderMrPoints(cached.mrPoints) : '<div style="font-size:0.85rem;color:var(--sub);">분석 중...</div>'}</div>
@@ -1646,9 +1646,6 @@ const prompt = `당신은 제약 영업사원(MR) 전문 AI입니다.
 
 const summaryMatch = text.match(/\[AI_SUMMARY\]([\s\S]*?)(?=\[MR_POINTS\]|$)/);
 const mrMatch = text.match(/\[MR_POINTS\]([\s\S]*?)(?=\[FDA\]|$)/);
-    const clinicalTitles = clinicalTitlesMatch
-  ? clinicalTitlesMatch[1].trim().split('\n').map(x => x.replace(/^[-•]\s*/, '').trim()).filter(Boolean).slice(0, 3)
-  : [];
 const fdaMatch = text.match(/\[FDA\]([\s\S]*?)(?=\[CLINICAL\]|$)/);
 const clinicalMatch = text.match(/\[CLINICAL\]([\s\S]*?)(?=\[CLINICAL_TITLES\]|$)/);
 const clinicalTitlesMatch = text.match(/\[CLINICAL_TITLES\]([\s\S]*?)$/);
@@ -1659,7 +1656,12 @@ const mrPoints = mrRaw.split(/\n?\d+\.\s+/).filter(p => p.trim());
 const fda = fdaMatch ? fdaMatch[1].trim() : '-';
 const clinical = clinicalMatch ? clinicalMatch[1].trim() : '-';
 const clinicalTitles = clinicalTitlesMatch
-  ? clinicalTitlesMatch[1].trim().split('\n').map(x => x.trim()).filter(Boolean).slice(0, 3)
+  ? clinicalTitlesMatch[1]
+      .trim()
+      .split('\n')
+      .map(x => x.replace(/^[-•]\s*/, '').trim())
+      .filter(Boolean)
+      .slice(0, 3)
   : [];
 
 // 캐시 저장

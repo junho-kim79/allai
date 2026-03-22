@@ -1444,6 +1444,7 @@ async function showDrugAPI(idx) {
   const ingr = item.INGR_NAME_KOR || item.ingrNameKor || '-';
   const company = item.ENTP_NAME || item.entpName || '-';
   const form = item.DRUG_FORM || item.drugForm || item.FORM_CODE_NAME || item.formCodeName || '-';
+  const formDisplay = (form === etcOtc || form === '전문의약품' || form === '일반의약품') ? '-' : form;
   const permitDate = item.ITEM_PERMIT_DATE || item.itemPermitDate || '-';
   const etcOtc = item.ETC_OTC_CODE || item.etcOtcCode || '-';
   const efcy = (item.efcyQesitm || '').replace(/<[^>]+>/g,'').trim();
@@ -1466,7 +1467,7 @@ async function showDrugAPI(idx) {
       <div class="detail-sub">${ingr} · ${company}</div>
       <div class="badges" style="margin-top:12px;">
         <span class="badge bg">🌐 실시간</span>
-        <span class="badge bk">${form}</span>
+        <span class="badge bk">${formDisplay}</span>
         <span class="badge bk">${etcOtc}</span>
       </div>
     </div>

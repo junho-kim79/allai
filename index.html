@@ -2357,12 +2357,12 @@ function renderStat() {
           </div>`).join('')}
       </div>`;
   } else {
-    const ranking = [
-      {name:'넥시움정 20mg',val:85,color:'var(--blue)'},
-      {name:'케이캡정 50mg',val:95,color:'var(--g1)'},
-      {name:'파리에트정 10mg',val:48,color:'var(--yellow)'},
-      {name:'라베린정 10mg',val:50,color:'var(--purple)'},
-      {name:'란스톤캡슐 30mg',val:38,color:'#F97316'}
+const ranking = [
+      {name:'테고프라잔 (P-CAB)',val:95,color:'var(--g1)'},
+      {name:'에소메프라졸 (PPI)',val:85,color:'var(--blue)'},
+      {name:'라베프라졸 제네릭 (PPI)',val:50,color:'var(--purple)'},
+      {name:'라베프라졸 오리지널 (PPI)',val:48,color:'var(--yellow)'},
+      {name:'란소프라졸 (PPI)',val:38,color:'#F97316'}
     ].sort((a,b)=>b.val-a.val);
     const maxVal = ranking[0].val;
     el.innerHTML = `
@@ -2378,7 +2378,7 @@ function renderStat() {
               <div style="height:100%;width:${Math.round(r.val/maxVal*100)}%;background:${r.color};border-radius:6px;"></div>
             </div>
           </div>`).join('')}
-        <div style="text-align:center;font-size:0.72rem;color:var(--sub2);margin-top:8px;">※ 샘플 데이터</div>
+      <div style="text-align:center;font-size:0.72rem;color:var(--sub2);margin-top:8px;">※ 본 데이터는 실제 처방 통계와 무관한 예시입니다</div>
       </div>`;
   }
 }

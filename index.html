@@ -2311,7 +2311,7 @@ function renderStat() {
     const colors = { '전국':'var(--g1)', '대구':'var(--blue)', '서울':'var(--yellow)' };
     const maxVal = 110;
     el.innerHTML = `
-      <div class="sec-label" style="padding:0 2px 10px;">케이캡 지역별 처방 추이 (만건)</div>
+      <div class="sec-label" style="padding:0 2px 10px;">P-CAB 계열 지역별 처방 추이 (만건)</div>
       <div class="info-card" style="padding:18px 14px 14px;">
         <div style="display:flex;justify-content:flex-end;gap:12px;margin-bottom:14px;">
           ${Object.keys(regions).map(r=>`<div style="display:flex;align-items:center;gap:5px;"><div style="width:9px;height:9px;border-radius:50%;background:${colors[r]};"></div><span style="font-size:0.74rem;color:var(--sub);font-weight:600;">${r}</span></div>`).join('')}

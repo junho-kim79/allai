@@ -1443,7 +1443,7 @@ async function showDrugAPI(idx) {
   const name = item.ITEM_NAME || item.itemName || '-';
   const ingr = item.INGR_NAME_KOR || item.ingrNameKor || '-';
   const company = item.ENTP_NAME || item.entpName || '-';
-  const form = item.FORM_CODE_NAME || item.formCodeName || '-';
+  const form = item.DRUG_FORM || item.drugForm || item.FORM_CODE_NAME || item.formCodeName || '-';
   const permitDate = item.ITEM_PERMIT_DATE || item.itemPermitDate || '-';
   const etcOtc = item.ETC_OTC_CODE || item.etcOtcCode || '-';
   const efcy = (item.efcyQesitm || '').replace(/<[^>]+>/g,'').trim();
@@ -1493,7 +1493,7 @@ async function showDrugAPI(idx) {
     <div class="detail-section">
       <div class="sec-label">기본 정보</div>
       <div class="info-card">
-        <div class="info-row"><span class="info-l">약가</span><span class="info-v" style="color:var(--g2);" id="priceVal">조회 중...</span></div>
+        <div class="info-row"><span class="info-l">약가</span><span class="info-v" id="priceVal">조회 중...</span></div>
         <div class="info-row"><span class="info-l">성분</span><span class="info-v">${ingr}</span></div>
         <div class="info-row"><span class="info-l">제조사</span><span class="info-v">${company}</span></div>
         <div class="info-row"><span class="info-l">제형</span><span class="info-v">${form}</span></div>
@@ -1551,7 +1551,29 @@ ${compItems.length ? `<div class="detail-section">
 
   // 약가
   const priceEl = document.getElementById('priceVal');
-  if (priceEl) priceEl.textContent = getDrugPrice(name);
+  if (priceEl) {
+  const siblings = _apiResults.filter((it, i) => {
+    if (i === idx) return false;
+    const itIngr = (it.INGR_NAME_KOR || it.ingrNameKor || '').split('(')[0].trim().toLowerCase().substring(0,6);
+    return itIngr === ingrKey;
+  }).slice(0, 4);
+
+  const currentPrice = getDrugPrice(name);
+  let html = `<span style="font-weight:900;color:var(--g2);">${currentPrice} ✓</span>`;
+  
+  if (siblings.length) {
+    html += `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;">`;
+    siblings.forEach(s => {
+      const sName = s.ITEM_NAME || s.itemName || '';
+      const sPrice = getDrugPrice(sName);
+      if (sPrice !== '-') {
+        html += `<span style="font-size:0.78rem;color:var(--sub);background:rgba(0,0,0,0.04);border-radius:6px;padding:2px 8px;">${sName.length>10?sName.substring(0,10)+'…':sName} ${sPrice}</span>`;
+      }
+    });
+    html += `</div>`;
+  }
+  priceEl.innerHTML = html;
+}
 
   // AI 호출 (캐시 없을 때만)
   if (!cached) {

@@ -1446,7 +1446,19 @@ async function showDrugAPI(idx) {
 const form = item.DRUG_FORM || item.drugForm || item.FORM_CODE_NAME || item.formCodeName || '-';
 const permitDate = item.ITEM_PERMIT_DATE || item.itemPermitDate || '-';
 const etcOtc = item.ETC_OTC_CODE || item.etcOtcCode || '-';
-const formDisplay = (form === etcOtc || form === '전문의약품' || form === '일반의약품') ? '-' : form;
+const formDisplay = (() => {
+  const n = name;
+  if (n.includes('주사')) return '주사제';
+  if (n.includes('캡슐')) return '캡슐';
+  if (n.includes('시럽')) return '시럽';
+  if (n.includes('현탁')) return '현탁액';
+  if (n.includes('과립')) return '과립제';
+  if (n.includes('크림')) return '크림';
+  if (n.includes('연고')) return '연고';
+  if (n.includes('패치')) return '패치';
+  if (n.includes('정')) return '정';
+  return '-';
+})();
   const efcy = (item.efcyQesitm || '').replace(/<[^>]+>/g,'').trim();
   const useMethod = (item.useMethodQesitm || '').replace(/<[^>]+>/g,'').trim();
   const atpnWarn = (item.atpnWarnQesitm || '').replace(/<[^>]+>/g,'').trim();

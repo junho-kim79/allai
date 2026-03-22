@@ -1443,10 +1443,10 @@ async function showDrugAPI(idx) {
   const name = item.ITEM_NAME || item.itemName || '-';
   const ingr = item.INGR_NAME_KOR || item.ingrNameKor || '-';
   const company = item.ENTP_NAME || item.entpName || '-';
-  const form = item.DRUG_FORM || item.drugForm || item.FORM_CODE_NAME || item.formCodeName || '-';
-  const formDisplay = (form === etcOtc || form === '전문의약품' || form === '일반의약품') ? '-' : form;
-  const permitDate = item.ITEM_PERMIT_DATE || item.itemPermitDate || '-';
-  const etcOtc = item.ETC_OTC_CODE || item.etcOtcCode || '-';
+const form = item.DRUG_FORM || item.drugForm || item.FORM_CODE_NAME || item.formCodeName || '-';
+const permitDate = item.ITEM_PERMIT_DATE || item.itemPermitDate || '-';
+const etcOtc = item.ETC_OTC_CODE || item.etcOtcCode || '-';
+const formDisplay = (form === etcOtc || form === '전문의약품' || form === '일반의약품') ? '-' : form;
   const efcy = (item.efcyQesitm || '').replace(/<[^>]+>/g,'').trim();
   const useMethod = (item.useMethodQesitm || '').replace(/<[^>]+>/g,'').trim();
   const atpnWarn = (item.atpnWarnQesitm || '').replace(/<[^>]+>/g,'').trim();

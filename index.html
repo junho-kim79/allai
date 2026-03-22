@@ -1670,95 +1670,69 @@ function renderMrPoints(points) {
 /* AI 요약 (순차 호출) */
 async function fetchAISummary(name, ingr, company, efcy, useMethod, cacheKey) {
   try {
-    const prompt = `당신은 제약 영업사원(MR)을 위한 설득형 AI입니다.
-목표는 약 정보를 중립적으로 요약하는 것이 아니라, 해당 제품이 경쟁약 대비 어디에서 더 매력적으로 보일 수 있는지 유리하게 정리하는 것입니다.
+    const prompt = `당신은 제약 영업사원(MR)을 위한 실전형 AI입니다.
+목표는 약 정보를 길게 설명하는 것이 아니라, 의사가 빠르게 이해하고 면담에 바로 쓸 수 있는 핵심 포인트만 간결하게 정리하는 것입니다.
 
 약품명: ${name}
 성분: ${ingr}
 제조사: ${company}
-적응증: ${efcy ? efcy.substring(0, 250) : '정보없음'}
-용법: ${useMethod ? useMethod.substring(0, 180) : '정보없음'}
-
-이 약이 비교적 최신 약물인지, 기존에 오래 사용된 약물인지 판단하고 다음 기준으로 강조점을 다르게 작성하세요:
-
-- 최신 약물이라면: 최근 처방 트렌드, 새로운 선택지, 기존 대비 개선 포인트 중심
-- 기존 약물이라면: 임상 경험 축적, 장기간 사용된 안정성, 익숙하고 무난한 선택지 중심
+적응증: ${efcy ? efcy.substring(0, 220) : '정보없음'}
+용법: ${useMethod ? useMethod.substring(0, 160) : '정보없음'}
 
 다음 형식으로 반드시 작성하세요:
 
 [ONE_LINE]
-이 약을 한 줄로 강하게 정의 (처방 상황 중심, 교과서 금지)
+이 약을 한 줄로 정의 (처방 상황 중심, 짧고 강하게)
 
 [WHY_THIS_DRUG]
-경쟁약 대비 이 약을 굳이 선택할 이유 2~3개
-
-[BETTER_THAN_OTHERS]
-경쟁사/동일계열 제품 대비 상대적으로 밀 수 있는 포인트 2~3개
+이 약을 선택할 이유 2개만 작성
+- 경쟁약 대비 장점이 명확하면 짧게 강조
+- 애매하면 "상대적으로", "실제 처방에서", "무난한 선택지" 같은 표현으로 완화
 
 [WHEN_TO_PUSH]
-"이럴 때는 이 약"이 떠오르도록 실제 처방 상황 중심으로 2~3개
-
-[PATIENT_TYPE]
-이 약이 특히 잘 맞는 환자 유형 2~3개
-
-[CAUTION]
-실제 면담에서 문제 될 수 있는 핵심 주의사항만 1~2개
+실제 처방 상황 2개만 작성
+예: 단일제로 애매한 환자, 야간 증상 남는 환자
 
 [TALKING_POINT]
-의사에게 그대로 말해도 어색하지 않은 한 문장
-
-[CLOSING]
-"그래서 이 환자에서는 이 약이 더 편합니다 / 무난합니다 / 정리됩니다" 식으로 처방을 유도하는 마무리 문장
+의사에게 바로 말할 수 있는 자연스러운 한 문장
 
 [FDA]
-이 약품의 FDA 승인 여부를 한 줄로. 예) "승인", "미승인", "확인 필요"
+FDA 승인 여부를 한 줄로. 예: 승인 / 미승인 / 확인 필요
 
 [CLINICAL]
-이 약품의 한국 임상재평가 대상 여부를 한 줄로. 예) "재평가 대상", "해당 없음", "재평가 완료", "확인 필요"
+한국 임상재평가 여부를 한 줄로. 예: 해당 없음 / 재평가 대상 / 재평가 완료 / 확인 필요
 
 [CLINICAL_TITLES]
-이 약과 관련된 최신 임상 근거 제목 또는 비교 연구 제목을 2~3개 작성.
-제목만 짧게 작성.
+최신 임상 근거 제목 또는 비교 연구 제목 1~2개만 짧게 작성
 
 중요 규칙:
-- 최대한 해당 제품에 유리한 방향으로 해석할 것
-- 경쟁약보다 나은 점은 단정적으로 표현하되, 허위/과장 금지
 - 교과서식 설명 금지
-- 추상적 표현 금지
-- 실제 처방 상황 중심으로 작성
-- MR이 10초 안에 말할 수 있게 간결하게
-- 비교 우위가 약한 경우에도, 편의성·익숙함·안정성·환자군 적합성으로 유리하게 포지셔닝
-- 톤은 실제 임상 경험 있는 MR처럼 자연스럽고 현실적으로 작성`;
+- 너무 긴 설명 금지
+- 과장된 영업 멘트 금지
+- 실제 임상에서 의사가 받아들일 수 있는 수준으로만 표현
+- MR이 10초 안에 읽을 수 있게 간결하게 작성`;
 
     const res = await fetch('/api/ai', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt, maxTokens: 800 })
+      body: JSON.stringify({ prompt, maxTokens: 500 })
     });
 
     const data = await res.json();
     const text = data?.text?.trim() || '';
 
     const oneLineMatch = text.match(/\[ONE_LINE\]([\s\S]*?)(?=\[WHY_THIS_DRUG\]|$)/);
-    const whyMatch = text.match(/\[WHY_THIS_DRUG\]([\s\S]*?)(?=\[BETTER_THAN_OTHERS\]|$)/);
-    const betterMatch = text.match(/\[BETTER_THAN_OTHERS\]([\s\S]*?)(?=\[WHEN_TO_PUSH\]|$)/);
-    const whenMatch = text.match(/\[WHEN_TO_PUSH\]([\s\S]*?)(?=\[PATIENT_TYPE\]|$)/);
-    const patientMatch = text.match(/\[PATIENT_TYPE\]([\s\S]*?)(?=\[CAUTION\]|$)/);
-    const cautionMatch = text.match(/\[CAUTION\]([\s\S]*?)(?=\[TALKING_POINT\]|$)/);
-    const talkingMatch = text.match(/\[TALKING_POINT\]([\s\S]*?)(?=\[CLOSING\]|$)/);
-    const closingMatch = text.match(/\[CLOSING\]([\s\S]*?)(?=\[FDA\]|$)/);
+    const whyMatch = text.match(/\[WHY_THIS_DRUG\]([\s\S]*?)(?=\[WHEN_TO_PUSH\]|$)/);
+    const whenMatch = text.match(/\[WHEN_TO_PUSH\]([\s\S]*?)(?=\[TALKING_POINT\]|$)/);
+    const talkingMatch = text.match(/\[TALKING_POINT\]([\s\S]*?)(?=\[FDA\]|$)/);
     const fdaMatch = text.match(/\[FDA\]([\s\S]*?)(?=\[CLINICAL\]|$)/);
     const clinicalMatch = text.match(/\[CLINICAL\]([\s\S]*?)(?=\[CLINICAL_TITLES\]|$)/);
     const clinicalTitlesMatch = text.match(/\[CLINICAL_TITLES\]([\s\S]*?)$/);
 
     const oneLine = oneLineMatch ? oneLineMatch[1].trim() : '-';
     const whyText = whyMatch ? whyMatch[1].trim() : '';
-    const betterText = betterMatch ? betterMatch[1].trim() : '';
     const whenText = whenMatch ? whenMatch[1].trim() : '';
-    const patientText = patientMatch ? patientMatch[1].trim() : '';
-    const cautionText = cautionMatch ? cautionMatch[1].trim() : '';
     const talkingPoint = talkingMatch ? talkingMatch[1].trim() : '-';
-    const closing = closingMatch ? closingMatch[1].trim() : '-';
     const fda = fdaMatch ? fdaMatch[1].trim() : '-';
     const clinical = clinicalMatch ? clinicalMatch[1].trim() : '-';
 
@@ -1768,7 +1742,7 @@ async function fetchAISummary(name, ingr, company, efcy, useMethod, cacheKey) {
           .split('\n')
           .map(x => x.replace(/^[-•]\s*/, '').trim())
           .filter(Boolean)
-          .slice(0, 3)
+          .slice(0, 2)
       : [];
 
     const toList = (raw) =>
@@ -1776,20 +1750,17 @@ async function fetchAISummary(name, ingr, company, efcy, useMethod, cacheKey) {
         .split(/\n|•|-|\d+\./)
         .map(x => x.trim())
         .filter(Boolean)
-        .slice(0, 3);
+        .slice(0, 2);
 
     const mrPoints = [
       ...toList(whyText),
-      ...toList(betterText),
       ...toList(whenText)
-    ].slice(0, 5);
+    ].slice(0, 4);
 
     const summary = `
 <strong>한줄 포지션</strong><br>${oneLine}<br><br>
-<strong>잘 맞는 환자</strong><br>${patientText || '-'}<br><br>
-<strong>주의사항</strong><br>${cautionText || '-'}<br><br>
-<strong>면담 멘트</strong><br>${talkingPoint}<br><br>
-<strong>클로징</strong><br>${closing}
+<strong>선택 이유</strong><br>${whyText || '-'}<br><br>
+<strong>면담 멘트</strong><br>${talkingPoint}
     `.trim();
 
     AI_CACHE[cacheKey] = {

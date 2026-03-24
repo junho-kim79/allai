@@ -1622,7 +1622,7 @@ ${compItems.length ? `<div class="detail-section">
   if (!cached) {
     fetchAISummary(name, ingr, company, efcy, useMethod, cacheKey);
   }
-
+}
 async function getCompareAIInfo(name, ingredient, efcy) {
   const key = `${name}__${ingredient}`.toLowerCase().replace(/\s/g, '');
   if (SUMMARY_CACHE[key]) return SUMMARY_CACHE[key];

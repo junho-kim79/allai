@@ -1666,7 +1666,8 @@ FDA 승인 여부만 아주 짧게
 
     SUMMARY_CACHE[key] = result;
     return result;
-  } catch (e) {
+} catch (e) {
+    _selectingCompare = false;
     return { oneLineSummary: '-', fda: '-', useMethod: '-' };
   }
 }
@@ -2278,7 +2279,10 @@ function renderCompModalListLocal(q, el) {
   `).join('');
 }
 
+let _selectingCompare = false;
 async function selectForCompare(identifier, source = 'local') {
+  if (_selectingCompare) return;
+  _selectingCompare = true;
   let d = null;
 
   if (source === 'api') {
@@ -2329,6 +2333,13 @@ useMethod: ((item.useMethodQesitm || '').replace(/<[^>]+>/g, '').trim()) || '-',
     return;
   }
 
+  document.getElementById('compModalList').innerHTML = `
+    <div class="empty" style="padding:24px 12px;">
+      <div style="display:flex;justify-content:center;gap:6px;margin-bottom:8px;">
+        <div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div>
+      </div>
+      AI 분석 중...
+    </div>`;
   const aiInfo = await getCompareAIInfo(d.name, d.ingredient, d.efcy);
 d.oneLineSummary = aiInfo.oneLineSummary || '-';
 d.fda = aiInfo.fda || '-';
@@ -2340,7 +2351,8 @@ d.useMethod = d.useMethod && d.useMethod !== '-' ? d.useMethod : (aiInfo.useMeth
     cList.push(d);
   }
 
-  addingSlotIdx = -1;
+addingSlotIdx = -1;
+  _selectingCompare = false;
   document.getElementById('compModalOverlay').style.display = 'none';
   renderCompareSlots();
   renderCompareTable();

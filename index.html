@@ -1538,6 +1538,7 @@ const formDisplay = (() => {
         <div class="info-row"><span class="info-l">제조사</span><span class="info-v">${company}</span></div>
         <div class="info-row"><span class="info-l">제형</span><span class="info-v">${formDisplay}</span></div>
         <div class="info-row"><span class="info-l">허가일</span><span class="info-v">${permitDate}</span></div>
+        <div class="info-row"><span class="info-l">용법용량</span><span class="info-v" style="font-size:0.82rem;">${useMethod || '-'}</span></div>
         <div class="info-row"><span class="info-l">전문/일반</span><span class="info-v">${etcOtc}</span></div>
         <div class="info-row"><span class="info-l">임상재평가 <span style="font-size:0.68rem;font-weight:600;color:var(--sub2);">AI참고</span></span><span class="info-v" id="clinicalVal">${cached ? (cached.clinical || '-') : '<span style="color:var(--sub2);font-weight:400;">조회 중...</span>'}</span></div>
         <div class="info-row"><span class="info-l">성분 이슈 <span style="font-size:0.68rem;font-weight:600;color:var(--sub2);">AI참고</span></span><span class="info-v" id="issueVal">${cached ? (cached.issue || '-') : '<span style="color:var(--sub2);font-weight:400;">조회 중...</span>'}</span></div>

@@ -2096,6 +2096,7 @@ function renderCompareTable() {
     { lbl: '전문/일반', fn: d => d.type || '-' },
    { lbl: '약가', fn: d => (typeof d.price === 'number' && d.price > 0) ? d.price.toLocaleString() + '원' : (d.name ? getDrugPrice(d.name) : '-') },
     { lbl: '보험', fn: d => d.insurance || '-' },
+    { lbl: '용법용량', fn: d => d.useMethod || d.efcy?.substring(0,30) || '-' },
     { lbl: 'FDA', fn: d => {
         const f = String(d.fda || '-');
         if (f.includes('승인') && !f.includes('미승인')) return '✅ 승인';
@@ -2287,6 +2288,7 @@ async function selectForCompare(identifier, source = 'local') {
       fda: '조회중...',
       form: item.FORM_CODE_NAME || item.formCodeName || '-',
       efcy: ((item.efcyQesitm || item.EE_DOC_DATA || '').replace(/<[^>]+>/g, '').trim()) || '-',
+useMethod: ((item.useMethodQesitm || '').replace(/<[^>]+>/g, '').trim()) || '-',
       summary: `${apiName} · ${item.INGR_NAME_KOR || item.ingrNameKor || '-'} · ${item.ENTP_NAME || item.entpName || '-'}`,
       oneLineSummary: '-'
     };

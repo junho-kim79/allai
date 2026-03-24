@@ -785,7 +785,7 @@
     <div class="logo" id="logoBtn">
       <div class="logo-mark">💊</div>
       <div class="logo-text">All<em>ai</em></div>
-      <span class="beta">BETA</span>
+      
     </div>
     <div class="chip" id="stepChip">홈</div>
   </div>
@@ -1627,9 +1627,9 @@ async function getCompareAIInfo(name, ingredient, efcy) {
 
   try {
     const prompt = `약품명: ${name}
-성분: ${ingredient}
+핵심성분 (이것을 기준으로 판단하세요): ${ingredient}
 효능효과: ${efcy || '-'}
-
+※ 반드시 성분명 기준으로 판단하세요. 품목명만으로 판단하지 마세요.
 아래 형식으로만 답해줘.
 
 [ONE_LINE]
@@ -1674,8 +1674,9 @@ async function fetchAISummary(name, ingr, company, efcy, useMethod, cacheKey) {
 목표는 약 정보를 길게 설명하는 것이 아니라, 의사가 빠르게 이해하고 면담에 바로 쓸 수 있는 핵심 포인트만 간결하게 정리하는 것입니다.
 
 약품명: ${name}
-성분: ${ingr}
+핵심성분 (이것을 기준으로 판단하세요): ${ingr}
 제조사: ${company}
+※ 반드시 성분명 기준으로 계열, 작용기전, 임상 근거를 판단하세요. 품목명만으로 판단하지 마세요.
 적응증: ${efcy ? efcy.substring(0, 220) : '정보없음'}
 용법: ${useMethod ? useMethod.substring(0, 160) : '정보없음'}
 

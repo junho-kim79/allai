@@ -2483,10 +2483,15 @@ function getStats() { try { return JSON.parse(localStorage.getItem(SKEY)||'{"use
 function incSearch() { const s=getStats(); s.searches=(s.searches||0)+1; localStorage.setItem(SKEY,JSON.stringify(s)); renderStats(); }
 function renderStats() { const s=getStats(); const ue=document.getElementById('statUsers'); const se=document.getElementById('statSearches'); if(ue) ue.textContent=s.users.toLocaleString()+'명'; if(se) se.textContent=s.searches.toLocaleString()+'회'; }
 
-  function openRecentItem(id) {
+function openRecentItem(id) {
   if (typeof id === 'string' && id.startsWith('api_')) {
-    const idx = parseInt(id.replace('api_', ''), 10);
-  showDrugAPI(idx);
+    const q = document.getElementById('homeSearch')?.value || document.getElementById('drugSearch')?.value || '';
+    goScreen('screen2', '약품 검색');
+    const drugSearch = document.getElementById('drugSearch');
+    if (drugSearch) {
+      drugSearch.value = getRecent().find(r => r.id === id)?.name || '';
+      searchDrug();
+    }
   } else {
     showDrug(Number(id));
   }

@@ -2120,12 +2120,14 @@ function renderCompareTable() {
       <table style="width:100%;border-collapse:collapse;font-size:0.82rem;">
         <thead>
           <tr>
-            <th style="background:#F8F9FA;padding:10px;text-align:left;font-weight:700;border-bottom:2px solid var(--border);color:var(--sub2);font-size:0.75rem;">항목</th>
-            ${cList.map(d => `
-              <th style="background:#F8F9FA;padding:10px;text-align:center;font-weight:700;border-bottom:2px solid var(--border);font-size:0.78rem;white-space:nowrap;">
+<th style="background:${d._key === myDrugKey ? 'rgba(239,68,68,0.08)' : '#F8F9FA'};padding:10px;text-align:center;font-weight:700;border-bottom:${d._key === myDrugKey ? '2px solid var(--red)' : '2px solid var(--border)'};font-size:0.78rem;white-space:nowrap;${d._key === myDrugKey ? 'color:var(--red);' : ''}">
                 ${d.name.length > 8 ? d.name.substring(0, 8) + '…' : d.name}
               </th>
-            `).join('')}
+${cList.map(d => `
+                <td style="padding:10px;border-bottom:1px solid var(--border);text-align:center;line-height:1.5;${d._key === myDrugKey ? 'background:rgba(239,68,68,0.04);' : ''}">
+                  ${r.fn(d)}
+                </td>
+              `).join('')}
           </tr>
         </thead>
         <tbody>

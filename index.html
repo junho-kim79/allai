@@ -1538,7 +1538,7 @@ const formDisplay = (() => {
         <div class="info-row"><span class="info-l">제조사</span><span class="info-v">${company}</span></div>
         <div class="info-row"><span class="info-l">제형</span><span class="info-v">${formDisplay}</span></div>
         <div class="info-row"><span class="info-l">허가일</span><span class="info-v">${permitDate}</span></div>
-        <div class="info-row"><span class="info-l">용법용량</span><span class="info-v" style="font-size:0.82rem;">${useMethod || '-'}</span></div>
+<div class="info-row"><span class="info-l">용법용량</span><span class="info-v" id="useMethodVal" style="font-size:0.82rem;">${useMethod || '<span style="color:var(--sub2);font-weight:400;">조회 중...</span>'}</span></div>
         <div class="info-row"><span class="info-l">전문/일반</span><span class="info-v">${etcOtc}</span></div>
         <div class="info-row"><span class="info-l">임상재평가 <span style="font-size:0.68rem;font-weight:600;color:var(--sub2);">AI참고</span></span><span class="info-v" id="clinicalVal">${cached ? (cached.clinical || '-') : '<span style="color:var(--sub2);font-weight:400;">조회 중...</span>'}</span></div>
         <div class="info-row"><span class="info-l">성분 이슈 <span style="font-size:0.68rem;font-weight:600;color:var(--sub2);">AI참고</span></span><span class="info-v" id="issueVal">${cached ? (cached.issue || '-') : '<span style="color:var(--sub2);font-weight:400;">조회 중...</span>'}</span></div>
@@ -1713,6 +1713,8 @@ FDA 승인 여부를 한 줄로. 예: 승인 / 미승인 / 확인 필요
 [CLINICAL_TITLES]
 최신 임상 근거 제목 또는 비교 연구 제목 1~2개만 짧게 작성
 
+[USE_METHOD]
+API에서 용법용량 정보가 없을 경우, 이 성분/제형 기준으로 일반적인 용법용량을 한 줄로.
 [ISSUE]
 이 성분의 실전 처방 팁을 한 줄로. 급여 이슈, 검사 필요 여부, 처방 제한, 안전성 경고 등 MR이 알아야 할 가장 중요한 한 가지만. 없으면 "특이사항 없음".
 
@@ -1739,7 +1741,9 @@ FDA 승인 여부를 한 줄로. 예: 승인 / 미승인 / 확인 필요
     const fdaMatch = text.match(/\[FDA\]([\s\S]*?)(?=\[CLINICAL\]|$)/);
     const clinicalMatch = text.match(/\[CLINICAL\]([\s\S]*?)(?=\[CLINICAL_TITLES\]|$)/);
     const clinicalTitlesMatch = text.match(/\[CLINICAL_TITLES\]([\s\S]*?)(?=\[ISSUE\]|$)/);
+const useMethodAIMatch = text.match(/\[USE_METHOD\]([\s\S]*?)(?=\[ISSUE\]|$)/);
 const issueMatch = text.match(/\[ISSUE\]([\s\S]*?)$/);
+const useMethodAI = useMethodAIMatch ? useMethodAIMatch[1].trim() : '-';
 const issue = issueMatch ? issueMatch[1].trim() : '-';
 
     const oneLine = oneLineMatch ? oneLineMatch[1].trim() : '-';
@@ -1810,6 +1814,10 @@ AI_CACHE[cacheKey] = {
       fdaEl.style.color = fda.includes('승인') && !fda.includes('미승인') ? 'var(--g2)' : 'var(--sub)';
     }
 
+    const useMethodEl = document.getElementById('useMethodVal');
+    if (useMethodEl && (!useMethod || useMethod === '-')) {
+      useMethodEl.textContent = useMethodAI;
+    }
     const issueEl = document.getElementById('issueVal');
     if (issueEl) {
       issueEl.textContent = issue;

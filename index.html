@@ -1511,6 +1511,22 @@ const formDisplay = (() => {
       </div>
     </div>
 
+ <!-- 기본 정보 -->
+    <div class="detail-section">
+      <div class="sec-label">기본 정보</div>
+      <div class="info-card">
+        <div class="info-row"><span class="info-l">약가</span><span class="info-v" id="priceVal">조회 중...</span></div>
+        <div class="info-row"><span class="info-l">성분</span><span class="info-v">${ingr}</span></div>
+        <div class="info-row"><span class="info-l">제조사</span><span class="info-v">${company}</span></div>
+        <div class="info-row"><span class="info-l">제형</span><span class="info-v">${formDisplay}</span></div>
+        <div class="info-row"><span class="info-l">허가일</span><span class="info-v">${permitDate}</span></div>
+<div class="info-row"><span class="info-l">용법용량</span><span class="info-v" id="useMethodVal" style="font-size:0.82rem;">${useMethod || '<span style="color:var(--sub2);font-weight:400;">조회 중...</span>'}</span></div>
+        <div class="info-row"><span class="info-l">전문/일반</span><span class="info-v">${etcOtc}</span></div>
+        <div class="info-row"><span class="info-l">임상재평가 <span style="font-size:0.68rem;font-weight:600;color:var(--sub2);">AI참고</span></span><span class="info-v" id="clinicalVal">${cached ? (cached.clinical || '-') : '<span style="color:var(--sub2);font-weight:400;">조회 중...</span>'}</span></div>
+        <div class="info-row"><span class="info-l">성분 이슈 <span style="font-size:0.68rem;font-weight:600;color:var(--sub2);">AI참고</span></span><span class="info-v" id="issueVal">${cached ? (cached.issue || '-') : '<span style="color:var(--sub2);font-weight:400;">조회 중...</span>'}</span></div>
+        <div class="info-row"><span class="info-l">FDA 승인 <span style="font-size:0.68rem;font-weight:600;color:var(--sub2);">AI참고</span></span><span class="info-v" id="fdaVal">${cached ? (cached.fda || '-') : '<span style="color:var(--sub2);font-weight:400;">조회 중...</span>'}</span></div>
+      </div>
+    </div>
     <!-- AI 요약 -->
     <div class="ai-card" id="aiCard">
       <div class="ai-head">
@@ -1529,22 +1545,7 @@ const formDisplay = (() => {
       <div id="mrBody">${cached ? renderMrPoints(cached.mrPoints) : '<div style="font-size:0.85rem;color:var(--sub);">분석 중...</div>'}</div>
     </div>
 
-    <!-- 기본 정보 -->
-    <div class="detail-section">
-      <div class="sec-label">기본 정보</div>
-      <div class="info-card">
-        <div class="info-row"><span class="info-l">약가</span><span class="info-v" id="priceVal">조회 중...</span></div>
-        <div class="info-row"><span class="info-l">성분</span><span class="info-v">${ingr}</span></div>
-        <div class="info-row"><span class="info-l">제조사</span><span class="info-v">${company}</span></div>
-        <div class="info-row"><span class="info-l">제형</span><span class="info-v">${formDisplay}</span></div>
-        <div class="info-row"><span class="info-l">허가일</span><span class="info-v">${permitDate}</span></div>
-<div class="info-row"><span class="info-l">용법용량</span><span class="info-v" id="useMethodVal" style="font-size:0.82rem;">${useMethod || '<span style="color:var(--sub2);font-weight:400;">조회 중...</span>'}</span></div>
-        <div class="info-row"><span class="info-l">전문/일반</span><span class="info-v">${etcOtc}</span></div>
-        <div class="info-row"><span class="info-l">임상재평가 <span style="font-size:0.68rem;font-weight:600;color:var(--sub2);">AI참고</span></span><span class="info-v" id="clinicalVal">${cached ? (cached.clinical || '-') : '<span style="color:var(--sub2);font-weight:400;">조회 중...</span>'}</span></div>
-        <div class="info-row"><span class="info-l">성분 이슈 <span style="font-size:0.68rem;font-weight:600;color:var(--sub2);">AI참고</span></span><span class="info-v" id="issueVal">${cached ? (cached.issue || '-') : '<span style="color:var(--sub2);font-weight:400;">조회 중...</span>'}</span></div>
-        <div class="info-row"><span class="info-l">FDA 승인 <span style="font-size:0.68rem;font-weight:600;color:var(--sub2);">AI참고</span></span><span class="info-v" id="fdaVal">${cached ? (cached.fda || '-') : '<span style="color:var(--sub2);font-weight:400;">조회 중...</span>'}</span></div>
-      </div>
-    </div>
+   
 
     ${efcy ? `<div class="detail-section">
       <div class="sec-label">적응증 · 효능효과</div>

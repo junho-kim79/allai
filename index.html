@@ -1377,7 +1377,7 @@ async function fetchDrug(q) {
     </div>검색 중...
   </div>`;
   try {
-    const res = await fetch(`https://drug-ede5bi7c3g-du.a.run.app?name=${encodeURIComponent(q)}`);
+    const res = await fetch(`https://drug-ede5bi7c3q-du.a.run.app?name=${encodeURIComponent(q)}`);
     const data = await res.json();
     const items = data.items || [];
     if (!items.length) { renderDrugListLocal(q, el); return; }

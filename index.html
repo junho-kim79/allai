@@ -767,6 +767,52 @@
     .splash-title em { color: #7FDBB6; font-style: normal; }
     .splash-sub { font-size: 0.85rem; color: rgba(255,255,255,0.55); letter-spacing: 0.04em; }
     .splash-made { font-size: 0.88rem; font-weight: 700; color: rgba(255,255,255,0.5); letter-spacing: 0.08em; }
+
+    /* ── 데스크톱: 경쟁품 비교 2컬럼 레이아웃 ── */
+    @media (min-width: 768px) {
+      #screen_comp {
+        max-width: 1100px !important;
+        width: 100vw;
+        position: relative;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+      #comp-wrap {
+        display: flex !important;
+        gap: 28px;
+        align-items: flex-start;
+      }
+      #compareSlots {
+        width: 300px !important;
+        flex-shrink: 0;
+        position: sticky;
+        top: 72px;
+        max-height: calc(100vh - 90px);
+        overflow-y: auto;
+      }
+      #compareTable {
+        flex: 1;
+        min-width: 0;
+        overflow-x: auto;
+      }
+      #screen_comp table {
+        min-width: 500px;
+        width: 100%;
+      }
+      #screen_comp table td,
+      #screen_comp table th {
+        padding: 12px 16px;
+        white-space: normal;
+        min-width: 120px;
+        font-size: 0.88rem;
+      }
+      #screen_comp table thead th {
+        white-space: normal;
+        word-break: keep-all;
+        font-size: 0.82rem;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -978,7 +1024,7 @@
       <div style="font-size:1.3rem;font-weight:900;letter-spacing:-0.04em;">경쟁품 비교</div>
       <div style="font-size:0.85rem;color:var(--sub);margin-top:4px;">최대 5개 제품 비교</div>
     </div>
-    <div style="padding:0 16px;">
+    <div id="comp-wrap" style="padding:0 16px;">
       <div id="compareSlots" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;"></div>
       <div id="compareTable"></div>
     </div>

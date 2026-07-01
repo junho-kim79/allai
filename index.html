@@ -1087,7 +1087,27 @@ const DRUGS = [
   { id:5, name:'란스톤캡슐 30mg', ingredient:'란소프라졸', company:'일동제약', type:'PPI', price:520, insurance:'급여', code:'193700ACE', pack:'30캡슐/박스', icd:['K21','K25','K27'], fda:'승인 (GERD)', form:'캡슐', efcy:'위식도역류질환, 위궤양, 십이지장궤양', useMethod:'1일 1회 30mg, 경구투여 4~8주', risks:[{level:'low',text:'표준 처방 범위 내 삭감 위험 낮음'},{level:'mid',text:'중복 PPI 처방 시 삭감 주의'}], comps:[1,2,3,4], mrPoints:['캡슐 제형으로 연하곤란 환자 복약순응도 우위','국내사 오리지널 — 로컬 영업 신뢰 활용','저렴한 약가로 장기처방 환자 경제적 부담 낮음'] }
 ];
 let myDrugKey = null;
-  
+
+function showToast(msg) {
+  let el = document.getElementById('allaiToast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'allaiToast';
+    el.style.cssText = 'position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(12px);z-index:500;background:var(--g1);color:#fff;font-size:0.84rem;font-weight:700;padding:10px 18px;border-radius:999px;box-shadow:0 8px 24px rgba(0,0,0,0.18);opacity:0;transition:opacity 0.2s,transform 0.2s;white-space:nowrap;pointer-events:none;';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  clearTimeout(el._hideTimer);
+  requestAnimationFrame(() => {
+    el.style.opacity = '1';
+    el.style.transform = 'translateX(-50%) translateY(0)';
+  });
+  el._hideTimer = setTimeout(() => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateX(-50%) translateY(12px)';
+  }, 1500);
+}
+
 const ICD_DB = [
   { code:'K21', name:'위식도역류질환 (GERD)', drugs:[1,2,3,4,5] },
   { code:'K25', name:'위궤양', drugs:[2,3,4,5] },
@@ -2103,14 +2123,14 @@ const isMy = d && d._key === myDrugKey;
           <div style="width:28px;height:28px;border-radius:50%;background:var(--g1);color:#fff;font-size:0.8rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${i + 1}</div>
           <div style="flex:1;">
             <div style="font-size:0.92rem;font-weight:700;">
-  ${isMy ? '🟢 MY ' : ''}${d.name}
+  ${d.name}
 </div>
             <div style="font-size:0.78rem;color:var(--sub);margin-top:2px;">${d.ingredient} · ${d.company}</div>
           </div>
           <button onclick='removeCompare(${JSON.stringify(d._key)})' style="background:none;border:none;cursor:pointer;color:var(--sub2);font-size:0.8rem;padding:4px 8px;border-radius:4px;font-family:inherit;">✕</button>
           <button onclick='setMyDrug(${JSON.stringify(d._key)})'
-  style="background:none;border:none;cursor:pointer;color:var(--g1);font-size:0.75rem;margin-left:4px;">
-  MY
+  style="border:none;cursor:pointer;font-size:0.72rem;font-weight:800;margin-left:4px;padding:5px 10px;border-radius:999px;font-family:inherit;transition:background 0.15s,color 0.15s;${isMy ? 'background:var(--g1);color:#fff;' : 'background:rgba(0,0,0,0.05);color:var(--sub);'}">
+  ${isMy ? '✓ MY' : 'MY'}
 </button>
         </div>
       `;
@@ -2132,14 +2152,61 @@ function removeCompare(key) {
   renderCompareTable();
 }
 function setMyDrug(key) {
-  myDrugKey = key;
+  const d = cList.find(x => x._key === key);
+  if (myDrugKey === key) {
+    myDrugKey = null;
+  } else {
+    myDrugKey = key;
+    if (d) showToast(`${d.name} · 내 담당 제품으로 등록됐습니다`);
+  }
   renderCompareSlots();
   renderCompareTable();
 }
   
+function getPriceNum(d) {
+  if (typeof d.price === 'number' && d.price > 0) return d.price;
+  if (d.name) {
+    const p = getDrugPrice(d.name);
+    if (p && p !== '-') {
+      const n = parseInt(String(p).replace(/[^0-9]/g, ''), 10);
+      if (!isNaN(n)) return n;
+    }
+  }
+  return null;
+}
+
+let _cmpHighlightTimer = null;
+
+function priceCellsHtml(getVal) {
+  const vals = cList.map(d => getVal(d));
+  const valid = vals.filter(v => typeof v === 'number' && !isNaN(v));
+  const min = valid.length ? Math.min(...valid) : null;
+  return cList.map((d, i) => {
+    const v = vals[i];
+    if (v == null) return `<td style="padding:10px;border-bottom:1px solid var(--border);text-align:center;">-</td>`;
+    const isLowest = v === min;
+    const dayDiff = min == null ? 0 : v - min;
+    const monthDiff = dayDiff * 30;
+    const bg = d._key === myDrugKey ? 'background:rgba(239,68,68,0.04);' : '';
+    if (isLowest) {
+      return `<td style="padding:10px;border-bottom:1px solid var(--border);text-align:center;${bg}">
+        <span style="display:inline-flex;align-items:center;gap:3px;background:rgba(0,192,127,0.12);color:var(--g2);padding:3px 9px;border-radius:999px;font-weight:800;font-size:0.8rem;">✓ ${v.toLocaleString()}원</span>
+        <div style="font-size:0.68rem;color:var(--sub2);margin-top:3px;">1달 ${(v*30).toLocaleString()}원</div>
+      </td>`;
+    }
+    return `<td style="padding:10px;border-bottom:1px solid var(--border);text-align:center;${bg}">
+      <div style="font-weight:700;">${v.toLocaleString()}원</div>
+      <div style="font-size:0.72rem;color:var(--red);margin-top:2px;">+${dayDiff.toLocaleString()}원</div>
+      <div style="font-size:0.68rem;color:var(--sub2);margin-top:2px;">1달 +${monthDiff.toLocaleString()}원</div>
+    </td>`;
+  }).join('');
+}
+
 function renderCompareTable() {
   const el = document.getElementById('compareTable');
   if (!el) return;
+
+  clearInterval(_cmpHighlightTimer);
 
   if (!cList.length) {
     el.innerHTML = '';
@@ -2158,7 +2225,8 @@ function renderCompareTable() {
         return '전문';
       }
     },
-    { lbl: '약가', fn: d => (typeof d.price === 'number' && d.price > 0) ? d.price.toLocaleString() + '원' : (d.name ? getDrugPrice(d.name) : '-') },
+    { lbl: '약가', special: 'price' },
+    { lbl: '본인부담(30%)', special: 'copay' },
     { lbl: '보험', fn: d => d.insurance || '-' },
     { lbl: '용법용량', fn: d => d.useMethod || d.efcy?.substring(0,30) || '-' },
     { lbl: 'FDA (성분기준)', fn: d => {
@@ -2186,8 +2254,21 @@ el.innerHTML = `
           </tr>
         </thead>
         <tbody>
-          ${rows.map(r => `
-            <tr>
+          ${rows.map((r, ri) => {
+            if (r.special === 'price') {
+              return `<tr class="cmp-row" data-ri="${ri}">
+                <td style="padding:10px;border-bottom:1px solid var(--border);color:var(--sub);font-weight:600;white-space:nowrap;">${r.lbl}</td>
+                ${priceCellsHtml(d => getPriceNum(d))}
+              </tr>`;
+            }
+            if (r.special === 'copay') {
+              return `<tr class="cmp-row" data-ri="${ri}">
+                <td style="padding:10px;border-bottom:1px solid var(--border);color:var(--sub);font-weight:600;white-space:nowrap;">${r.lbl}</td>
+                ${priceCellsHtml(d => { const p = getPriceNum(d); return p == null ? null : Math.round(p * 0.3); })}
+              </tr>`;
+            }
+            return `
+            <tr class="cmp-row" data-ri="${ri}">
               <td style="padding:10px;border-bottom:1px solid var(--border);color:var(--sub);font-weight:600;white-space:nowrap;">${r.lbl}</td>
 ${cList.map(d => `
                 <td style="padding:10px;border-bottom:1px solid var(--border);text-align:center;line-height:1.5;${d._key === myDrugKey ? 'background:rgba(239,68,68,0.04);' : ''}">
@@ -2195,12 +2276,36 @@ ${cList.map(d => `
                 </td>
               `).join('')}
             </tr>
-          `).join('')}
+          `;
+          }).join('')}
         </tbody>
       </table>
     </div>
   `;
+
+  const rowEls = el.querySelectorAll('.cmp-row');
+  rowEls.forEach(tr => { tr.style.transition = 'background 0.3s, box-shadow 0.3s'; });
+  let cur = 0;
+  const highlight = (i) => {
+    rowEls.forEach((tr, idx) => {
+      if (idx === i) {
+        tr.style.background = 'rgba(45,155,111,0.08)';
+        tr.style.boxShadow = 'inset 0 0 0 2px var(--g1)';
+      } else {
+        tr.style.background = '';
+        tr.style.boxShadow = '';
+      }
+    });
+  };
+  if (rowEls.length) {
+    highlight(0);
+    _cmpHighlightTimer = setInterval(() => {
+      cur = (cur + 1) % rowEls.length;
+      highlight(cur);
+    }, 1400);
+  }
 }
+
 
 function openCompModal(slotIdx) {
   addingSlotIdx = slotIdx;

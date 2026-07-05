@@ -1026,7 +1026,7 @@
    <div style="padding:0 16px 14px;display:flex;justify-content:space-between;align-items:flex-end;">
       <div>
         <div style="font-size:1.3rem;font-weight:900;letter-spacing:-0.04em;">경쟁품 비교</div>
-        <div style="font-size:0.85rem;color:var(--sub);margin-top:4px;">최대 5개 제품 비교</div>
+        <div style="font-size:0.85rem;color:var(--sub);margin-top:4px;">최대 10개 제품 비교</div>
       </div>
  <div style="position:relative;">
   <button onclick="shareCompImage()" id="shareBtn"
@@ -1656,7 +1656,7 @@ ${cached && cached.clinicalTitles && cached.clinicalTitles.length ? `<div class=
 
 ${compItems.length ? `<div class="detail-section">
       <div class="sec-label">🌐 동일성분 경쟁품</div>
-      ${compItems.slice(0,5).map((c,ci) => `
+      ${compItems.slice(0,10).map((c,ci) => `
         <div class="comp-item" onclick="showDrugAPI(${_apiResults.indexOf(c)})">
           <div>
             <div class="comp-name">${c.ITEM_NAME || c.itemName}</div>
@@ -2129,7 +2129,7 @@ function renderCompareSlots() {
   const el = document.getElementById('compareSlots');
   if (!el) return;
 
-  el.innerHTML = Array.from({ length: 5 }, (_, i) => {
+  el.innerHTML = Array.from({ length: 10 }, (_, i) => {
     const d = cList[i];
 const isMy = d && d._key === myDrugKey;
     if (d) {
@@ -2255,7 +2255,18 @@ function renderCompareTable() {
     { lbl: '병용주의', fn: d => d.ddi || '-' },
     ];
 
+// 최저가 계산
+const _prices = cList.map(d => getPriceNum(d)).filter(v => v != null);
+const _minPrice = _prices.length ? Math.min(..._prices) : null;
+const _minDrug = _minPrice != null ? cList.find(d => getPriceNum(d) === _minPrice) : null;
+const _minLabel = _minDrug ? `${_minDrug.name} ${_minPrice.toLocaleString()}원` : '-';
+
 el.innerHTML = `
+    <div style="margin-bottom:10px;padding:10px 14px;background:rgba(45,155,111,0.06);border-left:3px solid var(--g1);border-radius:0 8px 8px 0;font-size:0.78rem;line-height:1.6;color:var(--sub);">
+      ※ 약가는 동일 성분 기준이 아닌 조회된 품목 중
+      <span style="color:var(--g1);font-weight:800;">최저가(${_minLabel})</span>
+      대비 차액입니다
+    </div>
     <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -16px;padding:0 16px;">
       <table style="width:100%;border-collapse:collapse;font-size:0.82rem;">
         <thead>
@@ -2516,9 +2527,9 @@ d.useMethod = d.useMethod && d.useMethod !== '-' ? d.useMethod : (aiInfo.useMeth
 d.cyp = aiInfo.cyp || '-';
 d.ddi = aiInfo.ddi || '-';
 
-  if (addingSlotIdx >= 0 && addingSlotIdx < 5) {
+  if (addingSlotIdx >= 0 && addingSlotIdx < 10) {
     cList[addingSlotIdx] = d;
-  } else if (cList.length < 5) {
+  } else if (cList.length < 10) {
     cList.push(d);
   }
 

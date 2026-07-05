@@ -2726,14 +2726,13 @@ function printComp() {
   style.textContent = `
     @media print {
       @page { size: A4 landscape; margin: 10mm; }
-      body > * { display: none !important; }
-      #screen_comp { display: block !important; position: fixed; top: 0; left: 0; width: 100%; }
-      .back-bar { display: none !important; }
-      .topbar { display: none !important; }
-      #compareSlots { display: none !important; }
-      #shareBtn, #shareMenu { display: none !important; }
-      #comp-wrap { padding: 0 !important; }
-      #compareTable { display: block !important; width: 100% !important; overflow: visible !important; }
+      .topbar, .back-bar, #compareSlots, #shareBtn, #shareMenu,
+      #screen1, #screen2, #screen3, #screen_icd, #screen_stat,
+      .splash, .admin-overlay { display: none !important; }
+      .app { max-width: 100% !important; overflow: visible !important; }
+      #screen_comp { display: block !important; }
+      #comp-wrap { padding: 0 !important; display: block !important; }
+      #compareTable { width: 100% !important; overflow: visible !important; }
       #compareTable table { width: 100% !important; font-size: 0.75rem !important; }
       #compareTable td, #compareTable th { padding: 6px 8px !important; white-space: normal !important; }
     }

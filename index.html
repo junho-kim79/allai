@@ -2720,7 +2720,32 @@ function downloadShareImg() {
 
 function printComp() {
   document.getElementById('shareMenu').style.display = 'none';
+
+  const style = document.createElement('style');
+  style.id = 'printStyle';
+  style.textContent = `
+    @media print {
+      @page { size: A4 landscape; margin: 10mm; }
+      body > * { display: none !important; }
+      #screen_comp { display: block !important; position: fixed; top: 0; left: 0; width: 100%; }
+      .back-bar { display: none !important; }
+      .topbar { display: none !important; }
+      #compareSlots { display: none !important; }
+      #shareBtn, #shareMenu { display: none !important; }
+      #comp-wrap { padding: 0 !important; }
+      #compareTable { display: block !important; width: 100% !important; overflow: visible !important; }
+      #compareTable table { width: 100% !important; font-size: 0.75rem !important; }
+      #compareTable td, #compareTable th { padding: 6px 8px !important; white-space: normal !important; }
+    }
+  `;
+  document.head.appendChild(style);
+
   window.print();
+
+  setTimeout(() => {
+    const el = document.getElementById('printStyle');
+    if (el) el.remove();
+  }, 1000);
 }
 
 async function shareCompImage() {

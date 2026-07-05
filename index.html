@@ -816,6 +816,7 @@
     }
 
   </style>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </head>
 <body>
 <div class="app" id="app">
@@ -1022,9 +1023,15 @@
     <div class="back-bar">
       <button class="back-btn" onclick="history.back()">← 홈</button>
     </div>
-    <div style="padding:0 16px 14px;">
-      <div style="font-size:1.3rem;font-weight:900;letter-spacing:-0.04em;">경쟁품 비교</div>
-      <div style="font-size:0.85rem;color:var(--sub);margin-top:4px;">최대 5개 제품 비교</div>
+   <div style="padding:0 16px 14px;display:flex;justify-content:space-between;align-items:flex-end;">
+      <div>
+        <div style="font-size:1.3rem;font-weight:900;letter-spacing:-0.04em;">경쟁품 비교</div>
+        <div style="font-size:0.85rem;color:var(--sub);margin-top:4px;">최대 5개 제품 비교</div>
+      </div>
+      <button onclick="shareCompImage()" id="shareBtn"
+        style="display:flex;align-items:center;gap:6px;background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff;border:none;border-radius:999px;padding:9px 16px;font-size:0.82rem;font-weight:800;font-family:inherit;cursor:pointer;box-shadow:0 4px 12px rgba(45,155,111,0.3);transition:opacity 0.2s;flex-shrink:0;">
+        📤 공유
+      </button>
     </div>
     <div id="comp-wrap" style="padding:0 16px;">
       <div id="compareSlots" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;"></div>
@@ -2688,6 +2695,148 @@ renderRecent();
 renderMrSay();
 initCompare();
 renderStats();
+  /* ════════════════════════════════════════
+   경쟁품 비교 이미지 공유
+════════════════════════════════════════ */
+async function shareCompImage() {
+  if (!cList.length) {
+    showToast('비교할 제품을 먼저 추가해주세요');
+    return;
+  }
+
+  const btn = document.getElementById('shareBtn');
+  const origText = btn ? btn.innerHTML : '';
+  if (btn) { btn.innerHTML = '⏳ 생성 중...'; btn.disabled = true; }
+
+  try {
+    const tableEl = document.getElementById('compareTable');
+
+    // 1. 비교 테이블 캡처
+    const canvas = await html2canvas(tableEl, {
+      scale: 2,
+      backgroundColor: '#FFFFFF',
+      useCORS: true,
+      logging: false,
+      scrollX: 0,
+      scrollY: 0
+    });
+
+    // 2. A4 가로 비율 캔버스 생성 (297:210 ≈ 1.414:1)
+    const A4_W = 2480;
+    const A4_H = 1754;
+
+    const final = document.createElement('canvas');
+    final.width = A4_W;
+    final.height = A4_H;
+    const ctx = final.getContext('2d');
+
+    // 배경
+    ctx.fillStyle = '#FAF7F2';
+    ctx.fillRect(0, 0, A4_W, A4_H);
+
+    // 상단 헤더 바
+    ctx.fillStyle = '#2D9B6F';
+    ctx.fillRect(0, 0, A4_W, 90);
+
+    // 헤더 텍스트
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 52px Pretendard, sans-serif';
+    ctx.fillText('💊 ALLAI · 경쟁품 비교', 48, 62);
+
+    const dateStr = new Date().toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric' });
+    ctx.font = '36px Pretendard, sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    ctx.fillText(dateStr, A4_W - 400, 60);
+
+    // 구분선
+    ctx.fillStyle = 'rgba(0,0,0,0.07)';
+    ctx.fillRect(0, 90, A4_W, 2);
+
+    // 테이블 이미지 배치 (상하좌우 여백 확보)
+    const pad = 48;
+    const contentY = 110;
+    const contentW = A4_W - pad * 2;
+    const contentH = A4_H - contentY - 100; // 하단 워터마크 공간 확보
+
+    const scaleRatio = Math.min(contentW / canvas.width, contentH / canvas.height);
+    const imgW = canvas.width * scaleRatio;
+    const imgH = canvas.height * scaleRatio;
+    const imgX = pad + (contentW - imgW) / 2;
+
+    ctx.drawImage(canvas, imgX, contentY, imgW, imgH);
+
+    // 워터마크 (좌측 하단)
+    const wmX = 40;
+    const wmY = A4_H - 58;
+    const wmW = 360;
+    const wmH = 54;
+
+    // 워터마크 배경
+    ctx.fillStyle = 'rgba(45,155,111,0.10)';
+    ctx.beginPath();
+    if (ctx.roundRect) {
+      ctx.roundRect(wmX - 8, wmY - 34, wmW, wmH, 10);
+    } else {
+      ctx.rect(wmX - 8, wmY - 34, wmW, wmH);
+    }
+    ctx.fill();
+
+    // 워터마크 텍스트 라인 1
+    ctx.font = 'bold 30px Pretendard, sans-serif';
+    ctx.fillStyle = '#2D9B6F';
+    ctx.fillText('💊 ALLAI · 면담 1분전', wmX, wmY - 6);
+
+    // 워터마크 텍스트 라인 2
+    ctx.font = '22px Pretendard, sans-serif';
+    ctx.fillStyle = '#9CA3AF';
+    ctx.fillText('play.google.com/store/apps/details?id=com.allai', wmX, wmY + 18);
+
+    // 3. 이미지 파일 생성 및 공유
+    final.toBlob(async (blob) => {
+      const file = new File([blob], 'ALLAI_경쟁품비교.png', { type: 'image/png' });
+
+      try {
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+          // 모바일 네이티브 공유 시트 (카톡 포함)
+          await navigator.share({
+            files: [file],
+            title: '경쟁품 비교 · ALLAI 면담 1분전'
+          });
+        } else {
+          // 공유 미지원 → 이미지 다운로드
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'ALLAI_경쟁품비교.png';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          showToast('이미지 저장 완료 📥');
+        }
+      } catch (shareErr) {
+        if (shareErr.name !== 'AbortError') {
+          showToast('공유 실패. 이미지를 저장합니다.');
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'ALLAI_경쟁품비교.png';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }
+      }
+
+      if (btn) { btn.innerHTML = origText; btn.disabled = false; }
+    }, 'image/png', 0.95);
+
+  } catch (e) {
+    console.error('[shareCompImage 오류]', e);
+    showToast('이미지 생성 실패. 다시 시도해주세요.');
+    if (btn) { btn.innerHTML = origText; btn.disabled = false; }
+  }
+}
 </script>
 </body>
 </html>

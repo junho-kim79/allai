@@ -2709,17 +2709,27 @@ async function shareCompImage() {
   if (btn) { btn.innerHTML = '⏳ 생성 중...'; btn.disabled = true; }
 
   try {
-    const tableEl = document.getElementById('compareTable');
+const tableEl = document.getElementById('compareTable');
 
-    // 1. 비교 테이블 캡처
-    const canvas = await html2canvas(tableEl, {
-      scale: 2,
-      backgroundColor: '#FFFFFF',
-      useCORS: true,
-      logging: false,
-      scrollX: 0,
-      scrollY: 0
-    });
+// 캡처 전 임시로 넓게 확장
+const origStyle = tableEl.style.cssText;
+tableEl.style.width = '1200px';
+tableEl.style.maxWidth = 'none';
+tableEl.style.overflow = 'visible';
+
+// 1. 비교 테이블 캡처
+const canvas = await html2canvas(tableEl, {
+  scale: 2,
+  backgroundColor: '#FFFFFF',
+  useCORS: true,
+  logging: false,
+  scrollX: 0,
+  scrollY: 0,
+  windowWidth: 1400
+});
+
+// 원래 스타일로 복원
+tableEl.style.cssText = origStyle;
 
     // 2. A4 가로 비율 캔버스 생성 (297:210 ≈ 1.414:1)
     const A4_W = 2480;

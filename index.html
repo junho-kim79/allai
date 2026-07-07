@@ -2772,7 +2772,7 @@ async function shareCompImage() {
     const tableEl = document.getElementById('compareTable');
 
     const origStyle = tableEl.style.cssText;
-    tableEl.style.width = '1200px';
+    tableEl.style.width = '2000px';
     tableEl.style.maxWidth = 'none';
     tableEl.style.overflow = 'visible';
 
@@ -2783,7 +2783,7 @@ async function shareCompImage() {
       logging: false,
       scrollX: 0,
       scrollY: 0,
-      windowWidth: 1400
+      windowWidth: 2200
     });
 
     tableEl.style.cssText = origStyle;
@@ -2815,11 +2815,10 @@ async function shareCompImage() {
     const contentY = 110;
     const contentW = A4_W - pad * 2;
     const contentH = A4_H - contentY - 100;
-    const scaleRatio = Math.min(contentW / canvas.width, contentH / canvas.height);
-    const imgW = canvas.width * scaleRatio;
-    const imgH = canvas.height * scaleRatio;
-    const imgX = pad + (contentW - imgW) / 2;
-    ctx.drawImage(canvas, imgX, contentY, imgW, imgH);
+const scaleRatio = contentW / canvas.width;
+const imgW = contentW;
+const imgH = canvas.height * scaleRatio;
+ctx.drawImage(canvas, pad, contentY, imgW, imgH);
 
     const wmX = 40;
     const wmY = A4_H - 58;

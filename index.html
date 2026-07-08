@@ -2772,21 +2772,30 @@ async function shareCompImage() {
     const tableEl = document.getElementById('compareTable');
 
     const origStyle = tableEl.style.cssText;
-    tableEl.style.width = '2000px';
     tableEl.style.maxWidth = 'none';
-    tableEl.style.overflow = 'visible';
+tableEl.style.overflow = 'visible';
+const innerDiv = tableEl.querySelector('div');
+const origInnerStyle = innerDiv ? innerDiv.style.cssText : '';
+if (innerDiv) {
+  innerDiv.style.overflow = 'visible';
+  innerDiv.style.maxWidth = 'none';
+  innerDiv.style.margin = '0';
+  innerDiv.style.padding = '0';
+}
+const naturalWidth = tableEl.scrollWidth;
 
-    const canvas = await html2canvas(tableEl, {
-      scale: 2,
-      backgroundColor: '#FFFFFF',
-      useCORS: true,
-      logging: false,
-      scrollX: 0,
-      scrollY: 0,
-      windowWidth: 2200
-    });
+const canvas = await html2canvas(tableEl, {
+  scale: 2,
+  backgroundColor: '#FFFFFF',
+  useCORS: true,
+  logging: false,
+  scrollX: 0,
+  scrollY: 0,
+  windowWidth: naturalWidth + 200
+});
 
-    tableEl.style.cssText = origStyle;
+tableEl.style.cssText = origStyle;
+if (innerDiv) innerDiv.style.cssText = origInnerStyle;
 
     const A4_W = 2480;
     const A4_H = 1754;
@@ -2815,10 +2824,11 @@ async function shareCompImage() {
     const contentY = 110;
     const contentW = A4_W - pad * 2;
     const contentH = A4_H - contentY - 100;
-const scaleRatio = contentW / canvas.width;
-const imgW = contentW;
+const scaleRatio = Math.min(contentW / canvas.width, contentH / canvas.height);
+const imgW = canvas.width * scaleRatio;
 const imgH = canvas.height * scaleRatio;
-ctx.drawImage(canvas, pad, contentY, imgW, imgH);
+const imgX = pad + (contentW - imgW) / 2;
+ctx.drawImage(canvas, imgX, contentY, imgW, imgH);
 
     const wmX = 40;
     const wmY = A4_H - 58;

@@ -2809,11 +2809,16 @@ tableEl.style.cssText = origStyle;
 if (innerDiv) innerDiv.style.cssText = origInnerStyle;
 if (compWrap) compWrap.style.cssText = origWrapStyle;
 
-    const A4_W = 2480;
-    const A4_H = 1754;
-    const final = document.createElement('canvas');
-    final.width = A4_W;
-    final.height = A4_H;
+const A4_W = 2480;
+const headerH = 90;
+const noticeH = 80;
+const wmH = 100;
+const imgH_calc = Math.round(canvas.height * (A4_W / canvas.width));
+const A4_H = headerH + noticeH + imgH_calc + wmH;
+
+const final = document.createElement('canvas');
+final.width = A4_W;
+final.height = A4_H;
     const ctx = final.getContext('2d');
 
     ctx.fillStyle = '#FAF7F2';
@@ -2835,7 +2840,7 @@ if (compWrap) compWrap.style.cssText = origWrapStyle;
     const pad = 48;
     const contentY = 110;
     const contentW = A4_W - pad * 2;
-    const contentH = A4_H - contentY - 100;
+    const contentH = imgH_calc;
 const scaleRatio = Math.min(contentW / canvas.width, contentH / canvas.height);
 const imgW = canvas.width * scaleRatio;
 const imgH = canvas.height * scaleRatio;

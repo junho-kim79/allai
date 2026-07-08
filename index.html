@@ -2268,12 +2268,12 @@ el.innerHTML = `
       대비 차액입니다
     </div>
     <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -16px;padding:0 16px;">
-      <table style="width:100%;border-collapse:collapse;font-size:0.95rem;">
+   <table style="width:100%;border-collapse:collapse;font-size:0.95rem;table-layout:fixed;">
         <thead>
           <tr>
             <th style="background:#F8F9FA;padding:10px;text-align:left;font-weight:700;border-bottom:2px solid var(--border);color:var(--sub2);font-size:0.75rem;">항목</th>
             ${cList.map(d => `
-              <th style="background:${d._key === myDrugKey ? 'rgba(239,68,68,0.08)' : '#F8F9FA'};padding:10px;text-align:center;font-weight:700;border-bottom:${d._key === myDrugKey ? '2px solid var(--red)' : '2px solid var(--border)'};font-size:0.78rem;white-space:nowrap;${d._key === myDrugKey ? 'color:var(--red);' : ''}">
+              <th style="background:${d._key === myDrugKey ? 'rgba(239,68,68,0.08)' : '#F8F9FA'};padding:10px;text-align:center;font-weight:700;border-bottom:${d._key === myDrugKey ? '2px solid var(--red)' : '2px solid var(--border)'};font-size:0.78rem;white-space:normal;word-break:break-word;${d._key === myDrugKey ? 'color:var(--red);' : ''}">
               ${d.name}
               </th>
             `).join('')}

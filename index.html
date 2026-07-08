@@ -2769,11 +2769,20 @@ async function shareCompImage() {
   if (btn) { btn.innerHTML = '⏳ 생성 중...'; btn.disabled = true; }
 
   try {
-    const tableEl = document.getElementById('compareTable');
+const tableEl = document.getElementById('compareTable');
+const compWrap = document.getElementById('comp-wrap');
+const origStyle = tableEl.style.cssText;
+const origWrapStyle = compWrap ? compWrap.style.cssText : '';
 
-    const origStyle = tableEl.style.cssText;
-    tableEl.style.maxWidth = 'none';
+if (compWrap) {
+  compWrap.style.overflow = 'visible';
+  compWrap.style.maxWidth = 'none';
+  compWrap.style.width = 'max-content';
+}
 tableEl.style.overflow = 'visible';
+tableEl.style.maxWidth = 'none';
+tableEl.style.width = 'max-content';
+
 const innerDiv = tableEl.querySelector('div');
 const origInnerStyle = innerDiv ? innerDiv.style.cssText : '';
 if (innerDiv) {
@@ -2781,8 +2790,10 @@ if (innerDiv) {
   innerDiv.style.maxWidth = 'none';
   innerDiv.style.margin = '0';
   innerDiv.style.padding = '0';
+  innerDiv.style.width = 'max-content';
 }
-const naturalWidth = tableEl.scrollWidth;
+
+const naturalWidth = Math.max(tableEl.scrollWidth, tableEl.offsetWidth) + 100;
 
 const canvas = await html2canvas(tableEl, {
   scale: 2,
@@ -2791,11 +2802,12 @@ const canvas = await html2canvas(tableEl, {
   logging: false,
   scrollX: 0,
   scrollY: 0,
-  windowWidth: naturalWidth + 200
+  windowWidth: naturalWidth
 });
 
 tableEl.style.cssText = origStyle;
 if (innerDiv) innerDiv.style.cssText = origInnerStyle;
+if (compWrap) compWrap.style.cssText = origWrapStyle;
 
     const A4_W = 2480;
     const A4_H = 1754;

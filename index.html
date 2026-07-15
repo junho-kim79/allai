@@ -1095,31 +1095,12 @@
    DATA
 ════════════════════════════════════════ */
 const DRUGS = [
-  { id:1, name:'케이캡정 50mg', ingredient:'테고프라잔', company:'HK이노엔', type:'P-CAB', price:850, dbCode:'640007270', insurance:'급여', code:'215700ATB', pack:'30정/박스', icd:['K21','K25','K26','K29'], fda:'미승인 (국내 허가)', form:'정', efcy:'위식도역류질환(GERD), 위궤양, 헬리코박터 제균요법', useMethod:'1일 1회, 1정 경구투여 (50mg)', risks:[{level:'low',text:'GERD(K21) 상병코드 정확히 기재 시 삭감 위험 낮음'},{level:'mid',text:'상병코드 없이 장기 처방 시 심사 주의'},{level:'high',text:'헬리코박터 제균 목적 외 PPI 병용 처방 시 삭감 가능'}], comps:[2,3,4,5], mrPoints:['P-CAB 계열로 PPI 대비 산 억제 속도 2배, 야간 산 돌파 없음','헬리코박터 제균 1차요법 병용 가능 — 처방 확장 포인트','국내 임상 데이터 풍부, 오리지널 강점 강조'] },
-  { id:2, name:'파리에트정 10mg', ingredient:'라베프라졸나트륨', company:'에자이', type:'PPI', price:650, dbCode:'671706420', insurance:'급여', code:'196600ATB', pack:'28정/박스', icd:['K21','K25','K27','K29','K30'], fda:'승인 (GERD)', form:'정', efcy:'위식도역류질환, 위궤양, 십이지장궤양, NSAIDs 병용 환자', useMethod:'1일 1회 10mg~20mg, 4~8주 투여', risks:[{level:'low',text:'표준 GERD 처방 시 삭감 위험 낮음'},{level:'mid',text:'BID 처방은 내시경 검사 결과 있어야 인정'},{level:'high',text:'타과 장기 처방 시 심사 위험 존재'}], comps:[1,3,4,5], mrPoints:['라베프라졸 오리지널 — 제네릭 대비 흡수 안정성 우위','NSAIDs 병용 환자 위 보호 처방 확대 가능','10mg/20mg 용량 선택 폭 넓음'] },
-  { id:3, name:'라베린정 10mg', ingredient:'라베프라졸나트륨', company:'일양약품', type:'PPI', price:454, dbCode:'696600950', insurance:'급여', code:'200401ATB', pack:'28정/박스', icd:['K21','K25','K27','K29'], fda:'해당없음 (제네릭)', form:'정', efcy:'위식도역류질환, 위궤양 (라베프라졸 동일성분 제네릭)', useMethod:'1일 1회 10mg, 경구투여', risks:[{level:'low',text:'동일성분 오리지널 대비 저가 — 삭감 위험 낮음'},{level:'mid',text:'BID 처방 시 적응증 명확해야 함'}], comps:[1,2,4,5], mrPoints:['파리에트 동일성분 30% 저가 — 약가 민감 거래처 공략','국내사 제품으로 유통 신뢰도 강조 가능','저가 입찰 병원 공략 시 우선 제안'] },
-  { id:4, name:'넥시움정 20mg', ingredient:'에소메프라졸마그네슘삼수화물', company:'아스트라제네카', type:'PPI', price:720, dbCode:'650700070', insurance:'급여', code:'197800ATB', pack:'28정/박스', icd:['K21','K25','K26','K29','K30'], fda:'승인 (GERD, 헬리코박터)', form:'정', efcy:'위식도역류질환, 위궤양, 헬리코박터 제균, 졸링거-엘리슨 증후군', useMethod:'1일 1회 20mg~40mg, 식사 1시간 전 투여', risks:[{level:'low',text:'FDA 승인 적응증 내 처방 시 안전'},{level:'mid',text:'40mg 고용량 장기 처방 시 심사 주의'}], comps:[1,2,3,5], mrPoints:['글로벌 PPI 1위 — 논문 근거 압도적','헬리코박터 3제요법 기준약 지위','졸링거-엘리슨 등 희귀 적응증 유일 급여'] },
-  { id:5, name:'란스톤캡슐 30mg', ingredient:'란소프라졸', company:'일동제약', type:'PPI', price:520, dbCode:'645400190', insurance:'급여', code:'193700ACE', pack:'30캡슐/박스', icd:['K21','K25','K27'], fda:'승인 (GERD)', form:'캡슐', efcy:'위식도역류질환, 위궤양, 십이지장궤양', useMethod:'1일 1회 30mg, 경구투여 4~8주', risks:[{level:'low',text:'표준 처방 범위 내 삭감 위험 낮음'},{level:'mid',text:'중복 PPI 처방 시 삭감 주의'}], comps:[1,2,3,4], mrPoints:['캡슐 제형으로 연하곤란 환자 복약순응도 우위','국내사 오리지널 — 로컬 영업 신뢰 활용','저렴한 약가로 장기처방 환자 경제적 부담 낮음'] }
+  { id:1, name:'케이캡정 50mg', ingredient:'테고프라잔', company:'HK이노엔', type:'P-CAB', price:850, insurance:'급여', code:'215700ATB', pack:'30정/박스', icd:['K21','K25','K26','K29'], fda:'미승인 (국내 허가)', form:'정', efcy:'위식도역류질환(GERD), 위궤양, 헬리코박터 제균요법', useMethod:'1일 1회, 1정 경구투여 (50mg)', risks:[{level:'low',text:'GERD(K21) 상병코드 정확히 기재 시 삭감 위험 낮음'},{level:'mid',text:'상병코드 없이 장기 처방 시 심사 주의'},{level:'high',text:'헬리코박터 제균 목적 외 PPI 병용 처방 시 삭감 가능'}], comps:[2,3,4,5], mrPoints:['P-CAB 계열로 PPI 대비 산 억제 속도 2배, 야간 산 돌파 없음','헬리코박터 제균 1차요법 병용 가능 — 처방 확장 포인트','국내 임상 데이터 풍부, 오리지널 강점 강조'] },
+  { id:2, name:'파리에트정 10mg', ingredient:'라베프라졸나트륨', company:'에자이', type:'PPI', price:650, insurance:'급여', code:'196600ATB', pack:'28정/박스', icd:['K21','K25','K27','K29','K30'], fda:'승인 (GERD)', form:'정', efcy:'위식도역류질환, 위궤양, 십이지장궤양, NSAIDs 병용 환자', useMethod:'1일 1회 10mg~20mg, 4~8주 투여', risks:[{level:'low',text:'표준 GERD 처방 시 삭감 위험 낮음'},{level:'mid',text:'BID 처방은 내시경 검사 결과 있어야 인정'},{level:'high',text:'타과 장기 처방 시 심사 위험 존재'}], comps:[1,3,4,5], mrPoints:['라베프라졸 오리지널 — 제네릭 대비 흡수 안정성 우위','NSAIDs 병용 환자 위 보호 처방 확대 가능','10mg/20mg 용량 선택 폭 넓음'] },
+  { id:3, name:'라베린정 10mg', ingredient:'라베프라졸나트륨', company:'일양약품', type:'PPI', price:454, insurance:'급여', code:'200401ATB', pack:'28정/박스', icd:['K21','K25','K27','K29'], fda:'해당없음 (제네릭)', form:'정', efcy:'위식도역류질환, 위궤양 (라베프라졸 동일성분 제네릭)', useMethod:'1일 1회 10mg, 경구투여', risks:[{level:'low',text:'동일성분 오리지널 대비 저가 — 삭감 위험 낮음'},{level:'mid',text:'BID 처방 시 적응증 명확해야 함'}], comps:[1,2,4,5], mrPoints:['파리에트 동일성분 30% 저가 — 약가 민감 거래처 공략','국내사 제품으로 유통 신뢰도 강조 가능','저가 입찰 병원 공략 시 우선 제안'] },
+  { id:4, name:'넥시움정 20mg', ingredient:'에소메프라졸마그네슘삼수화물', company:'아스트라제네카', type:'PPI', price:720, insurance:'급여', code:'197800ATB', pack:'28정/박스', icd:['K21','K25','K26','K29','K30'], fda:'승인 (GERD, 헬리코박터)', form:'정', efcy:'위식도역류질환, 위궤양, 헬리코박터 제균, 졸링거-엘리슨 증후군', useMethod:'1일 1회 20mg~40mg, 식사 1시간 전 투여', risks:[{level:'low',text:'FDA 승인 적응증 내 처방 시 안전'},{level:'mid',text:'40mg 고용량 장기 처방 시 심사 주의'}], comps:[1,2,3,5], mrPoints:['글로벌 PPI 1위 — 논문 근거 압도적','헬리코박터 3제요법 기준약 지위','졸링거-엘리슨 등 희귀 적응증 유일 급여'] },
+  { id:5, name:'란스톤캡슐 30mg', ingredient:'란소프라졸', company:'일동제약', type:'PPI', price:520, insurance:'급여', code:'193700ACE', pack:'30캡슐/박스', icd:['K21','K25','K27'], fda:'승인 (GERD)', form:'캡슐', efcy:'위식도역류질환, 위궤양, 십이지장궤양', useMethod:'1일 1회 30mg, 경구투여 4~8주', risks:[{level:'low',text:'표준 처방 범위 내 삭감 위험 낮음'},{level:'mid',text:'중복 PPI 처방 시 삭감 주의'}], comps:[1,2,3,4], mrPoints:['캡슐 제형으로 연하곤란 환자 복약순응도 우위','국내사 오리지널 — 로컬 영업 신뢰 활용','저렴한 약가로 장기처방 환자 경제적 부담 낮음'] }
 ];
-
-/* 기본 품목 5종의 가격을 drugPriceDB.js(실제 고시 약가)에서 실시간으로 덮어씀.
-   이름/성분/제약사 등은 예시로 그대로 유지하고 price 값만 최신화한다.
-   drugPriceDB.js 로드 실패나 코드 매칭 실패 시에는 기존 하드코딩 값을 그대로 사용(안전장치). */
-(function syncDefaultDrugPrices() {
-  try {
-    if (typeof DRUG_PRICE_DB === 'undefined' || !Array.isArray(DRUG_PRICE_DB)) return;
-    const priceByCode = {};
-    for (const d of DRUG_PRICE_DB) priceByCode[d.c] = d.p;
-    for (const drug of DRUGS) {
-      if (drug.dbCode && priceByCode[drug.dbCode] !== undefined) {
-        drug.price = priceByCode[drug.dbCode];
-      }
-    }
-  } catch (e) {
-    console.warn('약가 실시간 동기화 실패, 기본값 유지:', e);
-  }
-})();
-
 let myDrugKey = null;
 
 function showToast(msg) {
@@ -1400,18 +1381,6 @@ function saveEmail() {
    화면 라우팅
 ════════════════════════════════════════ */
 const LABELS = { screen1:'홈', screen2:'약품 검색', screen3:'약품 상세', screen_icd:'상병코드', screen_comp:'경쟁품 비교', screen_cut:'삭감 조회', screen_stat:'처방 통계' };
-
-/* 대표 상병코드 옆에 붙일 간단 병명 매핑 (앞 3자리 기준). 매핑 없는 코드는 코드만 표시. */
-const ICD_NAME_KO = {
-  K20: '식도염', K21: '위식도역류질환', K25: '위궤양', K26: '십이지장궤양',
-  K27: '소화성궤양', K28: '위공장궤양', K29: '위염·십이지장염', K30: '기능성소화불량',
-  K31: '위·십이지장 기타질환'
-};
-function icdWithLabel(code) {
-  const base = String(code).trim().slice(0, 3).toUpperCase();
-  const name = ICD_NAME_KO[base];
-  return name ? `${code} (${name})` : code;
-}
 let _prevScreen = 'screen2';
 let _isPopState = false;
 
@@ -2198,7 +2167,7 @@ function removeCompare(key) {
   renderCompareTable();
 }
 function setMyDrug(key) {
-  const d = cList.filter(Boolean).find(x => x._key === key);
+  const d = cList.find(x => x._key === key);
   if (myDrugKey === key) {
     myDrugKey = null;
   } else {
@@ -2274,7 +2243,6 @@ function renderCompareTable() {
     { lbl: '약가', special: 'price' },
     { lbl: '본인부담(30%)', special: 'copay' },
     { lbl: '보험', fn: d => d.insurance || '-' },
-    { lbl: '대표 상병코드', fn: d => Array.isArray(d.icd) && d.icd.length ? d.icd.slice(0,2).map(icdWithLabel).join(', ') : '-' },
     { lbl: '용법용량', fn: d => d.useMethod || d.efcy?.substring(0,30) || '-' },
     { lbl: 'FDA (성분기준)', fn: d => {
         const f = String(d.fda || '-');
@@ -2285,21 +2253,12 @@ function renderCompareTable() {
     },
     { lbl: '대사 경로', fn: d => d.cyp || '-' },
     { lbl: '병용주의', fn: d => d.ddi || '-' },
-    { lbl: 'DUR 주의사항', fn: d => {
-        if (!d.durType) return '-';
-        let s = d.durType;
-        if (d.durMixtureItem) s += ` (${d.durMixtureItem})`;
-        if (d.durContent) s += ` — ${String(d.durContent).substring(0,40)}`;
-        return s;
-      }
-    },
-    { lbl: '재심사기간(독점판매)', fn: d => d.reexamDate || (d.reexamTarget ? '대상(기간 미상)' : '-') },
     ];
 
 // 최저가 계산
 const _prices = cList.map(d => getPriceNum(d)).filter(v => v != null);
 const _minPrice = _prices.length ? Math.min(..._prices) : null;
-const _minDrug = _minPrice != null ? cList.filter(Boolean).find(d => getPriceNum(d) === _minPrice) : null;
+const _minDrug = _minPrice != null ? cList.find(d => getPriceNum(d) === _minPrice) : null;
 const _minLabel = _minDrug ? `${_minDrug.name} ${_minPrice.toLocaleString()}원` : '-';
 
 el.innerHTML = `
@@ -2543,7 +2502,7 @@ useMethod: ((item.useMethodQesitm || '').replace(/<[^>]+>/g, '').trim()) || '-',
     };
   }
 
-  const exists = cList.filter(Boolean).find(x =>
+  const exists = cList.find(x =>
     x._key === d._key ||
     (x.name === d.name && x.company === d.company)
   );
@@ -2567,26 +2526,6 @@ d.fda = aiInfo.fda || '-';
 d.useMethod = d.useMethod && d.useMethod !== '-' ? d.useMethod : (aiInfo.useMethod || '-');
 d.cyp = aiInfo.cyp || '-';
 d.ddi = aiInfo.ddi || '-';
-
-/* DUR(병용금기 등)·재심사기간 정보 — 실패해도 화면에 영향 없도록 완전히 분리해서 시도 */
-try {
-  const dr = await fetch(`/api/drug?name=${encodeURIComponent(d.name)}`);
-  if (dr.ok) {
-    const dj = await dr.json();
-    const match = (dj.items || []).find(it =>
-      String(it.ITEM_NAME || '').replace(/\s+/g,'') === String(d.name).replace(/\s+/g,'')
-    ) || (dj.items || [])[0];
-    if (match) {
-      d.durType = match.DUR_TYPE && match.DUR_TYPE !== '-' ? match.DUR_TYPE : null;
-      d.durContent = match.DUR_CONTENT && match.DUR_CONTENT !== '-' ? match.DUR_CONTENT : null;
-      d.durMixtureItem = match.DUR_MIXTURE_ITEM && match.DUR_MIXTURE_ITEM !== '-' ? match.DUR_MIXTURE_ITEM : null;
-      d.reexamTarget = match.REEXAM_TARGET && match.REEXAM_TARGET !== '-' ? match.REEXAM_TARGET : null;
-      d.reexamDate = match.REEXAM_DATE && match.REEXAM_DATE !== '-' ? match.REEXAM_DATE : null;
-    }
-  }
-} catch (e) {
-  console.warn('DUR/재심사 정보 조회 실패(무시하고 계속 진행):', e);
-}
 
   if (addingSlotIdx >= 0 && addingSlotIdx < 10) {
     cList[addingSlotIdx] = d;

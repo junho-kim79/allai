@@ -125,28 +125,37 @@ export default async function handler(req, res) {
       efcyQesitm: item.efcyQesitm || "",
       useMethodQesitm: item.useMethodQesitm || "",
       atpnWarnQesitm: item.atpnWarnQesitm || "",
-      depositMethodQesitm: item.depositMethodQesitm || ""
+      depositMethodQesitm: item.depositMethodQesitm || "",
+      /* 재심사기간(사실상 독점판매기간에 해당) — 실제 응답 필드명 확인 전이라 후보 필드 다중 시도 */
+      REEXAM_TARGET: item.REEXAM_TARGET || item.reexamTarget || item.REEXAM_TARGET_NAME || item.reexamTargetName || "-",
+      REEXAM_DATE: item.REEXAM_DATE || item.reexamDate || item.REEXAM_PERIOD || item.reexamPeriod || "-"
     }));
   }
 
   async function searchHIRA(q) {
     if (!HIRA_KEY) return [];
-    const urls = [
-      `https://apis.data.go.kr/B551182/durPrdlstInfoService/getDurPrdlstInfoList?serviceKey=${HIRA_KEY}&itemName=${encodeURIComponent(q)}&pageNo=1&numOfRows=20&_type=json`,
-      `https://apis.data.go.kr/B551182/medicinesInfoService/getMdcinGrnIdntfcInfoList?serviceKey=${HIRA_KEY}&itemName=${encodeURIComponent(q)}&pageNo=1&numOfRows=20&_type=json`
-    ];
-    const results = [];
-    for (const url of urls) {
+
+    const durUrl = `https://apis.data.go.kr/B551182/durPrdlstInfoService/getDurPrdlstInfoList?serviceKey=${HIRA_KEY}&itemName=${encodeURIComponent(q)}&pageNo=1&numOfRows=20&_type=json`;
+    const idUrl = `https://apis.data.go.kr/B551182/medicinesInfoService/getMdcinGrnIdntfcInfoList?serviceKey=${HIRA_KEY}&itemName=${encodeURIComponent(q)}&pageNo=1&numOfRows=20&_type=json`;
+
+    async function fetchItems(url) {
       try {
         const data = await fetchJsonOrText(url);
-        if (!data) continue;
+        if (!data) return [];
         const body = data?.response?.body || data?.body || {};
         const items = body?.items?.item || body?.items || [];
-        if (Array.isArray(items)) results.push(...items);
-        else if (items) results.push(items);
-      } catch (_) {}
+        if (Array.isArray(items)) return items;
+        if (items) return [items];
+        return [];
+      } catch (_) {
+        return [];
+      }
     }
-    return results.map((item) => ({
+
+    const [durItemsRaw, idItemsRaw] = await Promise.all([fetchItems(durUrl), fetchItems(idUrl)]);
+
+    // DUR(병용금기/특정연령대금기/임부금기 등) 전용 결과 — 실제 필드명 확인 전이라 후보 필드 다중 시도
+    const durItems = durItemsRaw.map((item) => ({
       source: "HIRA",
       ITEM_NAME: item.ITEM_NAME || item.itemName || item.prdlstNm || item.itemNm || "-",
       ENTP_NAME: item.ENTP_NAME || item.entpName || item.entpNm || "-",
@@ -155,8 +164,29 @@ export default async function handler(req, res) {
       ITEM_PERMIT_DATE: item.ITEM_PERMIT_DATE || item.itemPermitDate || "-",
       ETC_OTC_CODE: item.ETC_OTC_CODE || item.etcOtcCode || "-",
       EDI_CODE: item.ediCode || item.EDI_CODE || "-",
-      DRUG_PRICE: item.amt || item.AMT || item.price || item.unitPrice || "-"
+      DRUG_PRICE: item.amt || item.AMT || item.price || item.unitPrice || "-",
+      DUR_TYPE: item.TYPE_NAME || item.typeName || item.CLASS_NAME || item.className || "-",
+      DUR_CONTENT: item.PROHBT_CONTENT || item.prohbtContent || item.REMARK || item.remark || "-",
+      DUR_MIXTURE_ITEM: item.MIXTURE_ITEM_NAME || item.mixtureItemName || "-"
     }));
+
+    // 성분/제형 식별 전용 결과 — DUR 정보는 해당 없음
+    const idItems = idItemsRaw.map((item) => ({
+      source: "HIRA",
+      ITEM_NAME: item.ITEM_NAME || item.itemName || item.prdlstNm || item.itemNm || "-",
+      ENTP_NAME: item.ENTP_NAME || item.entpName || item.entpNm || "-",
+      INGR_NAME_KOR: item.INGR_NAME_KOR || item.ingrNameKor || item.itemIngrNm || "-",
+      FORM_CODE_NAME: item.FORM_CODE_NAME || item.formCodeName || item.dosageFormNm || "-",
+      ITEM_PERMIT_DATE: item.ITEM_PERMIT_DATE || item.itemPermitDate || "-",
+      ETC_OTC_CODE: item.ETC_OTC_CODE || item.etcOtcCode || "-",
+      EDI_CODE: item.ediCode || item.EDI_CODE || "-",
+      DRUG_PRICE: item.amt || item.AMT || item.price || item.unitPrice || "-",
+      DUR_TYPE: "-",
+      DUR_CONTENT: "-",
+      DUR_MIXTURE_ITEM: "-"
+    }));
+
+    return [...durItems, ...idItems];
   }
 
   try {
@@ -169,7 +199,20 @@ export default async function handler(req, res) {
     const dedupMap = new Map();
     for (const item of merged) {
       const key = `${normalizeText(item.ITEM_NAME)}|${normalizeText(item.ENTP_NAME)}`;
-      if (!dedupMap.has(key)) dedupMap.set(key, item);
+      if (!dedupMap.has(key)) {
+        dedupMap.set(key, item);
+      } else {
+        // 같은 약이 여러 출처에서 잡힌 경우, 값이 있는 필드끼리 서로 보완(병합)
+        const prev = dedupMap.get(key);
+        const merged2 = { ...prev };
+        for (const k of Object.keys(item)) {
+          const v = item[k];
+          if ((merged2[k] === '-' || merged2[k] === '' || merged2[k] == null) && v && v !== '-') {
+            merged2[k] = v;
+          }
+        }
+        dedupMap.set(key, merged2);
+      }
     }
 
     const uniqueItems = Array.from(dedupMap.values());

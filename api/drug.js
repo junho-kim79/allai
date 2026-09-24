@@ -18,14 +18,17 @@ export default async function handler(req, res) {
   const key = encodeURIComponent(KEY);
   const q = encodeURIComponent(name);
 
-  const getJson = async (url, ms = 4000) => {
+  const debug = req.query.debug === "1";
+  const raw = {};
+  const getJson = async (url, ms = 4000, tag = "") => {
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), ms);
     try {
       const r = await fetch(url, { signal: ctrl.signal, headers: { Accept: "application/json" } });
       const txt = await r.text();
+      if (debug) raw[tag] = { status: r.status, head: txt.slice(0, 400) };
       try { return JSON.parse(txt); } catch { return null; } // 키 오류 등은 XML로 옴 → 무시
-    } catch { return null; } finally { clearTimeout(t); }
+    } catch (e) { if (debug) raw[tag] = { error: String(e) }; return null; } finally { clearTimeout(t); }
   };
   const pickItems = (data) => {
     const body = data?.body || data?.response?.body || {};
@@ -36,8 +39,8 @@ export default async function handler(req, res) {
   // 1) 의약품 제품 허가정보: 제조사·허가일·전문/일반
   // 2) e약은요: 효능·용법·주의사항·보관법 (일반의약품 위주)
   const [permit, easy] = await Promise.all([
-    getJson(`https://apis.data.go.kr/1471000/DrugPrdtPrmsnInfoService06/getDrugPrdtPrmsnInq06?serviceKey=${key}&item_name=${q}&pageNo=1&numOfRows=50&type=json`),
-    getJson(`https://apis.data.go.kr/1471000/DrbEasyDrugInfoService/getDrbEasyDrugList?serviceKey=${key}&itemName=${q}&pageNo=1&numOfRows=50&type=json`)
+    getJson(`https://apis.data.go.kr/1471000/DrugPrdtPrmsnInfoService06/getDrugPrdtPrmsnInq06?serviceKey=${key}&item_name=${q}&pageNo=1&numOfRows=50&type=json`, 4000, "permit"),
+    getJson(`https://apis.data.go.kr/1471000/DrbEasyDrugInfoService/getDrbEasyDrugList?serviceKey=${key}&itemName=${q}&pageNo=1&numOfRows=50&type=json`, 4000, "easy")
   ]);
 
   const norm = (s) => String(s || "").replace(/\s+/g, "").toLowerCase();
@@ -74,5 +77,5 @@ export default async function handler(req, res) {
     });
   }
 
-  return res.status(200).json({ items, count: items.length });
+  return res.status(200).json(debug ? { items, count: items.length, raw } : { items, count: items.length });
 }

@@ -9,7 +9,7 @@
   <link rel="manifest" href="/manifest.json">
   <script src="/drugPriceDB.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
   <style>
     :root {
       --g1: #2D9B6F;
@@ -44,7 +44,7 @@
     body {
       margin: 0; padding: 16px;
       min-height: 100vh;
-      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: 'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
       background:
         radial-gradient(ellipse at top left, rgba(255,220,150,0.18), transparent 50%),
         radial-gradient(ellipse at bottom right, rgba(45,155,111,0.10), transparent 50%),
@@ -815,6 +815,53 @@
       }
     }
 
+
+    /* ===== 디자인 다듬기 (2026-09) — 기존 느낌 유지, 가독성·완성도 보정 ===== */
+    html, body {
+      word-break: keep-all;          /* 한글 단어가 줄 끝에서 쪼개지지 않게 */
+      overflow-wrap: break-word;     /* 넘칠 때만 줄바꿈 */
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+    /* 히어로: 아래쪽을 더 어둡게 해서 흰 글씨가 잘 보이게 */
+    .hero::after {
+      background: linear-gradient(to bottom,
+        rgba(20,8,0,0.10) 0%, rgba(20,8,0,0.35) 45%, rgba(10,4,0,0.78) 100%);
+    }
+    .hero-title span { color: #6FE0AE; }
+    .hero-sub { color: rgba(255,255,255,0.88); font-weight: 500; text-shadow: 0 1px 8px rgba(0,0,0,0.45); }
+    /* 카드·결과 목록: 누를 때 살짝 눌리는 느낌 */
+    .result-item, .feat-card, .tool-card, .menu-card, .card {
+      transition: transform .15s ease, box-shadow .15s ease;
+    }
+    .result-item:active, .feat-card:active, .tool-card:active, .menu-card:active { transform: scale(0.98); }
+    .result-name, .detail-name, .info-v { overflow-wrap: anywhere; } /* 공백 없는 긴 약품명 */
+    .result-name { letter-spacing: -0.02em; line-height: 1.35; }
+    .detail-name { letter-spacing: -0.03em; line-height: 1.3; }
+    .result-sub, .detail-sub { line-height: 1.5; }
+    .db-late { animation: dbLateIn .6s ease; }
+    .db-wait .info-l, .db-wait-v { color: var(--sub2) !important; font-weight: 500 !important; }
+    .db-cd { display: inline-block; min-width: 1.4em; text-align: center; font-weight: 800; color: var(--g1); font-variant-numeric: tabular-nums; }
+    .db-cd.tick { animation: cdTick .5s ease; }
+    @keyframes cdTick { 0% { transform: scale(1.6); opacity: .3; } 100% { transform: scale(1); opacity: 1; } }
+    .db-wait-out { transition: opacity .35s ease; opacity: 0; }
+    @keyframes dbLateIn { from { background: rgba(45,155,111,0.14); opacity: 0; } to { background: transparent; opacity: 1; } }
+    /* 더보기 (Coming Soon 축소) */
+    .more-list { margin: 0 16px; background: rgba(255,255,255,0.85); border: 1px solid rgba(180,140,80,0.10); border-radius: var(--r-md); overflow: hidden; }
+    .more-row { display: flex; align-items: center; gap: 12px; padding: 14px 16px; cursor: pointer; transition: background .15s; }
+    .more-row:active { background: rgba(45,155,111,0.06); }
+    .more-ic { font-size: 1.4rem; }
+    .more-tx { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+    .more-tx b { font-size: 0.92rem; font-weight: 800; color: var(--text); }
+    .more-tx small { font-size: 0.74rem; color: var(--sub); }
+    .more-arr { font-size: 1.3rem; color: var(--sub2); }
+    .more-soon { padding: 12px 16px 14px; border-top: 1px solid rgba(180,140,80,0.10); }
+    .more-soon-label { font-size: 0.7rem; color: var(--sub2); margin-bottom: 8px; }
+    .more-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .more-chips span { font-size: 0.74rem; color: var(--sub); background: var(--card2); border-radius: 999px; padding: 5px 10px; }
+    .search-input { min-width: 0; } /* 글꼴이 바뀌어도 검색 버튼이 밀려나지 않게 */
+    /* 입력창 포커스 링 정돈 */
+    select:focus-visible, button:focus-visible { outline: 2px solid rgba(45,155,111,0.35); outline-offset: 2px; }
   </style>
   <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </head>
@@ -918,37 +965,22 @@
      <a class="feedback-btn" id="feedbackLink" href="https://cafe.naver.com/allaiai" target="_blank">의견 보내기</a>
     </div>
 
-    <div class="sec-head" style="padding:16px 0 10px;">
-    <span class="sec-title">Coming Soon</span>
-    <span style="font-size:0.72rem;color:var(--sub2);">🔒 로그인 후 이용 가능</span>
-  </div>
-   <div class="menu-grid">
-    <div class="menu-card" style="opacity:0.5;cursor:default;">
-      <div class="menu-icon">💼</div>
-      <div class="menu-name">나만의 면담기록</div>
-      <div class="menu-desc">병원·의사·반응 기록</div>
+    <div class="sec-head">
+      <span class="sec-title">더보기</span>
     </div>
-    <div class="menu-card" style="opacity:0.5;cursor:default;">
-      <div class="menu-icon">🏥</div>
-      <div class="menu-name">담당 병원 관리</div>
-      <div class="menu-desc">내 거래처 리스트</div>
+    <div class="more-list">
+      <div class="more-row" onclick="goScreen('screen_stat','처방 통계')">
+        <span class="more-ic">🗺️</span>
+        <span class="more-tx"><b>지역 처방 분석</b><small>년도별·지역별 통계 · 샘플</small></span>
+        <span class="more-arr">›</span>
+      </div>
+      <div class="more-soon">
+        <div class="more-soon-label">🔒 준비 중 · 로그인 후 이용 가능</div>
+        <div class="more-chips">
+          <span>💼 면담기록</span><span>🏥 병원 관리</span><span>🧾 영수증 관리</span>
+        </div>
+      </div>
     </div>
-<div class="menu-card" style="opacity:0.5;cursor:default;">
-  <div class="menu-icon">🧾</div>
-  <div class="menu-name">나만의 영수증 관리</div>
-  <div class="menu-desc" style="font-size:0.68rem;line-height:1.6;">
-    식사·교통 경비 기록<br>
-    <span style="color:#4caf50;font-weight:700;font-size:0.65rem;">🔐 PIN 보호 · 서버 미전송</span>
-  </div>
-</div>
-<div class="menu-card" onclick="goScreen('screen_stat','처방 통계')">
-      <div class="menu-icon">🗺️</div>
-      <div class="menu-name">지역 처방 분석</div>
-      <div class="menu-desc">년도별·지역별 통계 <span style="color:var(--sub2);font-size:0.65rem;">※샘플</span></div>
-    </div>
-  </div>
-
-
 
 <div style="margin:20px 16px 0;padding-top:20px;border-top:1px solid rgba(180,140,80,0.10);text-align:center;font-size:0.7rem;color:var(--sub2);line-height:1.9;">
   면담 1분 전, 필요한 정보만 제공합니다.<br>
@@ -1499,16 +1531,15 @@ function searchDrug() {
 
 async function fetchDrug(q) {
   const el = document.getElementById('drugResults');
-  el.innerHTML = `<div class="empty">
-    <div style="display:flex;justify-content:center;gap:6px;margin-bottom:8px;">
-      <div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div>
-    </div>검색 중...
-  </div>`;
+  renderDrugListLocal(q, el); // 약가DB 결과를 기다림 없이 바로 표시
   try {
     const res = await fetchWithTimeout(`https://drug-ede5bi7c3q-du.a.run.app?name=${encodeURIComponent(q)}`);
     const data = await res.json();
     const items = data.items || [];
-    if (!items.length) { renderDrugListLocal(q, el); return; }
+    if (!items.length) return;
+    // 서버 응답이 늦게 왔을 때: 검색어가 바뀌었거나 다른 화면으로 갔으면 덮어쓰지 않음
+    if (document.getElementById('drugSearch').value.trim() !== q ||
+        !document.getElementById('screen2').classList.contains('active')) return;
     _apiResults = items;
     incSearch();
     el.innerHTML = items.map((item, i) => {
@@ -1528,7 +1559,7 @@ async function fetchDrug(q) {
           ${efcy ? `<div class="result-efcy">📌 ${efcy.substring(0,80)}</div>` : ''}
         </div>`;
     }).join('');
-  } catch(e) { renderDrugListLocal(q, el); }
+  } catch(e) { /* 서버 무응답 → 이미 약가DB 결과 표시 중 */ }
 }
 
 function renderDrugListLocal(q, el) {
@@ -1604,20 +1635,171 @@ function getDrugPrice(itemName) {
   return best && bestScore >= 65 ? best.p.toLocaleString() + '원' : '-';
 }
 
-/* 약가DB 결과 클릭 → 기존 상세화면(showDrugAPI) 형식으로 변환해서 표시 */
+/* ===== 약가DB(drugPriceDB.js) 공용 ===== */
+function searchPriceDB(q, limit = 50) {
+  if (typeof DRUG_PRICE_DB === 'undefined' || !q) return [];
+  const k = normalizeDrugName(q);
+  return DRUG_PRICE_DB.filter(d => normalizeDrugName(d.n).includes(k) || String(d.c).includes(q)).slice(0, limit);
+}
+function dbToApiItem(d) {
+  const base = String(d.n).split('_')[0];            // "아모잘탄플러스정...(암로디핀,로사르탄,...)"
+  const m = base.match(/\(([^()]+)\)\s*$/);         // 괄호 안 = 성분명(있을 때만)
+  return { ITEM_NAME: base, INGR_NAME_KOR: m ? m[1] : '', ENTP_NAME: '', ITEM_SEQ: d.c, _db: true };
+}
+
+/* 약가DB 결과 클릭 → 기존 상세화면(showDrugAPI)으로 표시 후, 비어 있는 칸 정리 */
 let _dbHits = [];
 function showDrugDB(i) {
   const d = _dbHits[i];
   if (!d) return;
-  const base = String(d.n).split('_')[0];           // "아모잘탄플러스정...(암로디핀,로사르탄,...)"
-  const m = base.match(/\(([^()]+)\)\s*$/);        // 괄호 안 = 성분명(있을 때만)
-  _apiResults = [{
-    ITEM_NAME: base,
-    INGR_NAME_KOR: m ? m[1] : '',
-    ENTP_NAME: '',
-    ITEM_SEQ: d.c
-  }];
+  const item = dbToApiItem(d);
+  _apiResults = [item];
   showDrugAPI(0);
+  const box = document.getElementById('drugDetail');
+  const sub = box.querySelector('.detail-sub');
+  if (sub) sub.textContent = item.INGR_NAME_KOR || '약가 고시 품목';
+  box.querySelectorAll('.detail-header .badge').forEach((b, k) => {
+    if (k === 0) { b.textContent = '📦 약가DB'; b.className = 'badge bk'; }
+    else if (b.textContent.trim() === '-') b.remove();
+  });
+  box.querySelectorAll('.info-row').forEach(r => {
+    const l = (r.querySelector('.info-l')?.textContent || '').trim();
+    const v = (r.querySelector('.info-v')?.textContent || '').trim();
+    if (['성분', '제조사', '허가일', '전문/일반'].includes(l) && v === '-') r.remove();
+  });
+  const P = parseDbName(d);
+  const monthly = /^1(정|캡슐)$/.test(P.packCount) ? `<div class="info-row"><span class="info-l">30일 약값 <span style="font-size:0.68rem;font-weight:600;color:var(--sub2);">1일 1${P.packCount.slice(1)}</span></span><span class="info-v">${(d.p * 30).toLocaleString()}원</span></div>` : '';
+  const priceRow = document.getElementById('priceVal')?.closest('.info-row');
+  if (priceRow) priceRow.insertAdjacentHTML('afterend',
+    `<div class="info-row"><span class="info-l">보험코드</span><span class="info-v">${d.c}</span></div>` +
+    (P.pack ? `<div class="info-row"><span class="info-l">규격</span><span class="info-v">${P.pack}</span></div>` : '') +
+    monthly);
+
+  // ── 바로 뜨는 정보: 같은 성분·같은 용량 가격 비교 / 같은 제품 다른 용량 ──
+  const infoSec = priceRow?.closest('.detail-section');
+  if (infoSec) infoSec.insertAdjacentHTML('afterend', renderDbExtras(d, P));
+
+  // ── 늦게 뜨는 정보: 서버가 답하면 제조사·허가일·전문/일반 추가 (답 없으면 아무것도 안 보임) ──
+  const token = (_dbDetailToken = (_dbDetailToken || 0) + 1);
+  // 5초 카운트다운 줄 (제형 아래)
+  const card0 = document.getElementById('priceVal')?.closest('.info-card');
+  const rows0 = card0 ? [...card0.querySelectorAll('.info-row')] : [];
+  const anchor0 = rows0.find(r => (r.querySelector('.info-l')?.textContent || '').trim() === '제형')
+    || rows0.find(r => (r.querySelector('.info-l')?.textContent || '').trim() === '성분') || rows0[rows0.length - 1];
+  if (anchor0) anchor0.insertAdjacentHTML('afterend',
+    `<div class="info-row db-wait" id="dbWait"><span class="info-l">제조사 · 허가일</span>
+       <span class="info-v db-wait-v">확인 중 <span class="db-cd" id="dbCd">5</span></span></div>`);
+  let left = 5;
+  const cdTimer = setInterval(() => {
+    left--;
+    const cd = document.getElementById('dbCd');
+    if (!cd || token !== _dbDetailToken) return clearInterval(cdTimer);
+    if (left > 0) { cd.textContent = left; cd.classList.remove('tick'); void cd.offsetWidth; cd.classList.add('tick'); }
+    else { clearInterval(cdTimer); endWait(); }
+  }, 1000);
+  function endWait() {
+    const w = document.getElementById('dbWait');
+    if (w) { w.classList.add('db-wait-out'); setTimeout(() => w.remove(), 350); }
+  }
+  fetchWithTimeout(`https://drug-ede5bi7c3q-du.a.run.app?name=${encodeURIComponent(P.stem || item.ITEM_NAME)}`, 5000)
+    .then(r => r.json()).then(data => {
+      if (token !== _dbDetailToken) return; // 그새 다른 약을 열었음
+      clearInterval(cdTimer);
+      document.getElementById('dbWait')?.remove();
+      const target = normalizeDrugName(item.ITEM_NAME);
+      const hit = (data.items || []).find(it => {
+        const n = normalizeDrugName(it.ITEM_NAME || it.itemName || '');
+        return n && (n === target || n.startsWith(target) || target.startsWith(n));
+      });
+      if (!hit) return;
+      const rows = [
+        ['제조사', hit.ENTP_NAME || hit.entpName],
+        ['허가일', hit.ITEM_PERMIT_DATE || hit.itemPermitDate],
+        ['전문/일반', hit.ETC_OTC_CODE || hit.etcOtcCode]
+      ].filter(([, v]) => v && v !== '-');
+      const card = document.getElementById('priceVal')?.closest('.info-card');
+      if (!card || !rows.length) return;
+      const fmtDate = v => /^\d{8}$/.test(v) ? `${v.slice(0,4)}.${v.slice(4,6)}.${v.slice(6)}` : v;
+      // 제형 줄 바로 아래(없으면 성분/규격 아래)에 끼워 넣기
+      const all = [...card.querySelectorAll('.info-row')];
+      const anchor = all.find(r => (r.querySelector('.info-l')?.textContent || '').trim() === '제형')
+        || all.find(r => (r.querySelector('.info-l')?.textContent || '').trim() === '성분')
+        || all[all.length - 1];
+      anchor.insertAdjacentHTML('afterend', rows.map(([l, v]) =>
+        `<div class="info-row db-late"><span class="info-l">${l}</span><span class="info-v">${l === '허가일' ? fmtDate(v) : v}</span></div>`).join(''));
+    }).catch(() => { if (token === _dbDetailToken) { clearInterval(cdTimer); endWait(); } });
+}
+let _dbDetailToken = 0;
+
+/* 약가DB 이름 분해: "아모잘탄플러스정5/50/12.5밀리그램(암로디핀,...)_(1정)" */
+function parseDbName(d) {
+  const full = String(d.n);
+  const us = full.lastIndexOf('_(');
+  const base = us >= 0 ? full.slice(0, us) : full;
+  const pack = us >= 0 ? full.slice(us + 2).replace(/\)\s*$/, '') : '';
+  const ingrM = base.match(/\(([^()]+)\)\s*$/);
+  const ingr = ingrM ? ingrM[1] : '';
+  const noIngr = ingrM ? base.slice(0, ingrM.index) : base;
+  const stemM = noIngr.match(/^(.*?)(\d)/);
+  const stem = stemM ? stemM[1] : noIngr;
+  const unitN = u => ({'밀리그램':'mg','밀리그람':'mg','㎎':'mg','마이크로그램':'μg','마이크로그람':'μg','그램':'g','그람':'g','밀리리터':'mL'}[u] || u);
+  const strM = noIngr.match(/([\d.]+(?:\/[\d.]+)*)\s*(밀리그램|밀리그람|마이크로그램|마이크로그람|그램|그람|밀리리터|mg|㎎|g|mL|%)/);
+  const packStrM = pack.match(/^([\d.]+)\s*(mg|g|μg|mL)\//);
+  const strength = strM ? strM[1] + unitN(strM[2]) : (packStrM ? packStrM[1] + packStrM[2] : '');
+  const packCount = (pack.match(/(\d+(?:정|캡슐|병|mL|g|포|매|관|개))\s*$/) || [])[1] || pack;
+  const ingrKey = ingr ? ingr.replace(/\s+/g, '').split(',').sort().join(',') : '';
+  return { base, pack, ingr, ingrKey, stem, strength, packCount };
+}
+
+function renderDbExtras(d, P) {
+  if (typeof DRUG_PRICE_DB === 'undefined') return '';
+  const won = n => Number(n).toLocaleString() + '원';
+  const rowHtml = (x, label, extra) => `
+    <div class="info-row" style="${x.c === d.c ? 'background:rgba(45,155,111,0.07);' : ''}">
+      <span class="info-l" style="flex:1;min-width:0;color:var(--text);font-weight:${x.c === d.c ? 800 : 500};">${label}${x.c === d.c ? ' <span class="badge bg" style="font-size:0.62rem;padding:2px 6px;">현재</span>' : ''}</span>
+      <span class="info-v" style="flex-shrink:0;">${extra || ''}${won(x.p)}</span>
+    </div>`;
+  let html = '';
+
+  // 1) 같은 성분 · 같은 용량 · 같은 제형 → 가격 비교
+  if (P.ingrKey && P.strength) {
+    const group = DRUG_PRICE_DB.filter(x => {
+      if (x.c === d.c) return true;
+      const Q = parseDbName(x);
+      return Q.ingrKey === P.ingrKey && Q.strength === P.strength && Q.packCount === P.packCount;
+    }).sort((a, b) => a.p - b.p);
+    if (group.length > 1) {
+      const minP = group[0].p, maxP = group[group.length - 1].p;
+      const rank = group.findIndex(x => x.c === d.c) + 1;
+      const shown = group.slice(0, 8);
+      if (!shown.some(x => x.c === d.c)) shown.push(d);
+      html += `
+    <div class="detail-section">
+      <div class="sec-label">같은 성분 가격 비교 <span style="font-weight:600;color:var(--sub2);">· ${group.length}개 품목 · 저렴한 순 ${rank}위</span></div>
+      <div class="info-card">
+        <div class="info-row"><span class="info-l">최저 ~ 최고</span><span class="info-v">${won(minP)} ~ ${won(maxP)}</span></div>
+        ${shown.map(x => rowHtml(x, parseDbName(x).base.replace(/\([^()]+\)\s*$/, ''),
+            x.p === minP ? '<span class="badge bg" style="font-size:0.62rem;padding:2px 6px;margin-right:6px;">최저가</span>' : '')).join('')}
+        ${group.length > shown.length ? `<div class="info-row"><span class="info-l" style="color:var(--sub2);">외 ${group.length - shown.length}개 품목</span><span class="info-v"></span></div>` : ''}
+      </div>
+    </div>`;
+    }
+  }
+
+  // 2) 같은 제품 다른 용량
+  if (P.stem && P.stem.length >= 2) {
+    const sibs = DRUG_PRICE_DB.filter(x => parseDbName(x).stem === P.stem).sort((a, b) => a.p - b.p);
+    if (sibs.length > 1) {
+      html += `
+    <div class="detail-section">
+      <div class="sec-label">같은 제품 다른 용량 <span style="font-weight:600;color:var(--sub2);">· ${sibs.length}종</span></div>
+      <div class="info-card">
+        ${sibs.slice(0, 10).map(x => { const Q = parseDbName(x); return rowHtml(x, (Q.strength || Q.base.replace(P.stem, '')) + (Q.packCount && Q.packCount !== '1정' ? ` <span style="color:var(--sub2);font-weight:500;">(${Q.packCount})</span>` : '')); }).join('')}
+      </div>
+    </div>`;
+    }
+  }
+  return html;
 }
 
 async function showDrugAPI(idx) {
@@ -2486,12 +2668,14 @@ function renderCompModalList(q, forceSearch = false) {
   `;
 
   const runSearch = async () => {
+    renderCompModalListLocal(query, el); // 바로 표시
     try {
       const res = await fetchWithTimeout(`https://drug-ede5bi7c3q-du.a.run.app?name=${encodeURIComponent(query)}`);
       const data = await res.json();
       const items = data.items || [];
 
-      if (items.length) {
+      if (items.length && document.getElementById('compModalOverlay').style.display !== 'none' &&
+          (document.getElementById('compModalSearch')?.value ?? query).trim() === query) {
         _compApiResults = items;
 
         el.innerHTML = items.map((item, i) => {
@@ -2515,11 +2699,7 @@ function renderCompModalList(q, forceSearch = false) {
         }).join('');
         return;
       }
-
-      renderCompModalListLocal(query, el);
-    } catch (e) {
-      renderCompModalListLocal(query, el);
-    }
+    } catch (e) { /* 서버 무응답 → 이미 결과 표시 중 */ }
   };
 
   if (forceSearch) {
@@ -2539,6 +2719,18 @@ function renderCompModalListLocal(q, el) {
   _compApiResults = [];
 
   if (!list.length) {
+    // 샘플에 없으면 약가DB에서 검색 → 실시간 결과와 같은 방식(api)으로 선택
+    const hits = searchPriceDB(q);
+    if (hits.length) {
+      _compApiResults = hits.map(dbToApiItem);
+      el.innerHTML = hits.map((d, i) => `
+        <div class="result-item" style="margin-bottom:8px;" onclick="selectForCompare(${i}, 'api')">
+          <div class="result-name">${_compApiResults[i].ITEM_NAME}</div>
+          <div class="result-sub">보험코드 ${d.c} · 상한가 ${Number(d.p).toLocaleString()}원</div>
+          <div class="badges"><span class="badge bk" style="font-size:0.65rem;">📦 약가DB</span></div>
+        </div>`).join('');
+      return;
+    }
     el.innerHTML = '<div class="empty">검색 결과가 없습니다</div>';
     return;
   }
@@ -2582,7 +2774,7 @@ async function selectForCompare(identifier, source = 'local') {
       company: item.ENTP_NAME || item.entpName || '-',
       type: item.ETC_OTC_CODE || item.etcOtcCode || '-',
       price: priceNum,
-      insurance: '실시간',
+      insurance: item._db ? '약가DB' : '실시간',
       fda: '조회중...',
       form: item.FORM_CODE_NAME || item.formCodeName || '-',
       efcy: ((item.efcyQesitm || item.EE_DOC_DATA || '').replace(/<[^>]+>/g, '').trim()) || '-',

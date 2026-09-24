@@ -1482,6 +1482,13 @@ function setSearchType(type, el) {
   searchDrug();
 }
 
+/* 외부 약품 서버 무응답 대비: 5초 넘으면 중단 → 로컬 검색으로 전환 */
+function fetchWithTimeout(url, ms = 5000) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), ms);
+  return fetch(url, { signal: ctrl.signal }).finally(() => clearTimeout(t));
+}
+
 function searchDrug() {
   const q = document.getElementById('drugSearch').value.trim();
   const el = document.getElementById('drugResults');
@@ -1498,7 +1505,7 @@ async function fetchDrug(q) {
     </div>검색 중...
   </div>`;
   try {
-    const res = await fetch(`https://drug-ede5bi7c3q-du.a.run.app?name=${encodeURIComponent(q)}`);
+    const res = await fetchWithTimeout(`https://drug-ede5bi7c3q-du.a.run.app?name=${encodeURIComponent(q)}`);
     const data = await res.json();
     const items = data.items || [];
     if (!items.length) { renderDrugListLocal(q, el); return; }
@@ -1540,6 +1547,20 @@ function renderDrugListLocal(q, el) {
   });
 
   if (!list.length) {
+    // 샘플 5종에 없으면 약가DB(drugPriceDB.js, 약 2.2만 품목)에서 제품명/보험코드 검색
+    if (typeof DRUG_PRICE_DB !== 'undefined') {
+      const k = normalizeDrugName(q);
+      const hits = DRUG_PRICE_DB.filter(d => normalizeDrugName(d.n).includes(k) || String(d.c).includes(q)).slice(0, 50);
+      if (hits.length) {
+        el.innerHTML = hits.map(d => `
+          <div class="result-item">
+            <div class="result-name">${d.n}</div>
+            <div class="result-sub">보험코드 ${d.c} · 상한가 ${Number(d.p).toLocaleString()}원</div>
+            <div class="badges"><span class="badge bk" style="font-size:0.65rem;">📦 약가DB</span></div>
+          </div>`).join('');
+        return;
+      }
+    }
     el.innerHTML = '<div class="empty">검색 결과가 없습니다</div>';
     return;
   }
@@ -2449,7 +2470,7 @@ function renderCompModalList(q, forceSearch = false) {
 
   const runSearch = async () => {
     try {
-      const res = await fetch(`https://drug-ede5bi7c3q-du.a.run.app?name=${encodeURIComponent(query)}`);
+      const res = await fetchWithTimeout(`https://drug-ede5bi7c3q-du.a.run.app?name=${encodeURIComponent(query)}`);
       const data = await res.json();
       const items = data.items || [];
 

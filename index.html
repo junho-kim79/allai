@@ -1552,8 +1552,9 @@ function renderDrugListLocal(q, el) {
       const k = normalizeDrugName(q);
       const hits = DRUG_PRICE_DB.filter(d => normalizeDrugName(d.n).includes(k) || String(d.c).includes(q)).slice(0, 50);
       if (hits.length) {
-        el.innerHTML = hits.map(d => `
-          <div class="result-item">
+        _dbHits = hits;
+        el.innerHTML = hits.map((d, i) => `
+          <div class="result-item" onclick="showDrugDB(${i})">
             <div class="result-name">${d.n}</div>
             <div class="result-sub">보험코드 ${d.c} · 상한가 ${Number(d.p).toLocaleString()}원</div>
             <div class="badges"><span class="badge bk" style="font-size:0.65rem;">📦 약가DB</span></div>
@@ -1601,6 +1602,22 @@ function getDrugPrice(itemName) {
     if (score > bestScore) { bestScore = score; best = d; }
   }
   return best && bestScore >= 65 ? best.p.toLocaleString() + '원' : '-';
+}
+
+/* 약가DB 결과 클릭 → 기존 상세화면(showDrugAPI) 형식으로 변환해서 표시 */
+let _dbHits = [];
+function showDrugDB(i) {
+  const d = _dbHits[i];
+  if (!d) return;
+  const base = String(d.n).split('_')[0];           // "아모잘탄플러스정...(암로디핀,로사르탄,...)"
+  const m = base.match(/\(([^()]+)\)\s*$/);        // 괄호 안 = 성분명(있을 때만)
+  _apiResults = [{
+    ITEM_NAME: base,
+    INGR_NAME_KOR: m ? m[1] : '',
+    ENTP_NAME: '',
+    ITEM_SEQ: d.c
+  }];
+  showDrugAPI(0);
 }
 
 async function showDrugAPI(idx) {

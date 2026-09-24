@@ -1701,17 +1701,22 @@ function showDrugDB(i) {
     const w = document.getElementById('dbWait');
     if (w) { w.classList.add('db-wait-out'); setTimeout(() => w.remove(), 350); }
   }
-  fetchWithTimeout(`https://drug-ede5bi7c3q-du.a.run.app?name=${encodeURIComponent(P.stem || item.ITEM_NAME)}`, 5000)
+  // 식약처 허가정보: Vercel /api/drug (공공데이터 키는 Vercel 환경변수에 있음)
+  fetchWithTimeout(`/api/drug?name=${encodeURIComponent(P.stem || item.ITEM_NAME)}`, 5000)
     .then(r => r.json()).then(data => {
       if (token !== _dbDetailToken) return; // 그새 다른 약을 열었음
+      // 이름 비교: 제품명(숫자 앞) + 용량이 같으면 같은 약 (밀리그람/밀리그램 표기 차이 무시)
+      const keyOf = n => { const Q = parseDbName({ n }); return normalizeDrugName(Q.stem) + '|' + Q.strength; };
+      const target = keyOf(item.ITEM_NAME);
+      const list = (data.items || []).filter(it => !it.CANCEL);
+      const hit = list.find(it => keyOf(it.ITEM_NAME || '') === target)
+        || list.find(it => normalizeDrugName(it.ITEM_NAME || '').startsWith(normalizeDrugName(item.ITEM_NAME)));
+      if (!hit) { clearInterval(cdTimer); endWait(); return; }
       clearInterval(cdTimer);
       document.getElementById('dbWait')?.remove();
-      const target = normalizeDrugName(item.ITEM_NAME);
-      const hit = (data.items || []).find(it => {
-        const n = normalizeDrugName(it.ITEM_NAME || it.itemName || '');
-        return n && (n === target || n.startsWith(target) || target.startsWith(n));
-      });
-      if (!hit) return;
+      const useEl = document.getElementById('useMethodVal');
+      const useTxt = (hit.useMethodQesitm || '').replace(/<[^>]+>/g, '').trim();
+      if (useEl && useTxt && /^-?$/.test(useEl.textContent.trim())) useEl.textContent = useTxt;
       const rows = [
         ['제조사', hit.ENTP_NAME || hit.entpName],
         ['허가일', hit.ITEM_PERMIT_DATE || hit.itemPermitDate],

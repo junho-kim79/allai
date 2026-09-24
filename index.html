@@ -840,6 +840,8 @@
     .detail-name { letter-spacing: -0.03em; line-height: 1.3; }
     .result-sub, .detail-sub { line-height: 1.5; }
     .db-late { animation: dbLateIn .6s ease; }
+    .db-co { display: block; font-size: 0.7rem; font-weight: 500; color: var(--sub2); margin-top: 1px; opacity: 0; transition: opacity .4s; }
+    .db-co.on { opacity: 1; }
     .db-wait .info-l, .db-wait-v { color: var(--sub2) !important; font-weight: 500 !important; }
     .db-cd { display: inline-block; min-width: 1.4em; text-align: center; font-weight: 800; color: var(--g1); font-variant-numeric: tabular-nums; }
     .db-cd.tick { animation: cdTick .5s ease; }
@@ -1678,6 +1680,7 @@ function showDrugDB(i) {
   // ── 바로 뜨는 정보: 같은 성분·같은 용량 가격 비교 / 같은 제품 다른 용량 ──
   const infoSec = priceRow?.closest('.detail-section');
   if (infoSec) infoSec.insertAdjacentHTML('afterend', renderDbExtras(d, P));
+  fillCompetitorCompanies();
 
   // ── 늦게 뜨는 정보: 서버가 답하면 제조사·허가일·전문/일반 추가 (답 없으면 아무것도 안 보임) ──
   const token = (_dbDetailToken = (_dbDetailToken || 0) + 1);
@@ -1737,6 +1740,27 @@ function showDrugDB(i) {
 }
 let _dbDetailToken = 0;
 
+/* 경쟁품 목록의 회사명: 식약처 허가정보(/api/drug)에서 보험코드로 찾아 채움 (늦게 떠도 됨) */
+const _coCache = {}; // 보험코드 → 회사명
+function fillCompetitorCompanies() {
+  const els = [...document.querySelectorAll('#drugDetail .db-co[data-c]')];
+  const put = () => els.forEach(el => { const n = _coCache[el.dataset.c]; if (n && !el.textContent) { el.textContent = n; el.classList.add('on'); } });
+  put();
+  const need = els.filter(el => !_coCache[el.dataset.c]);
+  const stems = [...new Set(need.map(el => {
+    const d = DRUG_PRICE_DB.find(x => String(x.c) === el.dataset.c);
+    return d ? parseDbName(d).stem : '';
+  }).filter(Boolean))].slice(0, 10);
+  stems.forEach(stem => {
+    fetchWithTimeout(`/api/drug?name=${encodeURIComponent(stem)}`, 8000).then(r => r.json()).then(data => {
+      (data.items || []).forEach(it => {
+        String(it.EDI_CODE || '').split(/[,\s]+/).filter(Boolean).forEach(c => { if (it.ENTP_NAME) _coCache[c] = it.ENTP_NAME; });
+      });
+      put();
+    }).catch(() => {});
+  });
+}
+
 /* 약가DB 이름 분해: "아모잘탄플러스정5/50/12.5밀리그램(암로디핀,...)_(1정)" */
 function parseDbName(d) {
   const full = String(d.n);
@@ -1760,9 +1784,9 @@ function parseDbName(d) {
 function renderDbExtras(d, P) {
   if (typeof DRUG_PRICE_DB === 'undefined') return '';
   const won = n => Number(n).toLocaleString() + '원';
-  const rowHtml = (x, label, extra) => `
+  const rowHtml = (x, label, extra, sub = '') => `
     <div class="info-row" style="${x.c === d.c ? 'background:rgba(45,155,111,0.07);' : ''}">
-      <span class="info-l" style="flex:1;min-width:0;color:var(--text);font-weight:${x.c === d.c ? 800 : 500};">${label}${x.c === d.c ? ' <span class="badge bg" style="font-size:0.62rem;padding:2px 6px;">현재</span>' : ''}</span>
+      <span class="info-l" style="flex:1;min-width:0;color:var(--text);font-weight:${x.c === d.c ? 800 : 500};">${label}${x.c === d.c ? ' <span class="badge bg" style="font-size:0.62rem;padding:2px 6px;">현재</span>' : ''}${sub}</span>
       <span class="info-v" style="flex-shrink:0;">${extra || ''}${won(x.p)}</span>
     </div>`;
   let html = '';
@@ -1785,7 +1809,8 @@ function renderDbExtras(d, P) {
       <div class="info-card">
         <div class="info-row"><span class="info-l">최저 ~ 최고</span><span class="info-v">${won(minP)} ~ ${won(maxP)}</span></div>
         ${shown.map(x => rowHtml(x, parseDbName(x).base.replace(/\([^()]+\)\s*$/, ''),
-            x.p === minP ? '<span class="badge bg" style="font-size:0.62rem;padding:2px 6px;margin-right:6px;">최저가</span>' : '')).join('')}
+            x.p === minP ? '<span class="badge bg" style="font-size:0.62rem;padding:2px 6px;margin-right:6px;">최저가</span>' : '',
+            `<small class="db-co" data-c="${x.c}"></small>`)).join('')}
         ${group.length > shown.length ? `<div class="info-row"><span class="info-l" style="color:var(--sub2);">외 ${group.length - shown.length}개 품목</span><span class="info-v"></span></div>` : ''}
       </div>
     </div>`;

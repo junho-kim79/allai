@@ -1709,7 +1709,8 @@ function showDrugDB(i) {
       const keyOf = n => { const Q = parseDbName({ n }); return normalizeDrugName(Q.stem) + '|' + Q.strength; };
       const target = keyOf(item.ITEM_NAME);
       const list = (data.items || []).filter(it => !it.CANCEL);
-      const hit = list.find(it => keyOf(it.ITEM_NAME || '') === target)
+      const hit = list.find(it => String(it.EDI_CODE || '').split(/[,\s]+/).includes(String(d.c))) // 보험코드 일치 (가장 정확)
+        || list.find(it => keyOf(it.ITEM_NAME || '') === target)
         || list.find(it => normalizeDrugName(it.ITEM_NAME || '').startsWith(normalizeDrugName(item.ITEM_NAME)));
       if (!hit) { clearInterval(cdTimer); endWait(); return; }
       clearInterval(cdTimer);

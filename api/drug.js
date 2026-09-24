@@ -39,7 +39,12 @@ export default async function handler(req, res) {
   // 1) 의약품 제품 허가정보: 제조사·허가일·전문/일반
   // 2) e약은요: 효능·용법·주의사항·보관법 (일반의약품 위주)
   const [permit, easy] = await Promise.all([
-    getJson(`https://apis.data.go.kr/1471000/DrugPrdtPrmsnInfoService06/getDrugPrdtPrmsnInq06?serviceKey=${key}&item_name=${q}&pageNo=1&numOfRows=50&type=json`, 4000, "permit"),
+    (async () => {
+      // 07이 현재 버전(06은 폐기됨). 혹시 몰라 06도 예비로 시도
+      const v7 = await getJson(`https://apis.data.go.kr/1471000/DrugPrdtPrmsnInfoService07/getDrugPrdtPrmsnInq07?serviceKey=${key}&item_name=${q}&pageNo=1&numOfRows=100&type=json`, 4000, "permit");
+      if (pickItems(v7).length) return v7;
+      return getJson(`https://apis.data.go.kr/1471000/DrugPrdtPrmsnInfoService06/getDrugPrdtPrmsnInq06?serviceKey=${key}&item_name=${q}&pageNo=1&numOfRows=100&type=json`, 3000, "permit06");
+    })(),
     getJson(`https://apis.data.go.kr/1471000/DrbEasyDrugInfoService/getDrbEasyDrugList?serviceKey=${key}&itemName=${q}&pageNo=1&numOfRows=50&type=json`, 4000, "easy")
   ]);
 
@@ -57,6 +62,7 @@ export default async function handler(req, res) {
       ITEM_PERMIT_DATE: p.ITEM_PERMIT_DATE || p.PRDUCT_PRMISN_DT || "",
       ETC_OTC_CODE: p.ETC_OTC_CODE || p.SPCLTY_PBLC || p.ETC_OTC_NAME || "",
       INGR_NAME_KOR: p.ITEM_INGR_NAME || p.MAIN_ITEM_INGR || "",
+      EDI_CODE: p.EDI_CODE || "",
       CANCEL: p.CANCEL_NAME || p.CANCEL_DATE || "",
       efcyQesitm: e.efcyQesitm || "",
       useMethodQesitm: e.useMethodQesitm || "",

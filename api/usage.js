@@ -1,45 +1,118 @@
 /**
- * 심평원 의약품사용정보 (지역별 처방 사용량)
- * GET /api/usage?op=getAtcStp4AreaList1.2&diagYm=202506&atcStep4Cd=A02BC&sidoCd=230000
+ * 심평원 의약품사용정보 (지역별 처방 사용량) — 서비스: B551182/msupUserInfoService1.2
  * 키: Vercel 환경변수 API_KEY_HIRA (없으면 API_KEY_MFDS)
- * 서비스: https://apis.data.go.kr/B551182/msupUserInfoService1.2
+ *
+ * mode=raw    (기본) 원본 조회: &diagYm=202412&atcStep4Cd=A02BC&sidoCd=230000&sgguCd=230001
+ * mode=latest 데이터가 있는 가장 최근 진료년월
+ * mode=sggu   &sido=230000 → 해당 시도의 시군구 목록 [{code,name}]
+ * mode=trend  &atc=A02BC&sido=230000&sggu=230006|all&months=12&tp=02 → 월별 합계 + 기관종별
  */
-const ALLOWED_PARAMS = ["diagYm", "atcStep4Cd", "atcStep3Cd", "gnlNmCd", "insupTp", "cpmdPrscTp",
-  "sidoCd", "sgguCd", "clCd", "numOfRows", "pageNo", "startYm", "endYm"];
+const SVC = "https://apis.data.go.kr/B551182/msupUserInfoService1.2/getAtcStp4AreaList1.2";
+const ALLOWED = ["diagYm", "atcStep4Cd", "insupTp", "cpmdPrscTp", "sidoCd", "sgguCd", "numOfRows", "pageNo"];
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET");
-  res.setHeader("Cache-Control", "s-maxage=86400, stale-while-revalidate=604800"); // 월 단위 통계 → 하루 캐시
-
-  const op = String(req.query.op || "getAtcStp4AreaList1.2");
-  if (!/^get[A-Za-z0-9]+List1\.2$/.test(op)) return res.status(400).json({ error: "허용되지 않은 op", items: [] });
+  res.setHeader("Cache-Control", "s-maxage=86400, stale-while-revalidate=604800"); // 월 통계 → 하루 캐시
 
   const KEY = process.env.API_KEY_HIRA || process.env.API_KEY_MFDS;
-  if (!KEY) return res.status(200).json({ items: [], error: "API 키 미설정 (API_KEY_HIRA)" });
+  if (!KEY) return res.status(200).json({ error: "API 키 미설정 (API_KEY_HIRA)" });
 
-  const qs = new URLSearchParams({ serviceKey: KEY, _type: "json", numOfRows: "100", pageNo: "1" });
-  for (const k of ALLOWED_PARAMS) if (req.query[k]) qs.set(k, String(req.query[k]));
+  const call = async (params, ms = 7000) => {
+    const qs = new URLSearchParams({ serviceKey: KEY, _type: "json", numOfRows: "100", pageNo: "1", insupTp: "0", cpmdPrscTp: "02" });
+    for (const [k, v] of Object.entries(params)) if (v !== undefined && v !== "") qs.set(k, String(v));
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), ms);
+    try {
+      const r = await fetch(`${SVC}?${qs}`, { signal: ctrl.signal, headers: { Accept: "application/json" } });
+      const txt = await r.text();
+      let data; try { data = JSON.parse(txt); } catch {
+        const msg = (txt.match(/<returnAuthMsg>([^<]*)</) || txt.match(/<resultMsg>([^<]*)</) || [])[1] || txt.slice(0, 120);
+        return { items: [], error: msg };
+      }
+      const body = data?.response?.body || data?.body || {};
+      const it = body?.items?.item ?? body?.items ?? [];
+      return { items: Array.isArray(it) ? it : (it ? [it] : []) };
+    } catch (e) { return { items: [], error: String(e) }; } finally { clearTimeout(t); }
+  };
+  const ymList = (endYm, n) => {
+    let y = Math.floor(endYm / 100), m = endYm % 100; const out = [];
+    for (let i = 0; i < n; i++) { out.unshift(y * 100 + m); m--; if (m === 0) { m = 12; y--; } }
+    return out;
+  };
+  const findLatest = async () => {
+    // 최근 24개월을 한 번에 조회해서 데이터가 있는 가장 최근 달 (Vercel 10초 제한 대비 병렬)
+    const now = new Date();
+    const yms = ymList(now.getFullYear() * 100 + now.getMonth() + 1, 25).slice(0, 24).reverse();
+    const rs = await Promise.all(yms.map((ym) => call({ diagYm: ym, atcStep4Cd: "A02BC", sidoCd: "110000", sgguCd: "110001" }, 5000)));
+    const i = rs.findIndex((r) => r.items.length);
+    return i >= 0 ? yms[i] : null;
+  };
+  const listSggu = async (sido, ym) => {
+    const pre = String(sido).slice(0, 2);
+    const codes = Array.from({ length: 45 }, (_, i) => `${pre}${String(i + 1).padStart(4, "0")}`);
+    const rs = await Promise.all(codes.map((c) => call({ diagYm: ym, atcStep4Cd: "A02BC", sidoCd: sido, sgguCd: c }, 6000)));
+    return rs.map((r, i) => r.items[0] ? { code: codes[i], name: String(r.items[0].sgguCdNm || "") } : null).filter(Boolean);
+  };
 
-  const url = `https://apis.data.go.kr/B551182/msupUserInfoService1.2/${op}?${qs.toString()}`;
-  const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), 8000);
+  const mode = String(req.query.mode || "raw");
   try {
-    const r = await fetch(url, { signal: ctrl.signal, headers: { Accept: "application/json" } });
-    const txt = await r.text();
-    let data = null;
-    try { data = JSON.parse(txt); } catch {}
-    if (!data) {
-      // 승인 전·키 오류 등은 XML로 옴 → 원인 메시지만 뽑아서 전달
-      const msg = (txt.match(/<returnAuthMsg>([^<]*)</) || txt.match(/<resultMsg>([^<]*)</) || [])[1] || txt.slice(0, 200);
-      return res.status(200).json({ items: [], error: msg, status: r.status });
+    if (mode === "latest") return res.status(200).json({ latest: await findLatest() });
+
+    if (mode === "sggu") {
+      const sido = String(req.query.sido || "230000");
+      const ym = Number(req.query.ym) || await findLatest();
+      return res.status(200).json({ sido, ym, list: await listSggu(sido, ym) });
     }
-    const body = data?.response?.body || data?.body || {};
-    const it = body?.items?.item ?? body?.items ?? [];
-    const items = Array.isArray(it) ? it : (it ? [it] : []);
-    return res.status(200).json({ items, totalCount: body.totalCount ?? items.length,
-      resultMsg: data?.response?.header?.resultMsg || data?.header?.resultMsg || "" });
+
+    if (mode === "trend") {
+      const atc = String(req.query.atc || "A02BC").toUpperCase();
+      const sido = String(req.query.sido || "230000");
+      const tp = req.query.tp === "01" ? "01" : "02";
+      const months = Math.min(Math.max(Number(req.query.months) || 12, 1), 24);
+      const endYm = Number(req.query.end) || await findLatest();
+      if (!endYm) return res.status(200).json({ error: "최근 데이터 없음" });
+      let sgguCodes = String(req.query.sggu || "all");
+      let sgguList = null;
+      if (sgguCodes === "all") { sgguList = await listSggu(sido, endYm); sgguCodes = sgguList.map((s) => s.code); }
+      else sgguCodes = sgguCodes.split(",").slice(0, 45);
+
+      const yms = ymList(endYm, months);
+      const jobs = [];
+      for (const ym of yms) for (const sg of sgguCodes) jobs.push({ ym, sg });
+      const results = await Promise.all(jobs.map((j) => call({ diagYm: j.ym, atcStep4Cd: atc, sidoCd: sido, sgguCd: j.sg, cpmdPrscTp: tp })));
+
+      let atcName = "", sidoName = "";
+      const byMonth = Object.fromEntries(yms.map((ym) => [ym, { ym, amt: 0, qty: 0, byType: {} }]));
+      const bySggu = {};
+      results.forEach((r, i) => {
+        const { ym, sg } = jobs[i];
+        for (const it of r.items) {
+          atcName = atcName || it.atcStep4CdNm || ""; sidoName = sidoName || it.sidoCdNm || "";
+          const amt = Number(it.msupUseAmt) || 0, qty = Number(it.totUseQty) || 0;
+          const cl = String(it.recuClCd).padStart(2, "0");
+          const bm = byMonth[ym]; bm.amt += amt; bm.qty += qty;
+          bm.byType[cl] = (bm.byType[cl] || 0) + amt;
+          if (ym === endYm) {
+            const s = (bySggu[sg] = bySggu[sg] || { code: sg, name: it.sgguCdNm || sg, amt: 0, qty: 0 });
+            s.amt += amt; s.qty += qty;
+          }
+        }
+      });
+      return res.status(200).json({
+        atc, atcName, sido, sidoName, tp, endYm,
+        months: yms.map((ym) => byMonth[ym]),
+        sggu: Object.values(bySggu).sort((a, b) => b.amt - a.amt),
+        calls: jobs.length, errors: results.filter((r) => r.error).length
+      });
+    }
+
+    // raw
+    const params = {};
+    for (const k of ALLOWED) if (req.query[k]) params[k] = req.query[k];
+    const r = await call(params);
+    return res.status(200).json({ items: r.items, error: r.error });
   } catch (e) {
-    return res.status(200).json({ items: [], error: String(e) });
-  } finally { clearTimeout(t); }
+    return res.status(200).json({ error: String(e) });
+  }
 }

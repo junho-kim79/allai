@@ -902,6 +902,8 @@
     .vs-opt > b { font-size: 0.9rem; display: flex; align-items: center; gap: 6px; }
     .vs-opt > b span { font-size: 0.64rem; color: #fff; background: var(--g1); border-radius: 999px; padding: 2px 7px; }
     .vs-opt > b span.soon { background: var(--sub2); }
+    .vs-btns button.g { background: #fff; border-color: rgba(0,0,0,0.18); }
+    .vs-btns a { font-size: 0.78rem; font-weight: 700; padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.1); background: var(--card2); color: var(--text); text-decoration: none; }
     .vs-opt p { font-size: 0.78rem; color: var(--sub); line-height: 1.65; margin: 6px 0 10px; }
     .vs-opt p b { color: var(--text); }
     .vs-btns { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -1263,11 +1265,13 @@
         <div class="vs-btns"><button onclick="vsExport()">⬇️ 파일로 백업</button><button onclick="document.getElementById('vsImportFile').click()">⬆️ 백업 불러오기</button></div>
         <input type="file" id="vsImportFile" accept=".json,application/json" style="display:none" onchange="vsImport(this)">
       </div>
-      <div class="vs-opt">
-        <b>☁️ 구글 계정에 백업 <span class="soon">준비 중</span></b>
+      <div class="vs-opt" id="vsOptCloud">
+        <b>☁️ 구글 계정에 백업 <span id="vsCloudBadge" class="soon">꺼짐</span></b>
         <p>기록이 <b>날아갈까 걱정</b>되거나 폰을 바꿀 예정이라면 구글 로그인을 해 주세요.
-        내 구글 드라이브에 <b>"ALLAI 면담기록" 시트</b>가 만들어져 자동으로 보관돼요. ALLAI 서버에는 저장되지 않고, 본인만 볼 수 있습니다.</p>
-        <div class="vs-btns"><button disabled>G 구글로 로그인 (곧 제공)</button></div>
+        내 구글 드라이브에 <b>"ALLAI 면담기록" 시트</b>가 만들어져 저장할 때마다 자동으로 보관돼요. ALLAI 서버에는 저장되지 않고, 본인만 볼 수 있습니다.
+        <br><small style="color:var(--sub2);">ALLAI는 자신이 만든 이 시트에만 접근하며, 드라이브의 다른 파일은 볼 수 없어요.</small></p>
+        <div class="vs-btns" id="vsCloudBtns"></div>
+        <div class="st-note" id="vsCloudMsg" style="margin-top:8px;"></div>
       </div>
     </div>
 
@@ -3446,9 +3450,9 @@ function vsInit() {
   const t = new Date();
   if (!vsSel) vsSel = vsYmd(t);
   if (!vsMonth) vsMonth = new Date(t.getFullYear(), t.getMonth(), 1);
-  vsRenderCal(); vsRenderDay();
+  vsRenderCal(); vsRenderDay(); vsCloudUI();
 }
-function vsToggleStoreInfo() { const el = document.getElementById('vsStoreInfo'); el.style.display = el.style.display === 'none' ? 'flex' : 'none'; }
+function vsToggleStoreInfo() { vsCloudUI(); const el = document.getElementById('vsStoreInfo'); el.style.display = el.style.display === 'none' ? 'flex' : 'none'; }
 function vsSetTab(t) {
   document.getElementById('vsTabCal').classList.toggle('on', t === 'cal');
   document.getElementById('vsTabHosp').classList.toggle('on', t === 'hosp');
@@ -3555,13 +3559,13 @@ function vsSave() {
   const H = VS.hospitals[hosp] = VS.hospitals[hosp] || { docs: {} };
   if (!H.last || v.date > H.last) H.last = v.date;
   if (doc) { const D = H.docs[doc] = H.docs[doc] || {}; D.title = v.title; if (v.dept) D.dept = v.dept; if (!D.last || v.date > D.last) D.last = v.date; }
-  vsPersist(); vsCloseForm(); vsRenderCal(); vsRenderDay();
+  vsPersist(); vsCloseForm(); vsRenderCal(); vsRenderDay(); vsCloudQueue();
 }
 function vsDelete() {
   const id = document.getElementById('vsEditId').value;
   if (!id || !confirm('이 기록을 삭제할까요?')) return;
   VS.visits = VS.visits.filter(x => x.id !== id);
-  vsPersist(); vsCloseForm(); vsRenderCal(); vsRenderDay();
+  vsPersist(); vsCloseForm(); vsRenderCal(); vsRenderDay(); vsCloudQueue();
 }
 function vsRenderHosp() {
   const el = document.getElementById('vsHospView');
@@ -3582,6 +3586,142 @@ function vsRenderHosp() {
       </div></div>`;
   }).join('');
 }
+/* ── 구글 백업: 로그인한 사용자 본인 드라이브의 "ALLAI 면담기록" 시트 (drive.file 권한) ── */
+const G_CLIENT_ID = '186561280218-c6g4m3t6upaskbp41ger2hdnq4k2ij61.apps.googleusercontent.com';
+const G_SCOPE = 'https://www.googleapis.com/auth/drive.file';
+const VSC_KEY = 'allai_visits_cloud_v1';          // { on, sheetId, lastSync }
+let VSC = (() => { try { return JSON.parse(localStorage.getItem(VSC_KEY) || '{}'); } catch (e) { return {}; } })();
+let _gTok = null, _gTokExp = 0, _gClient = null, _gAfter = null, _vscTimer = null;
+const VS_COLS = ['날짜', '병원', '이름', '직함', '진료과', '면담 내용', '반응', '다음 할 일', '다음 할 일 날짜', 'ID', '작성', '수정'];
+function vscSave() { try { localStorage.setItem(VSC_KEY, JSON.stringify(VSC)); } catch (e) {} }
+function vscMsg(t) { const el = document.getElementById('vsCloudMsg'); if (el) el.textContent = t || ''; }
+
+function gLoad() {
+  return new Promise((ok, no) => {
+    if (window.google?.accounts?.oauth2) return ok();
+    const sc = document.createElement('script');
+    sc.src = 'https://accounts.google.com/gsi/client'; sc.async = true;
+    sc.onload = () => ok(); sc.onerror = () => no(new Error('구글 로그인 스크립트를 불러오지 못했어요'));
+    document.head.appendChild(sc);
+  });
+}
+// 토큰 받기 (버튼을 누른 순간에 호출해야 로그인 창이 막히지 않음)
+async function gToken(interactive) {
+  if (_gTok && Date.now() < _gTokExp - 60000) return _gTok;
+  await gLoad();
+  return new Promise((ok, no) => {
+    _gClient = _gClient || google.accounts.oauth2.initTokenClient({ client_id: G_CLIENT_ID, scope: G_SCOPE, callback: () => {} });
+    _gClient.callback = (r) => {
+      if (r.error) return no(new Error(r.error));
+      _gTok = r.access_token; _gTokExp = Date.now() + (Number(r.expires_in) || 3600) * 1000; ok(_gTok);
+    };
+    _gClient.error_callback = (e) => no(new Error(e?.type || 'popup'));
+    _gClient.requestAccessToken({ prompt: interactive ? 'consent' : '' });
+  });
+}
+async function gApi(url, opt = {}) {
+  const r = await fetch(url, { ...opt, headers: { Authorization: 'Bearer ' + _gTok, 'Content-Type': 'application/json', ...(opt.headers || {}) } });
+  if (!r.ok) { const t = await r.text(); throw new Error(`${r.status} ${t.slice(0, 160)}`); }
+  return r.status === 204 ? null : r.json();
+}
+// 내 드라이브에서 ALLAI가 만든 시트 찾기 → 없으면 새로 만들기
+async function vscEnsureSheet() {
+  if (VSC.sheetId) {
+    try { await gApi(`https://www.googleapis.com/drive/v3/files/${VSC.sheetId}?fields=id,trashed`).then(f => { if (f.trashed) throw 0; }); return VSC.sheetId; }
+    catch (e) { VSC.sheetId = null; }
+  }
+  const q = encodeURIComponent("name='ALLAI 면담기록' and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false");
+  const found = await gApi(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,modifiedTime)&orderBy=modifiedTime desc`);
+  if (found.files && found.files.length) { VSC.sheetId = found.files[0].id; vscSave(); return VSC.sheetId; }
+  const made = await gApi('https://sheets.googleapis.com/v4/spreadsheets', { method: 'POST', body: JSON.stringify({
+    properties: { title: 'ALLAI 면담기록' }, sheets: [{ properties: { title: '면담기록', gridProperties: { frozenRowCount: 1 } } }] }) });
+  VSC.sheetId = made.spreadsheetId; vscSave(); return VSC.sheetId;
+}
+const vsRowOf = v => [v.date, v.hosp, v.doc || '', v.title || '', v.dept || '', v.note || '', { good: '좋음', soso: '보통', bad: '아쉬움' }[v.react] || '',
+  v.next || '', v.nextDate || '', v.id, new Date(v.createdAt || Date.now()).toISOString(), new Date(v.updatedAt || v.createdAt || Date.now()).toISOString()];
+function vsFromRow(r) {
+  const [date, hosp, doc, title, dept, note, react, next, nextDate, id, c, u] = r;
+  if (!id || !/^\d{4}-\d{2}-\d{2}$/.test(date || '') || !hosp) return null;
+  return { id, date, hosp, doc, title, dept, note, react: { '좋음': 'good', '보통': 'soso', '아쉬움': 'bad' }[react] || '',
+    next, nextDate, createdAt: Date.parse(c) || Date.now(), updatedAt: Date.parse(u) || Date.parse(c) || Date.now() };
+}
+function vsRebuildHospitals() {
+  const H = {};
+  VS.visits.slice().sort((a, b) => a.date.localeCompare(b.date)).forEach(v => {
+    const h = H[v.hosp] = H[v.hosp] || { docs: {} }; h.last = v.date;
+    if (v.doc) { const d = h.docs[v.doc] = h.docs[v.doc] || {}; d.title = v.title; if (v.dept) d.dept = v.dept; d.last = v.date; }
+  });
+  VS.hospitals = H;
+}
+// 시트 ↔ 폰 합치기 (같은 기록은 더 최근에 수정한 쪽), 그 결과를 시트에 다시 씀
+async function vscSync(pull) {
+  const id = await vscEnsureSheet();
+  if (pull) {
+    const got = await gApi(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values/${encodeURIComponent('면담기록!A2:L')}`);
+    const byId = new Map(VS.visits.map(v => [v.id, v]));
+    let added = 0;
+    (got.values || []).map(vsFromRow).filter(Boolean).forEach(v => {
+      const cur = byId.get(v.id);
+      if (!cur) { VS.visits.push(v); byId.set(v.id, v); added++; }
+      else if ((v.updatedAt || 0) > (cur.updatedAt || 0)) Object.assign(cur, v);
+    });
+    vsRebuildHospitals(); vsPersist();
+    if (added) { vsRenderCal(); vsRenderDay(); }
+  }
+  const rows = [VS_COLS, ...VS.visits.slice().sort((a, b) => a.date.localeCompare(b.date) || a.createdAt - b.createdAt).map(vsRowOf)];
+  await gApi(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values/${encodeURIComponent('면담기록!A:L')}:clear`, { method: 'POST', body: '{}' });
+  await gApi(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values/${encodeURIComponent('면담기록!A1')}?valueInputOption=RAW`, { method: 'PUT', body: JSON.stringify({ values: rows }) });
+  VSC.lastSync = Date.now(); vscSave();
+}
+async function vsCloudOn() {
+  try {
+    vscMsg('구글 로그인 창을 확인해 주세요…');
+    await gToken(true);
+    VSC.on = true; vscSave();
+    vscMsg('내 드라이브의 시트와 맞추는 중…');
+    await vscSync(true);
+    vscMsg(''); vsCloudUI();
+  } catch (e) {
+    vscMsg(/403|insufficient|scope/i.test(e.message) ? '권한이 허용되지 않았어요. 다시 로그인하면서 "허용"을 눌러 주세요.' :
+      /popup/i.test(e.message) ? '로그인 창이 닫혔어요. 다시 시도해 주세요.' : '연결에 실패했어요: ' + e.message);
+    if (!_gTok) { VSC.on = false; vscSave(); vsCloudUI(); }
+  }
+}
+function vsCloudOff() {
+  if (!confirm('구글 백업을 끌까요?\n이미 드라이브에 저장된 시트는 그대로 남아 있어요.')) return;
+  try { if (_gTok && window.google?.accounts?.oauth2) google.accounts.oauth2.revoke(_gTok, () => {}); } catch (e) {}
+  _gTok = null; VSC.on = false; vscSave(); vsCloudUI();
+}
+async function vsCloudNow() {
+  try { vscMsg('백업 중…'); await gToken(false); await vscSync(true); vscMsg(''); vsCloudUI(); }
+  catch (e) { vscMsg('백업 실패: ' + e.message); }
+}
+// 기록 저장·삭제 직후 (버튼을 누른 순간) 호출
+function vsCloudQueue() {
+  if (!VSC.on) return;
+  const tokOk = _gTok && Date.now() < _gTokExp - 60000;
+  const tokP = tokOk ? Promise.resolve() : gToken(false);   // 1시간마다 로그인 확인 창이 잠깐 떴다 닫힐 수 있음
+  clearTimeout(_vscTimer);
+  tokP.then(() => { _vscTimer = setTimeout(() => vscSync(false).then(vsCloudUI).catch(e => { VSC.err = String(e.message).slice(0, 80); vscSave(); vsCloudUI(); }), 1200); })
+      .catch(() => { VSC.err = '로그인 확인이 필요해요 — 지금 백업을 눌러 주세요'; vscSave(); vsCloudUI(); });
+}
+function vsCloudUI() {
+  const on = !!VSC.on;
+  const btn = document.getElementById('vsStoreBtn'); if (!btn) return;
+  const t = VSC.lastSync ? new Date(VSC.lastSync) : null;
+  const tt = t ? `${t.getMonth() + 1}/${t.getDate()} ${String(t.getHours()).padStart(2, '0')}:${String(t.getMinutes()).padStart(2, '0')}` : '';
+  btn.textContent = on ? `☁️ 구글 백업 켜짐${tt ? ' · ' + tt : ''}` : '📱 이 폰에만 저장 중';
+  const badge = document.getElementById('vsCloudBadge');
+  badge.textContent = on ? '현재 사용 중' : '꺼짐'; badge.className = on ? '' : 'soon';
+  document.getElementById('vsOptCloud').classList.toggle('on', on);
+  document.querySelector('#vsStoreInfo .vs-opt').classList.toggle('on', !on);
+  document.querySelector('#vsStoreInfo .vs-opt > b span').textContent = on ? '폰에도 함께 저장' : '현재 사용 중';
+  document.getElementById('vsCloudBtns').innerHTML = on
+    ? `<button onclick="vsCloudNow()">🔄 지금 백업</button>${VSC.sheetId ? `<a href="https://docs.google.com/spreadsheets/d/${VSC.sheetId}" target="_blank" rel="noopener">📄 시트 열기</a>` : ''}<button onclick="vsCloudOff()">끄기</button>`
+    : `<button class="g" onclick="vsCloudOn()"><b style="color:#4285F4">G</b> 구글로 로그인하고 백업 켜기</button>`;
+  if (VSC.err) { vscMsg('⚠️ ' + VSC.err); VSC.err = ''; vscSave(); }
+}
+
 // 파일 백업 / 복원 (로그인 없이 기록 보관)
 function vsExport() {
   const blob = new Blob([JSON.stringify(VS, null, 1)], { type: 'application/json' });

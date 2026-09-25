@@ -848,6 +848,38 @@
     @keyframes cdTick { 0% { transform: scale(1.6); opacity: .3; } 100% { transform: scale(1); opacity: 1; } }
     .db-wait-out { transition: opacity .35s ease; opacity: 0; }
     @keyframes dbLateIn { from { background: rgba(45,155,111,0.14); opacity: 0; } to { background: transparent; opacity: 1; } }
+    /* 지역 처방 분석 메뉴 카드 */
+    .menu-card.menu-wide { grid-column: 1 / -1; display: flex; align-items: center; gap: 14px; text-align: left; }
+    .menu-wide .menu-icon { margin: 0; }
+    .menu-wide-tx { flex: 1; min-width: 0; }
+    .menu-new { font-size: 0.6rem; font-weight: 800; color: #fff; background: var(--blue); border-radius: 999px; padding: 2px 7px; vertical-align: 2px; margin-left: 4px; letter-spacing: .04em; }
+    /* 지역 처방 분석 화면 */
+    .st-controls { margin: 0 16px 10px; padding: 14px; background: rgba(255,255,255,0.85); border: 1px solid rgba(180,140,80,0.10); border-radius: var(--r-md); display: flex; flex-direction: column; gap: 10px; }
+    .st-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .st-field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+    .st-field span { font-size: 0.72rem; font-weight: 700; color: var(--sub); }
+    .st-field select { width: 100%; min-width: 0; font: inherit; font-size: 0.9rem; font-weight: 600; padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.1); background: #fff; color: var(--text); }
+    .st-kpi { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    .st-kpi > div { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 12px 10px; }
+    .st-kpi b { display: block; white-space: nowrap; font-size: 0.98rem; font-weight: 900; letter-spacing: -0.03em; margin-top: 4px; font-variant-numeric: tabular-nums; }
+    .st-kpi small { font-size: 0.68rem; color: var(--sub); font-weight: 600; }
+    .st-up { color: #D9480F; } .st-down { color: var(--blue); }
+    .st-card { background: #fff; border: 1px solid var(--border); border-radius: var(--r-md); padding: 16px 14px; margin-top: 10px; }
+    .st-card h4 { font-size: 0.82rem; font-weight: 800; margin: 0 0 12px; color: var(--text); }
+    .st-card h4 small { font-weight: 600; color: var(--sub2); margin-left: 4px; }
+    .st-bars { display: flex; align-items: flex-end; gap: 4px; height: 130px; }
+    .st-bar { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; min-width: 0; }
+    .st-bar i { display: block; width: 100%; border-radius: 5px 5px 2px 2px; background: rgba(59,130,246,0.28); transition: height .5s ease; }
+    .st-bar.last i { background: var(--blue); }
+    .st-bar em { font-style: normal; font-size: 0.58rem; color: var(--sub2); margin-top: 5px; white-space: nowrap; }
+    .st-hrow { display: grid; grid-template-columns: 64px 1fr 62px; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 0.78rem; }
+    .st-hrow .l { color: var(--sub); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .st-hrow .t { height: 10px; background: rgba(0,0,0,0.05); border-radius: 6px; overflow: hidden; }
+    .st-hrow .t i { display: block; height: 100%; background: var(--g1); border-radius: 6px; }
+    .st-hrow .v { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .st-note { font-size: 0.7rem; color: var(--sub2); line-height: 1.6; margin-top: 12px; }
+    .st-prog { height: 4px; background: rgba(0,0,0,0.06); border-radius: 4px; overflow: hidden; margin-top: 10px; }
+    .st-prog i { display: block; height: 100%; background: var(--blue); transition: width .3s; }
     /* 더보기 (Coming Soon 축소) */
     .more-list { margin: 0 16px; background: rgba(255,255,255,0.85); border: 1px solid rgba(180,140,80,0.10); border-radius: var(--r-md); overflow: hidden; }
     .more-row { display: flex; align-items: center; gap: 12px; padding: 14px 16px; cursor: pointer; transition: background .15s; }
@@ -958,6 +990,14 @@
         <div class="menu-desc">성분·계열별 한눈에 비교</div>
       </button>
 
+      <button class="menu-card c-blue menu-wide" onclick="goScreen('screen_stat','지역 처방 분석')">
+        <div class="menu-icon">🗺️</div>
+        <div class="menu-wide-tx">
+          <div class="menu-name">지역 처방 분석 <span class="menu-new">NEW</span></div>
+          <div class="menu-desc">우리 지역 약효군 처방액·추이 · 심평원 실제 데이터</div>
+        </div>
+        <span class="more-arr">›</span>
+      </button>
     </div>
 
 
@@ -971,11 +1011,6 @@
       <span class="sec-title">더보기</span>
     </div>
     <div class="more-list">
-      <div class="more-row" onclick="goScreen('screen_stat','처방 통계')">
-        <span class="more-ic">🗺️</span>
-        <span class="more-tx"><b>지역 처방 분석</b><small>년도별·지역별 통계 · 샘플</small></span>
-        <span class="more-arr">›</span>
-      </div>
       <div class="more-soon">
         <div class="more-soon-label">🔒 준비 중 · 로그인 후 이용 가능</div>
         <div class="more-chips">
@@ -1100,17 +1135,21 @@
     <div class="back-bar">
       <button class="back-btn" onclick="history.back()">← 홈</button>
     </div>
-    <div style="padding:0 16px 14px;">
-      <div style="font-size:1.3rem;font-weight:900;letter-spacing:-0.04em;">처방 통계 추이</div>
-      <div style="font-size:0.85rem;color:var(--sub);margin-top:4px;">지역별 · 성분별 · 품목별 비교</div>
+    <div style="padding:0 16px 12px;">
+      <div style="font-size:1.3rem;font-weight:900;letter-spacing:-0.04em;">지역 처방 분석</div>
+      <div style="font-size:0.82rem;color:var(--sub);margin-top:4px;" id="statSub">심평원 건강보험 청구 데이터 · 약효군(ATC 4단계) 기준</div>
     </div>
-    <div class="tabs-row">
-      <button class="tab on" onclick="setStatType('region',this)">지역별</button>
-      <button class="tab" onclick="setStatType('ingredient',this)">성분별</button>
-      <button class="tab" onclick="setStatType('product',this)">품목별</button>
+    <div class="st-controls">
+      <label class="st-field"><span>약효군</span>
+        <select id="stAtc" onchange="stRun()"></select></label>
+      <div class="st-row2">
+        <label class="st-field"><span>시·도</span>
+          <select id="stSido" onchange="stSidoChanged()"></select></label>
+        <label class="st-field"><span>시·군·구</span>
+          <select id="stSggu" onchange="stRun()"><option value="all">전체</option></select></label>
+      </div>
     </div>
-    <div style="height:12px;"></div>
-    <div class="result-wrap" id="statContent"></div>
+    <div class="result-wrap" id="statContent" style="padding-top:6px;"></div>
   </div>
 
   <!-- 관리자 오버레이 -->
@@ -1432,7 +1471,7 @@ function saveEmail() {
 /* ════════════════════════════════════════
    화면 라우팅
 ════════════════════════════════════════ */
-const LABELS = { screen1:'홈', screen2:'약품 검색', screen3:'약품 상세', screen_icd:'상병코드', screen_comp:'경쟁품 비교', screen_cut:'삭감 조회', screen_stat:'처방 통계' };
+const LABELS = { screen1:'홈', screen2:'약품 검색', screen3:'약품 상세', screen_icd:'상병코드', screen_comp:'경쟁품 비교', screen_cut:'삭감 조회', screen_stat:'지역 처방 분석' };
 
 /* 대표 상병코드 옆에 붙일 간단 병명 매핑 (앞 3자리 기준). 매핑 없는 코드는 코드만 표시. */
 const ICD_NAME_KO = {
@@ -2903,95 +2942,158 @@ function searchCut() {
 /* ════════════════════════════════════════
    처방 통계
 ════════════════════════════════════════ */
-let statType = 'region';
+/* ════════════════════════════════════════
+   지역 처방 분석 — 심평원 의약품사용정보 (/api/usage)
+════════════════════════════════════════ */
+const ST_ATC = [
+  ['A02BC','PPI (위산분비억제제)'], ['C10AA','스타틴'], ['C10BA','스타틴+에제티미브 등 복합'],
+  ['C09CA','ARB 단일제'], ['C09DB','ARB+CCB 복합제'], ['C09DA','ARB+이뇨제 복합제'], ['C08CA','CCB (디하이드로피리딘)'],
+  ['A10BH','DPP-4 억제제'], ['A10BD','당뇨 복합제'], ['A10BK','SGLT-2 억제제'], ['A10BA','메트포르민'],
+  ['J01MA','퀴놀론계 항생제'], ['J01DD','3세대 세팔로스포린'], ['J01CR','페니실린+β-락타마제 억제제'], ['J01DC','2세대 세팔로스포린'],
+  ['R05CB','거담제 (점액용해제)'], ['M01AE','NSAIDs (프로피온산계)'], ['M01AH','COX-2 억제제'], ['B01AC','항혈소판제'],
+  ['N06AB','SSRI 항우울제'], ['N05CF','수면제 (졸피뎀 계열)'], ['R06AE','항히스타민 (피페라진계)'], ['R03DC','류코트리엔 길항제']
+];
+const ST_SIDO = [['230000','대구'],['370000','경북'],['110000','서울'],['210000','부산'],['380000','경남'],['220000','인천'],['310000','경기'],['240000','광주'],['250000','대전'],['260000','울산'],['320000','강원'],['330000','충북'],['340000','충남'],['350000','전북'],['360000','전남'],['390000','제주'],['410000','세종']];
+// 확인된 시군구 코드 (나머지 시도는 서버에서 조회)
+const ST_SGGU = {
+  '230000': [['230001','남구'],['230002','동구'],['230003','북구'],['230004','서구'],['230005','수성구'],['230006','중구'],['230007','달서구']],
+  '370000': [['370100','경주시'],['370200','구미시'],['370300','김천시'],['370400','안동시'],['370500','영주시'],['370600','영천시'],['370701','포항 남구'],['370702','포항 북구'],['370800','문경시'],['370900','상주시'],['371000','경산시'],['370002','고령군'],['370007','봉화군'],['370010','성주군'],['370012','영덕군'],['370013','영양군'],['370017','예천군'],['370018','울릉군'],['370019','울진군'],['370021','의성군'],['370022','청도군'],['370023','청송군'],['370024','칠곡군']]
+};
+const ST_TYPE = { '01':'상급종합', '11':'종합병원', '21':'병원', '28':'요양병원', '29':'정신병원', '31':'의원', '41':'치과병원', '51':'치과의원', '92':'한방병원', '93':'한의원', '81':'약국', '71':'보건소', '72':'보건지소' };
+let _stRun = 0, _stInit = false;
 
-function setStatType(type, el) {
-  statType = type;
-  document.querySelectorAll('#screen_stat .tab').forEach(b => b.classList.remove('on'));
-  el.classList.add('on');
-  renderStat();
+function stWon(n) {
+  n = Number(n) || 0;
+  if (n >= 1e8) return (n / 1e8).toFixed(n >= 1e10 ? 0 : 1) + '억';
+  if (n >= 1e4) return Math.round(n / 1e4).toLocaleString() + '만';
+  return n.toLocaleString();
+}
+function stYm(ym, short) { const y = String(ym).slice(0, 4), m = +String(ym).slice(4); return short ? `${m}월` : `${y}.${String(m).padStart(2,'0')}`; }
+function stPct(a, b) {
+  if (!b) return '<b>-</b>';
+  const p = (a - b) / b * 100;
+  return `<b class="${p >= 0 ? 'st-up' : 'st-down'}">${p >= 0 ? '▲' : '▼'} ${Math.abs(p).toFixed(1)}%</b>`;
 }
 
 function renderStat() {
-  const el = document.getElementById('statContent');
-  if (!el) return;
-  if (statType === 'region') {
-    const years = ['2021','2022','2023','2024','2025'];
-    const regions = { '전국':[12,28,52,78,95], '대구':[8,20,40,62,80], '서울':[15,32,58,85,102] };
-    const colors = { '전국':'var(--g1)', '대구':'var(--blue)', '서울':'var(--yellow)' };
-    const maxVal = 110;
-    el.innerHTML = `
-      <div class="sec-label" style="padding:0 2px 10px;">P-CAB 계열 지역별 처방 추이 (만건)</div>
-      <div class="info-card" style="padding:18px 14px 14px;">
-        <div style="display:flex;justify-content:flex-end;gap:12px;margin-bottom:14px;">
-          ${Object.keys(regions).map(r=>`<div style="display:flex;align-items:center;gap:5px;"><div style="width:9px;height:9px;border-radius:50%;background:${colors[r]};"></div><span style="font-size:0.74rem;color:var(--sub);font-weight:600;">${r}</span></div>`).join('')}
-        </div>
-        ${years.map((y,i)=>`
-          <div style="margin-bottom:12px;">
-            <div style="font-size:0.76rem;color:var(--sub);font-weight:700;margin-bottom:5px;">${y}</div>
-            ${Object.entries(regions).map(([r,vals])=>`
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
-                <div style="width:28px;font-size:0.68rem;color:var(--sub);">${r}</div>
-                <div style="flex:1;height:12px;background:rgba(0,0,0,0.06);border-radius:6px;overflow:hidden;">
-                  <div style="height:100%;width:${Math.round(vals[i]/maxVal*100)}%;background:${colors[r]};border-radius:6px;"></div>
-                </div>
-                <div style="font-size:0.72rem;font-weight:700;width:24px;text-align:right;">${vals[i]}</div>
-              </div>`).join('')}
-          </div>`).join('')}
-      </div>`;
-  } else if (statType === 'ingredient') {
-    const years = ['2021','2022','2023','2024','2025'];
-    const groups = { 'P-CAB (테고프라잔)':[12,28,52,78,95], 'PPI (라베프라졸)':[165,160,148,132,120], 'PPI (에소메프라졸)':[110,105,98,90,85], 'PPI (란소프라졸)':[55,52,48,42,38] };
-    const colors = ['var(--g1)','var(--blue)','var(--yellow)','var(--purple)'];
-    const entries = Object.entries(groups);
-    const maxVal = 180;
-    el.innerHTML = `
-      <div class="sec-label" style="padding:0 2px 10px;">성분별 처방 추이 (전국, 만건)</div>
-      <div class="info-card" style="padding:18px 14px;margin-bottom:14px;">
-        ${entries.map(([name,vals],ci)=>`
-          <div style="margin-bottom:18px;">
-            <div style="display:flex;align-items:center;gap:6px;margin-bottom:7px;">
-              <div style="width:10px;height:10px;border-radius:50%;background:${colors[ci]};"></div>
-              <span style="font-size:0.8rem;font-weight:700;">${name}</span>
-              <span style="margin-left:auto;font-size:0.72rem;color:${vals[4]>vals[0]?'var(--g2)':'var(--red)'};font-weight:700;">${vals[4]>vals[0]?'▲':'▼'}${Math.abs(vals[4]-vals[0])}만</span>
-            </div>
-            <div style="display:flex;gap:4px;align-items:flex-end;height:60px;">
-              ${years.map((y,i)=>`
-                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
-                  <div style="width:100%;background:rgba(0,0,0,0.06);border-radius:4px 4px 0 0;height:50px;display:flex;align-items:flex-end;overflow:hidden;">
-                    <div style="width:100%;height:${Math.round(vals[i]/maxVal*100)}%;background:${colors[ci]};opacity:${0.3+i*0.17};border-radius:4px 4px 0 0;"></div>
-                  </div>
-                  <div style="font-size:0.6rem;color:var(--sub);">${y.slice(2)}</div>
-                </div>`).join('')}
-            </div>
-          </div>`).join('')}
-      </div>`;
-  } else {
-const ranking = [
-      {name:'테고프라잔 (P-CAB)',val:95,color:'var(--g1)'},
-      {name:'에소메프라졸 (PPI)',val:85,color:'var(--blue)'},
-      {name:'라베프라졸 제네릭 (PPI)',val:50,color:'var(--purple)'},
-      {name:'라베프라졸 오리지널 (PPI)',val:48,color:'var(--yellow)'},
-      {name:'란소프라졸 (PPI)',val:38,color:'#F97316'}
-    ].sort((a,b)=>b.val-a.val);
-    const maxVal = ranking[0].val;
-    el.innerHTML = `
-      <div class="sec-label" style="padding:0 2px 10px;">품목별 처방 순위 (2025년, 전국, 만건)</div>
-      <div class="info-card" style="padding:18px 14px;">
-        ${ranking.map((r,i)=>`
-          <div style="margin-bottom:14px;">
-            <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
-              <span style="font-size:0.84rem;font-weight:700;">${i+1}. ${r.name}</span>
-              <span style="font-size:0.84rem;font-weight:800;color:${r.color};">${r.val}만건</span>
-            </div>
-            <div style="height:12px;background:rgba(0,0,0,0.06);border-radius:6px;overflow:hidden;">
-              <div style="height:100%;width:${Math.round(r.val/maxVal*100)}%;background:${r.color};border-radius:6px;"></div>
-            </div>
-          </div>`).join('')}
-      <div style="text-align:center;font-size:0.72rem;color:var(--sub2);margin-top:8px;">※ 본 데이터는 실제 처방 통계와 무관한 예시입니다</div>
-      </div>`;
+  if (!_stInit) {
+    _stInit = true;
+    document.getElementById('stAtc').innerHTML = ST_ATC.map(([c, n]) => `<option value="${c}">${n} · ${c}</option>`).join('');
+    document.getElementById('stSido').innerHTML = ST_SIDO.map(([c, n]) => `<option value="${c}">${n}</option>`).join('');
+    stSidoChanged(true);
   }
+  stRun();
 }
+
+async function stSidoChanged(silent) {
+  const sido = document.getElementById('stSido').value;
+  const sel = document.getElementById('stSggu');
+  let list = ST_SGGU[sido];
+  sel.innerHTML = '<option value="all">전체</option>' + (list ? list.map(([c, n]) => `<option value="${c}">${n}</option>`).join('') : '<option disabled>불러오는 중…</option>');
+  if (!list) {
+    try {
+      const d = await (await fetch(`/api/usage?mode=sggu&sido=${sido}`)).json();
+      list = ST_SGGU[sido] = (d.list || []).map(o => [o.code, o.name]);
+      if (document.getElementById('stSido').value === sido)
+        sel.innerHTML = '<option value="all">전체</option>' + list.map(([c, n]) => `<option value="${c}">${n}</option>`).join('');
+    } catch (e) { sel.innerHTML = '<option value="all">전체</option>'; }
+  }
+  if (silent !== true) stRun();
+}
+
+async function stRun() {
+  const run = ++_stRun;
+  const el = document.getElementById('statContent');
+  const atc = document.getElementById('stAtc').value;
+  const atcLabel = (ST_ATC.find(a => a[0] === atc) || [atc, atc])[1];
+  const sido = document.getElementById('stSido').value;
+  const sidoName = (ST_SIDO.find(x => x[0] === sido) || ['', ''])[1];
+  const sgguSel = document.getElementById('stSggu').value;
+  let sgguList = sgguSel === 'all' ? (ST_SGGU[sido] || []) : [[sgguSel, document.getElementById('stSggu').selectedOptions[0]?.textContent || '']];
+  if (!sgguList.length) sgguList = [];
+  const place = sgguSel === 'all' ? `${sidoName} 전체` : `${sidoName} ${sgguList[0][1]}`;
+
+  el.innerHTML = `<div class="st-card" style="text-align:center;padding:26px 14px;">
+      <div style="display:flex;justify-content:center;gap:6px;margin-bottom:10px;"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div></div>
+      <div style="font-size:0.85rem;font-weight:700;">${place} · ${atcLabel}</div>
+      <div style="font-size:0.74rem;color:var(--sub);margin-top:4px;">심평원 데이터 불러오는 중 <span id="stProgTx">0/${sgguList.length}</span></div>
+      <div class="st-prog"><i id="stProg" style="width:0%"></i></div>
+      <div class="st-note" style="margin-top:8px;">처음 조회는 몇 초 걸려요. 같은 조건은 하루 동안 빠르게 열립니다.</div>
+    </div>`;
+  if (!sgguList.length) { el.innerHTML = '<div class="empty">시·군·구 목록을 불러오지 못했어요</div>'; return; }
+
+  // 시군구별 13개월 추이를 4개씩 나눠 조회 → 브라우저에서 합산
+  const results = []; let done = 0;
+  const queue = sgguList.slice();
+  const worker = async () => {
+    while (queue.length) {
+      const [code, name] = queue.shift();
+      try {
+        const d = await (await fetchWithTimeout(`/api/usage?mode=trend&atc=${atc}&sido=${sido}&sggu=${code}&months=13`, 20000)).json();
+        if (!d.error) results.push({ code, name, d });
+      } catch (e) {}
+      done++;
+      if (run !== _stRun) return;
+      const pg = document.getElementById('stProg'); if (pg) pg.style.width = Math.round(done / sgguList.length * 100) + '%';
+      const tx = document.getElementById('stProgTx'); if (tx) tx.textContent = `${done}/${sgguList.length}`;
+    }
+  };
+  await Promise.all([worker(), worker(), worker(), worker()]);
+  if (run !== _stRun) return;
+  if (!results.length) { el.innerHTML = '<div class="empty">데이터를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</div>'; return; }
+
+  // 합산
+  const yms = results[0].d.months.map(m => m.ym);
+  const months = yms.map(ym => ({ ym, amt: 0, qty: 0, byType: {} }));
+  const bySggu = [];
+  results.forEach(({ name, d }) => {
+    d.months.forEach((m, i) => {
+      months[i].amt += m.amt; months[i].qty += m.qty;
+      for (const [t, v] of Object.entries(m.byType)) months[i].byType[t] = (months[i].byType[t] || 0) + v;
+    });
+    const last = d.months[d.months.length - 1];
+    bySggu.push({ name, amt: last.amt });
+  });
+  const last = months[months.length - 1], prev = months[months.length - 2], yoy = months[0];
+  const shown = months.slice(-12);
+  const maxAmt = Math.max(...shown.map(m => m.amt), 1);
+  const types = Object.entries(last.byType).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
+  const typeMax = types.length ? types[0][1] : 1;
+  bySggu.sort((a, b) => b.amt - a.amt);
+  const sgMax = bySggu.length ? bySggu[0].amt || 1 : 1;
+  const atcName = results[0].d.atcName || '';
+
+  document.getElementById('statSub').textContent = `심평원 건강보험 청구 데이터 · ${stYm(last.ym)}까지`;
+  el.innerHTML = `
+    <div class="st-card" style="margin-top:0;">
+      <h4>${place} · ${atcLabel}<small>${atcName}</small></h4>
+      <div class="st-kpi">
+        <div><small>${stYm(last.ym, true)} 처방액</small><b>${stWon(last.amt)}원</b></div>
+        <div><small>전월 대비</small>${stPct(last.amt, prev?.amt)}</div>
+        <div><small>전년 동월 대비</small>${months.length >= 13 ? stPct(last.amt, yoy.amt) : '<b>-</b>'}</div>
+      </div>
+    </div>
+    <div class="st-card">
+      <h4>최근 12개월 처방액 추이</h4>
+      <div class="st-bars">
+        ${shown.map((m, i) => `<div class="st-bar ${i === shown.length - 1 ? 'last' : ''}" title="${stYm(m.ym)} ${stWon(m.amt)}원">
+          <i style="height:${Math.max(2, Math.round(m.amt / maxAmt * 100))}%"></i><em>${stYm(m.ym, true)}</em></div>`).join('')}
+      </div>
+    </div>
+    <div class="st-card">
+      <h4>의료기관 종별 처방액<small>${stYm(last.ym)}</small></h4>
+      ${types.map(([t, v]) => `<div class="st-hrow"><span class="l">${ST_TYPE[t] || t}</span><span class="t"><i style="width:${Math.round(v / typeMax * 100)}%"></i></span><span class="v">${stWon(v)}</span></div>`).join('') || '<div class="st-note">데이터 없음</div>'}
+    </div>
+    ${bySggu.length > 1 ? `<div class="st-card">
+      <h4>시·군·구 순위<small>${stYm(last.ym)} 처방액</small></h4>
+      ${bySggu.map((s, i) => `<div class="st-hrow"><span class="l">${i + 1}. ${s.name}</span><span class="t"><i style="width:${Math.round(s.amt / sgMax * 100)}%;background:var(--blue);"></i></span><span class="v">${stWon(s.amt)}</span></div>`).join('')}
+    </div>` : ''}
+    <div class="st-note" style="padding:0 4px 20px;">
+      ※ 건강보험심사평가원 의약품사용정보(처방 기준, 건강보험·의료급여 합계). 약효군(ATC 4단계) 단위이며 제품별 처방은 공개되지 않습니다.
+      요양기관 소재지 기준이고, 심사 결정 후 공개되어 약 4~5개월 늦게 반영됩니다.
+    </div>`;
+}
+
 
 /* ════════════════════════════════════════
    히어로 메시지 로테이션

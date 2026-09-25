@@ -1070,7 +1070,7 @@
     </div>
 
     <!-- 최근 검색 -->
-    <div id="recentSection">
+    <div id="recentSection" style="display:none;">
       <div class="sec-head">
         <span class="sec-title">최근 검색</span>
         <button class="sec-more" onclick="clearRecent()">전체 삭제</button>
@@ -1496,6 +1496,7 @@ function renderRecent() {
   const list = getRecent();
   const el = document.getElementById('recentList');
   const sec = document.getElementById('recentSection');
+  sec.style.display = 'none'; return;   // 홈 화면이 길어져서 최근 검색은 표시하지 않음
   if (!list.length) { sec.style.display = 'none'; return; }
   sec.style.display = 'block';
   el.innerHTML = list.map(r => `

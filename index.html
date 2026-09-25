@@ -877,6 +877,20 @@
     .st-hrow .t { height: 10px; background: rgba(0,0,0,0.05); border-radius: 6px; overflow: hidden; }
     .st-hrow .t i { display: block; height: 100%; background: var(--g1); border-radius: 6px; }
     .st-hrow .v { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .st-seg { display: flex; gap: 6px; margin: -2px 0 10px; flex-wrap: wrap; }
+    .st-seg button { font: inherit; font-size: 0.74rem; font-weight: 700; padding: 6px 11px; border-radius: 999px; border: 1px solid rgba(0,0,0,0.1); background: #fff; color: var(--sub); cursor: pointer; }
+    .st-seg button.on { background: var(--text); border-color: var(--text); color: #fff; }
+    .st-chart { position: relative; }
+    .st-chart svg { display: block; overflow: visible; touch-action: pan-y; }
+    .st-tip { display: none; position: absolute; top: 4px; min-width: 128px; background: rgba(255,255,255,0.97); border: 1px solid rgba(0,0,0,0.1); border-radius: 12px; padding: 8px 10px; box-shadow: 0 6px 20px rgba(0,0,0,0.12); font-size: 0.72rem; pointer-events: none; z-index: 2; }
+    .st-tip b { display: block; font-size: 0.74rem; margin-bottom: 4px; }
+    .st-tip div { display: flex; align-items: center; gap: 6px; line-height: 1.7; }
+    .st-tip i, .st-legend i { width: 10px; height: 3px; border-radius: 2px; flex-shrink: 0; display: inline-block; }
+    .st-tip span { flex: 1; color: var(--sub); white-space: nowrap; }
+    .st-tip em { font-style: normal; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--text); }
+    .st-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 8px; }
+    .st-legend button { font: inherit; font-size: 0.74rem; font-weight: 600; color: var(--sub); background: none; border: none; padding: 3px 0; display: flex; align-items: center; gap: 5px; cursor: pointer; }
+    .st-legend button.dim { opacity: 0.35; }
     .st-note { font-size: 0.7rem; color: var(--sub2); line-height: 1.6; margin-top: 12px; }
     .st-prog { height: 4px; background: rgba(0,0,0,0.06); border-radius: 4px; overflow: hidden; margin-top: 10px; }
     .st-prog i { display: block; height: 100%; background: var(--blue); transition: width .3s; }
@@ -3127,7 +3141,7 @@ const ST_SIDO = [["230000", "대구"], ["370000", "경북"], ["110000", "서울"
 const ST_SGGU = {"110000":[["110001","강남구"],["110002","강동구"],["110003","강서구"],["110004","관악구"],["110005","구로구"],["110006","도봉구"],["110007","동대문구"],["110008","동작구"],["110009","마포구"],["110010","서대문구"],["110011","성동구"],["110012","성북구"],["110013","영등포구"],["110014","용산구"],["110015","은평구"],["110016","종로구"],["110017","중구"],["110018","송파구"],["110019","중랑구"],["110020","양천구"],["110021","서초구"],["110022","노원구"],["110023","광진구"],["110024","강북구"],["110025","금천구"]],"210000":[["210001","남구"],["210002","동구"],["210003","동래구"],["210004","진구"],["210005","북구"],["210006","서구"],["210007","영도구"],["210008","중구"],["210009","해운대구"],["210010","사하구"],["210011","금정구"],["210012","강서구"],["210013","연제구"],["210014","수영구"],["210015","사상구"],["210100","기장군"]],"220000":[["220001","미추홀구"],["220003","부평구"],["220006","남동구"],["220007","연수구"],["220008","계양구"],["220009","영종구"],["220010","제물포구"],["220011","서해구"],["220012","검단구"],["220100","강화군"],["220200","옹진군"]],"230000":[["230001","남구"],["230002","동구"],["230003","북구"],["230004","서구"],["230005","수성구"],["230006","중구"],["230007","달서구"],["230100","달성군"],["230200","군위군"]],"250000":[["250001","유성구"],["250002","대덕구"],["250003","서구"],["250004","동구"],["250005","중구"]],"260000":[["260001","남구"],["260002","동구"],["260003","중구"],["260004","북구"],["260100","울주군"]],"310000":[["310001","가평군"],["310009","양평군"],["310011","연천군"],["310100","광명시"],["310200","동두천시"],["310301","부천소사구"],["310302","부천오정구"],["310303","부천원미구"],["310401","성남수정구"],["310402","성남중원구"],["310403","성남분당구"],["310601","수원권선구"],["310602","수원장안구"],["310603","수원팔달구"],["310604","수원영통구"],["310701","안양만안구"],["310702","안양동안구"],["310800","의정부시"],["310900","과천시"],["311000","구리시"],["311101","안산단원구"],["311102","안산상록구"],["311200","평택시"],["311300","하남시"],["311400","군포시"],["311500","남양주시"],["311600","의왕시"],["311700","시흥시"],["311800","오산시"],["311901","고양덕양구"],["311902","고양일산서구"],["311903","고양일산동구"],["312001","용인기흥구"],["312002","용인수지구"],["312003","용인처인구"],["312100","이천시"],["312200","파주시"],["312300","김포시"],["312400","안성시"],["312501","화성만세구"],["312502","화성효행구"],["312503","화성병점구"],["312504","화성동탄구"],["312600","광주시"],["312700","양주시"],["312800","포천시"],["312900","여주시"]],"320000":[["320001","고성군"],["320004","양구군"],["320005","양양군"],["320006","영월군"],["320008","인제군"],["320009","정선군"],["320010","철원군"],["320012","평창군"],["320013","홍천군"],["320014","화천군"],["320015","횡성군"],["320100","강릉시"],["320200","동해시"],["320300","속초시"],["320400","원주시"],["320500","춘천시"],["320600","태백시"],["320700","삼척시"]],"330000":[["330001","괴산군"],["330002","단양군"],["330003","보은군"],["330004","영동군"],["330005","옥천군"],["330006","음성군"],["330009","진천군"],["330011","증평군"],["330101","청주상당구"],["330102","청주흥덕구"],["330103","청주청원구"],["330104","청주서원구"],["330200","충주시"],["330300","제천시"]],"340000":[["340002","금산군"],["340007","부여군"],["340009","서천군"],["340012","예산군"],["340014","청양군"],["340015","홍성군"],["340016","태안군"],["340201","천안서북구"],["340202","천안동남구"],["340300","공주시"],["340400","보령시"],["340500","아산시"],["340600","서산시"],["340700","논산시"],["340800","계룡시"],["340900","당진시"]],"350000":[["350001","고창군"],["350004","무주군"],["350005","부안군"],["350006","순창군"],["350008","완주군"],["350010","임실군"],["350011","장수군"],["350013","진안군"],["350100","군산시"],["350200","남원시"],["350300","익산시"],["350401","전주완산구"],["350402","전주덕진구"],["350500","정읍시"],["350600","김제시"]],"360000":[["360001","강진군"],["360002","고흥군"],["360003","곡성군"],["360006","구례군"],["360008","담양군"],["360009","무안군"],["360010","보성군"],["360012","신안군"],["360014","영광군"],["360015","영암군"],["360016","완도군"],["360017","장성군"],["360018","장흥군"],["360019","진도군"],["360020","함평군"],["360021","해남군"],["360022","화순군"],["360200","나주시"],["360300","목포시"],["360400","순천시"],["360500","여수시"],["360700","광양시"],["360801","광주동구"],["360802","광주북구"],["360803","광주서구"],["360804","광주광산구"],["360805","광주남구"]],"370000":[["370002","고령군"],["370007","봉화군"],["370010","성주군"],["370012","영덕군"],["370013","영양군"],["370017","예천군"],["370018","울릉군"],["370019","울진군"],["370021","의성군"],["370022","청도군"],["370023","청송군"],["370024","칠곡군"],["370100","경주시"],["370200","구미시"],["370300","김천시"],["370400","안동시"],["370500","영주시"],["370600","영천시"],["370701","포항남구"],["370702","포항북구"],["370800","문경시"],["370900","상주시"],["371000","경산시"]],"380000":[["380002","거창군"],["380003","고성군"],["380005","남해군"],["380008","산청군"],["380011","의령군"],["380014","창녕군"],["380016","하동군"],["380017","함안군"],["380018","함양군"],["380019","합천군"],["380100","김해시"],["380300","사천시"],["380500","진주시"],["380701","창원마산회원구"],["380702","창원마산합포구"],["380703","창원진해구"],["380704","창원의창구"],["380705","창원성산구"],["380800","통영시"],["380900","밀양시"],["381000","거제시"],["381100","양산시"]],"390000":[["390100","서귀포시"],["390200","제주시"]],"410000":[["410000","세종시"]]};
 const ST_TYPE = { '01':'상급종합', '11':'종합병원', '21':'병원', '28':'요양병원', '29':'정신병원', '31':'의원', '41':'치과병원', '51':'치과의원', '61':'조산원',
   '71':'보건소', '72':'보건지소', '73':'보건진료소', '74':'모자보건센터', '75':'보건의료원', '81':'약국', '91':'한방종합병원', '92':'한방병원', '93':'한의원', '94':'한약방' }; // 심평원 종별코드
-let _stRun = 0, _stInit = false;
+let _stRun = 0, _stInit = false, _stLatest = null;
 
 function stWon(n) {
   n = Number(n) || 0;
@@ -3140,6 +3154,101 @@ function stPct(a, b) {
   if (!b) return '<b>-</b>';
   const p = (a - b) / b * 100;
   return `<b class="${p >= 0 ? 'st-up' : 'st-down'}">${p >= 0 ? '▲' : '▼'} ${Math.abs(p).toFixed(1)}%</b>`;
+}
+
+/* ── 꺾은선 차트 (시군구별 / 기관종별 / 합계) ── */
+let _stData = null, _stPct = false;
+const ST_COLORS = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#4a3aa7', '#e34948']; // 고정 순서
+const ST_ETC = '#a3a19a';
+function stDrawLine(mode) {
+  if (!_stData) return;
+  document.querySelectorAll('#stSeg button').forEach(b => b.classList.toggle('on', b.dataset.v === mode));
+  _stPct = mode === 'pct';
+  if (_stPct) mode = _stData.results.length > 1 ? 'sggu' : 'type';   // 증감률: 12개월 전 대비 %
+  const months = _stData.months, n = months.length;
+  const idx = _stData.results[0].d.months.length - n;
+  let series = [];
+  if (mode === 'total') {
+    series = [{ name: '합계', vals: months.map(m => m.amt) }];
+  } else if (mode === 'type') {
+    const order = ['31', '11', '21', '01', '28', '29', '92', '51'];     // 종별은 항상 같은 색
+    const tot = {}; months.forEach(m => Object.entries(m.byType).forEach(([t, v]) => tot[t] = (tot[t] || 0) + v));
+    const keys = order.filter(t => tot[t] > 0);
+    series = keys.map(t => ({ name: ST_TYPE[t] || t, color: ST_COLORS[order.indexOf(t)], vals: months.map(m => m.byType[t] || 0) }));
+    const rest = Object.keys(tot).filter(t => !keys.includes(t));
+    if (rest.length) series.push({ name: '기타', color: ST_ETC, vals: months.map(m => rest.reduce((a, t) => a + (m.byType[t] || 0), 0)) });
+  } else {
+    const rs = _stData.results.slice().sort((a, b) => b.d.months[b.d.months.length - 1].amt - a.d.months[a.d.months.length - 1].amt);
+    const top = rs.slice(0, 7).sort((a, b) => a.code.localeCompare(b.code));   // 색은 코드 순서로 고정
+    series = top.map((r, i) => ({ name: r.name, color: ST_COLORS[i], vals: r.d.months.slice(idx).map(m => m.amt) }));
+    const rest = rs.slice(7);
+    if (rest.length) series.push({ name: `기타 ${rest.length}곳`, color: ST_ETC, vals: months.map((_, k) => rest.reduce((a, r) => a + r.d.months[idx + k].amt, 0)) });
+  }
+  series.forEach((sr, i) => { if (!sr.color) sr.color = ST_COLORS[i]; });
+
+  const W = 340, H = 230, L = 40, R = 64, T = 14, B = 26;
+  if (_stPct) series.forEach(sr => { const b0 = sr.vals[0] || 1; sr.vals = sr.vals.map(v => (v - b0) / b0 * 100); });
+  const fmtV = v => _stPct ? `${v >= 0 ? '+' : ''}${v.toFixed(1)}%` : stWon(v);
+  const all = series.flatMap(sr => sr.vals);
+  let lo = Math.min(...all), hi = Math.max(...all);
+  if (_stPct) { lo = Math.min(lo, 0); hi = Math.max(hi, 0); const pad = Math.max(hi - lo, 10) * 0.12; lo -= pad; hi += pad; }
+  else if (mode !== 'total') lo = 0;                  // 여러 선은 0부터 (크기 비교가 왜곡되지 않게)
+  else { const pad = (hi - lo) * 0.25 || hi * 0.1; lo = Math.max(0, lo - pad); hi = hi + pad; }
+  if (hi === lo) hi = lo + 1;
+  const x = i => L + (W - L - R) * (n === 1 ? 0.5 : i / (n - 1));
+  const y = v => T + (H - T - B) * (1 - (v - lo) / (hi - lo));
+  const ticks = 4, grid = [];
+  for (let k = 0; k <= ticks; k++) { const v = lo + (hi - lo) * k / ticks; grid.push(`<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="rgba(0,0,0,0.07)"/><text x="${L - 6}" y="${y(v) + 3}" text-anchor="end" font-size="9" fill="#8a8984">${_stPct ? Math.round(v) + '%' : stWon(v)}</text>`); }
+  if (_stPct) grid.push(`<line x1="${L}" x2="${W - R}" y1="${y(0)}" y2="${y(0)}" stroke="rgba(0,0,0,0.4)" stroke-width="1"/>`);
+  const xl = months.map((m, i) => (i % 2 === (n - 1) % 2) ? `<text x="${x(i)}" y="${H - 8}" text-anchor="middle" font-size="9" fill="#8a8984">${stYm(m.ym, true)}</text>` : '').join('');
+  // 끝 라벨: 겹치지 않게 최소 11px 간격으로 세로 정렬
+  // 라벨은 끝값 큰 순 5개만 (나머지는 범례·손가락으로 확인), 차트 안에 들어오게 위로 밀어올림
+  const ends = series.map((sr, si) => ({ si, y: y(sr.vals[n - 1]), v: sr.vals[n - 1] }))
+    .sort((a, b) => b.v - a.v).slice(0, 5).sort((a, b) => a.y - b.y);
+  for (let k = 1; k < ends.length; k++) if (ends[k].y - ends[k - 1].y < 11) ends[k].y = ends[k - 1].y + 11;
+  const over = ends.length ? ends[ends.length - 1].y - (H - B) : 0;
+  if (over > 0) ends.forEach(e => e.y -= over);
+  const endY = {}; ends.forEach(e => endY[e.si] = e.y);
+  const lines = series.map((sr, si) => `<g class="st-ln" data-i="${si}">
+      <polyline fill="none" stroke="${sr.color}" stroke-width="${series.length === 1 ? 2.5 : 2}" stroke-linejoin="round" stroke-linecap="round" points="${sr.vals.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ')}"/>
+      ${sr.vals.map((v, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="${i === n - 1 ? 3.5 : 2.3}" fill="${sr.color}" stroke="#fff" stroke-width="${i === n - 1 ? 2 : 1}"/>`).join('')}
+      ${endY[si] === undefined ? '' : `<text x="${x(n - 1) + 7}" y="${(endY[si] + 3).toFixed(1)}" font-size="8.5" font-weight="700" fill="#3a3935">${series.length > 1 ? sr.name.replace(/^기타 /, '기타').slice(0, 4) + ' ' : ''}${fmtV(sr.vals[n - 1])}</text>`}</g>`).join('');
+  const el = document.getElementById('stLine');
+  el.innerHTML = `
+    <div class="st-chart">
+      <svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="최근 12개월 처방액 추이">
+        ${grid.join('')}${xl}${lines}
+        <line id="stCross" x1="0" x2="0" y1="${T}" y2="${H - B}" stroke="rgba(0,0,0,0.25)" stroke-dasharray="3 3" style="display:none"/>
+        <rect x="${L}" y="${T}" width="${W - L - R}" height="${H - T - B}" fill="transparent" id="stHit"/>
+      </svg>
+      <div class="st-tip" id="stTip"></div>
+    </div>
+    <div class="st-legend">${series.map((sr, si) => `<button data-i="${si}"><i style="background:${sr.color}"></i>${sr.name}</button>`).join('')}</div>`;
+  // 범례 누르면 그 선만 강조
+  let focus = -1;
+  el.querySelectorAll('.st-legend button').forEach(b => b.onclick = () => {
+    const i = +b.dataset.i; focus = focus === i ? -1 : i;
+    el.querySelectorAll('.st-ln').forEach(g => g.style.opacity = focus < 0 || +g.dataset.i === focus ? 1 : 0.15);
+    el.querySelectorAll('.st-legend button').forEach(x => x.classList.toggle('dim', focus >= 0 && +x.dataset.i !== focus));
+  });
+  // 터치/마우스: 세로선 + 그 달의 값
+  const svg = el.querySelector('svg'), tip = el.querySelector('#stTip'), cross = el.querySelector('#stCross');
+  const show = ev => {
+    const r = svg.getBoundingClientRect();
+    const px = ((ev.touches ? ev.touches[0].clientX : ev.clientX) - r.left) / r.width * W;
+    const i = Math.max(0, Math.min(n - 1, Math.round((px - L) / ((W - L - R) / Math.max(1, n - 1)))));
+    cross.setAttribute('x1', x(i)); cross.setAttribute('x2', x(i)); cross.style.display = '';
+    const rows = series.map(sr => ({ sr, v: sr.vals[i] })).sort((a, b) => b.v - a.v);
+    tip.innerHTML = `<b>${stYm(months[i].ym)}</b>` + rows.map(({ sr, v }) => `<div><i style="background:${sr.color}"></i><span>${sr.name}</span><em>${fmtV(v)}</em></div>`).join('');
+    tip.style.display = 'block';
+    const left = x(i) / W * r.width;
+    tip.style.left = (left > r.width / 2 ? left - tip.offsetWidth - 10 : left + 10) + 'px';
+  };
+  const hide = () => { tip.style.display = 'none'; cross.style.display = 'none'; };
+  const hit = el.querySelector('#stHit');
+  hit.addEventListener('mousemove', show); hit.addEventListener('mouseleave', hide);
+  hit.addEventListener('touchstart', show, { passive: true }); hit.addEventListener('touchmove', show, { passive: true });
+  hit.addEventListener('touchend', () => setTimeout(hide, 1800));
 }
 
 function renderStat() {
@@ -3189,23 +3298,33 @@ async function stRun() {
     </div>`;
   if (!sgguList.length) { el.innerHTML = '<div class="empty">시·군·구 목록을 불러오지 못했어요</div>'; return; }
 
-  // 시군구별 13개월 추이를 4개씩 나눠 조회 → 브라우저에서 합산
+  // 최신 월은 한 번만 확인 (매 요청마다 찾으면 공공데이터 서버가 막음)
+  if (!_stLatest) {
+    try { _stLatest = (await (await fetchWithTimeout('/api/usage?mode=latest', 15000)).json()).latest || null; } catch (e) {}
+  }
+  if (run !== _stRun) return;
+  const endQ = _stLatest ? `&end=${_stLatest}` : '';
+  // 시군구별 13개월 추이를 2개씩 나눠 조회 (실패 시 1번 더) → 브라우저에서 합산
   const results = []; let done = 0;
   const queue = sgguList.slice();
   const worker = async () => {
     while (queue.length) {
       const [code, name] = queue.shift();
-      try {
-        const d = await (await fetchWithTimeout(`/api/usage?mode=trend&atc=${atc}&sido=${sido}&sggu=${code}&months=13`, 20000)).json();
-        if (!d.error) results.push({ code, name, d });
-      } catch (e) {}
+      for (let tryN = 0; tryN < 2; tryN++) {
+        try {
+          const d = await (await fetchWithTimeout(`/api/usage?mode=trend&atc=${atc}&sido=${sido}&sggu=${code}&months=13${endQ}`, 20000)).json();
+          if (!d.error && d.months && d.months.length && !d.errors) { results.push({ code, name, d }); break; }
+          if (!d.error && d.months && d.months.length && tryN === 1) { results.push({ code, name, d }); break; }
+        } catch (e) {}
+        await new Promise(r => setTimeout(r, 800));
+      }
       done++;
       if (run !== _stRun) return;
       const pg = document.getElementById('stProg'); if (pg) pg.style.width = Math.round(done / sgguList.length * 100) + '%';
       const tx = document.getElementById('stProgTx'); if (tx) tx.textContent = `${done}/${sgguList.length}`;
     }
   };
-  await Promise.all([worker(), worker(), worker(), worker()]);
+  await Promise.all([worker(), worker()]);
   if (run !== _stRun) return;
   if (!results.length) { el.innerHTML = '<div class="empty">데이터를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</div>'; return; }
 
@@ -3231,6 +3350,7 @@ async function stRun() {
   const atcName = results[0].d.atcName || '';
 
   document.getElementById('statSub').textContent = `심평원 건강보험 청구 데이터 · ${stYm(last.ym)}까지`;
+  _stData = { results, months: months.slice(-12) };
   el.innerHTML = `
     <div class="st-card" style="margin-top:0;">
       <h4>${place} · ${atcLabel}<small>${atcName}</small></h4>
@@ -3242,10 +3362,13 @@ async function stRun() {
     </div>
     <div class="st-card">
       <h4>최근 12개월 처방액 추이</h4>
-      <div class="st-bars">
-        ${shown.map((m, i) => `<div class="st-bar ${i === shown.length - 1 ? 'last' : ''}" title="${stYm(m.ym)} ${stWon(m.amt)}원">
-          <i style="height:${Math.max(2, Math.round(m.amt / maxAmt * 100))}%"></i><em>${stYm(m.ym, true)}</em></div>`).join('')}
+      <div class="st-seg" id="stSeg">
+        ${bySggu.length > 1 ? `<button data-v="sggu">시·군·구별</button>` : ''}
+        <button data-v="type">기관 종별</button>
+        <button data-v="total">합계</button>
+        <button data-v="pct">증감률</button>
       </div>
+      <div id="stLine"></div>
     </div>
     <div class="st-card">
       <h4>의료기관 종별 처방액<small>${stYm(last.ym)}</small></h4>
@@ -3255,10 +3378,12 @@ async function stRun() {
       <h4>시·군·구 순위<small>${stYm(last.ym)} 처방액</small></h4>
       ${bySggu.map((s, i) => `<div class="st-hrow"><span class="l">${i + 1}. ${s.name}</span><span class="t"><i style="width:${Math.round(s.amt / sgMax * 100)}%;background:var(--blue);"></i></span><span class="v">${stWon(s.amt)}</span></div>`).join('')}
     </div>` : ''}
-    <div class="st-note" style="padding:0 4px 20px;">
+    <div class="st-note" style="padding:0 4px 20px;" id="stNoteEnd">
       ※ 건강보험심사평가원 의약품사용정보(처방 기준, 건강보험·의료급여 합계). 약효군(ATC 4단계) 단위이며 제품별 처방은 공개되지 않습니다.
       요양기관 소재지 기준이고, 심사 결정 후 공개되어 약 4~5개월 늦게 반영됩니다.
     </div>`;
+  document.querySelectorAll('#stSeg button').forEach(bt => bt.onclick = () => stDrawLine(bt.dataset.v));
+  stDrawLine(bySggu.length > 1 ? 'sggu' : 'type');
 }
 
 

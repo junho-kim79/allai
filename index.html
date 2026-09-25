@@ -1783,6 +1783,8 @@ let _dbDetailToken = 0;
 const _coCache = {}; // 보험코드 → 회사명
 function fillCompetitorCompanies() {
   const els = [...document.querySelectorAll('#drugDetail .db-co[data-c]')];
+  // 약가DB에 업체명(e)이 들어 있으면 바로 사용 (월간 자동 갱신 후)
+  els.forEach(el => { if (!_coCache[el.dataset.c]) { const d = DRUG_PRICE_DB.find(x => String(x.c) === el.dataset.c); if (d && d.e) _coCache[el.dataset.c] = d.e; } });
   const put = () => els.forEach(el => { const n = _coCache[el.dataset.c]; if (n && !el.textContent) { el.textContent = n; el.classList.add('on'); } });
   put();
   const need = els.filter(el => !_coCache[el.dataset.c]);

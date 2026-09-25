@@ -1698,14 +1698,14 @@ function showDrugDB(i) {
     const cd = document.getElementById('dbCd');
     if (!cd || token !== _dbDetailToken) return clearInterval(cdTimer);
     if (left > 0) { cd.textContent = left; cd.classList.remove('tick'); void cd.offsetWidth; cd.classList.add('tick'); }
-    else { clearInterval(cdTimer); endWait(); }
+    else { clearInterval(cdTimer); cd.textContent = '…'; } // 0초: 조회가 끝날 때까지 잠깐 더 기다림
   }, 1000);
   function endWait() {
     const w = document.getElementById('dbWait');
     if (w) { w.classList.add('db-wait-out'); setTimeout(() => w.remove(), 350); }
   }
   // 식약처 허가정보: Vercel /api/drug (공공데이터 키는 Vercel 환경변수에 있음)
-  fetchWithTimeout(`/api/drug?name=${encodeURIComponent(P.stem || item.ITEM_NAME)}`, 5000)
+  fetchWithTimeout(`/api/drug?name=${encodeURIComponent(P.stem || item.ITEM_NAME)}`, 9000)
     .then(r => r.json()).then(data => {
       if (token !== _dbDetailToken) return; // 그새 다른 약을 열었음
       // 이름 비교: 제품명(숫자 앞) + 용량이 같으면 같은 약 (밀리그람/밀리그램 표기 차이 무시)
@@ -2145,15 +2145,17 @@ API에서 용법용량 정보가 없을 경우, 이 성분/제형 기준으로 �
     const data = await res.json();
     const text = data?.text?.trim() || '';
 
-    const oneLineMatch = text.match(/\[ONE_LINE\]([\s\S]*?)(?=\[WHY_THIS_DRUG\]|$)/);
-    const whyMatch = text.match(/\[WHY_THIS_DRUG\]([\s\S]*?)(?=\[WHEN_TO_PUSH\]|$)/);
-    const whenMatch = text.match(/\[WHEN_TO_PUSH\]([\s\S]*?)(?=\[TALKING_POINT\]|$)/);
-    const talkingMatch = text.match(/\[TALKING_POINT\]([\s\S]*?)(?=\[FDA\]|$)/);
-    const fdaMatch = text.match(/\[FDA\]([\s\S]*?)(?=\[CLINICAL\]|$)/);
-    const clinicalMatch = text.match(/\[CLINICAL\]([\s\S]*?)(?=\[CLINICAL_TITLES\]|$)/);
+    // 각 [태그] 내용은 "다음 [태그]"가 나오기 전까지만 (AI가 순서를 바꾸거나 태그를 빼먹어도 섞이지 않게)
+    const tagSec = (tag) => text.match(new RegExp('\\[' + tag + '\\]([\\s\\S]*?)(?=\\[[A-Z_]+\\]|$)'));
+    const oneLineMatch = tagSec('ONE_LINE');
+    const whyMatch = tagSec('WHY_THIS_DRUG');
+    const whenMatch = tagSec('WHEN_TO_PUSH');
+    const talkingMatch = tagSec('TALKING_POINT');
+    const fdaMatch = tagSec('FDA');
+    const clinicalMatch = tagSec('CLINICAL');
     const clinicalTitlesMatch = null;
-const useMethodAIMatch = text.match(/\[USE_METHOD\]([\s\S]*?)(?=\[ISSUE\]|$)/);
-const issueMatch = text.match(/\[ISSUE\]([\s\S]*?)$/);
+const useMethodAIMatch = tagSec('USE_METHOD');
+const issueMatch = tagSec('ISSUE');
 const useMethodAI = useMethodAIMatch ? useMethodAIMatch[1].trim() : '-';
 const issue = issueMatch ? issueMatch[1].trim() : '-';
 
@@ -2236,7 +2238,7 @@ AI_CACHE[cacheKey] = {
     }
     if (clinicalEl) {
       clinicalEl.textContent = clinical;
-      clinicalEl.style.color = clinical.includes('대상')
+      clinicalEl.style.color = (clinical.includes('대상') && !/아님|해당\s*없음|비대상/.test(clinical))
         ? 'var(--red)'
         : clinical.includes('완료')
         ? 'var(--g2)'

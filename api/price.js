@@ -24,6 +24,7 @@ export default async function handler(req, res) {
   try {
     const r = await fetch(`${SVC}?${qs}`, { signal: ctrl.signal, headers: { Accept: "application/json" } });
     const txt = await r.text();
+    if (req.query.debug === "1") return res.status(200).json({ status: r.status, head: txt.slice(0, 1500) });
     let data; try { data = JSON.parse(txt); } catch {
       const msg = (txt.match(/<returnAuthMsg>([^<]*)</) || txt.match(/<resultMsg>([^<]*)</) || [])[1] || txt.slice(0, 200);
       return res.status(200).json({ items: [], error: msg, status: r.status });

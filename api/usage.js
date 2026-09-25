@@ -50,7 +50,10 @@ export default async function handler(req, res) {
   };
   const listSggu = async (sido, ym) => {
     const pre = String(sido).slice(0, 2);
-    const codes = Array.from({ length: 45 }, (_, i) => `${pre}${String(i + 1).padStart(4, "0")}`);
+    // 시군구 코드: 군·구는 xx0001~xx0045, 시(市)는 xx0100 단위 + 구(區) 번호 (예: 포항시 남구)
+    const codes = [];
+    for (let i = 1; i <= 45; i++) codes.push(`${pre}${String(i).padStart(4, "0")}`);
+    for (let k = 1; k <= 30; k++) for (let j = 0; j <= 3; j++) codes.push(`${pre}${String(k * 100 + j).padStart(4, "0")}`);
     const rs = await Promise.all(codes.map((c) => call({ diagYm: ym, atcStep4Cd: "A02BC", sidoCd: sido, sgguCd: c }, 6000)));
     return rs.map((r, i) => r.items[0] ? { code: codes[i], name: String(r.items[0].sgguCdNm || "") } : null).filter(Boolean);
   };

@@ -48,15 +48,39 @@ export default async function handler(req, res) {
     const i = rs.findIndex((r) => r.items.length);
     return i >= 0 ? yms[i] : null;
   };
+  // 시군구 목록: ① 심평원 행정구역 코드표(odcloud) → ② 실패 시 코드 탐색(20개씩 나눠서)
+  const CODE_TABLE = "https://api.odcloud.kr/api/15067469/v1/uddi:a19294d7-bd8d-4f39-b276-8742551f2661";
+  const codeTable = async () => {
+    try {
+      const r = await fetch(`${CODE_TABLE}?page=1&perPage=1000&serviceKey=${encodeURIComponent(KEY)}`);
+      const d = await r.json();
+      return Array.isArray(d?.data) ? d.data : null;
+    } catch { return null; }
+  };
   const listSggu = async (sido, ym) => {
     const pre = String(sido).slice(0, 2);
-    // 시군구 코드: 군·구는 xx0001~xx0045, 시(市)는 xx0100 단위 + 구(區) 번호 (예: 포항시 남구)
+    const rows = await codeTable();
+    if (rows && rows.length) {
+      const pick = (o, ks) => { for (const k of Object.keys(o)) if (ks.some((x) => k.includes(x))) return o[k]; return ""; };
+      const list = rows.map((o) => ({ code: String(pick(o, ["코드"]) || "").trim(), name: String(pick(o, ["코드명", "명"]) || "").trim(), kind: String(pick(o, ["구분"]) || "") }))
+        .filter((o) => /^\d{6}$/.test(o.code) && o.code.startsWith(pre) && !o.code.endsWith("0000") && /시군구|sggu|시군/i.test(o.kind + "시군구"));
+      if (list.length) return list;
+    }
     const codes = [];
     for (let i = 1; i <= 45; i++) codes.push(`${pre}${String(i).padStart(4, "0")}`);
     for (let k = 1; k <= 30; k++) for (let j = 0; j <= 3; j++) codes.push(`${pre}${String(k * 100 + j).padStart(4, "0")}`);
-    const rs = await Promise.all(codes.map((c) => call({ diagYm: ym, atcStep4Cd: "A02BC", sidoCd: sido, sgguCd: c }, 6000)));
-    return rs.map((r, i) => r.items[0] ? { code: codes[i], name: String(r.items[0].sgguCdNm || "") } : null).filter(Boolean);
+    const found = [];
+    for (let i = 0; i < codes.length; i += 20) {             // 한꺼번에 많이 부르면 차단됨 → 20개씩
+      const part = codes.slice(i, i + 20);
+      const rs = await Promise.all(part.map((c) => call({ diagYm: ym, atcStep4Cd: "A02BC", sidoCd: sido, sgguCd: c }, 5000)));
+      rs.forEach((r, k) => { if (r.items[0]) found.push({ code: part[k], name: String(r.items[0].sgguCdNm || "") }); });
+    }
+    return found;
   };
+  if (req.query.mode === "codetable") {
+    const rows = await codeTable();
+    return res.status(200).json({ ok: !!rows, count: rows?.length || 0, sample: (rows || []).filter((o) => JSON.stringify(o).includes("대구") || JSON.stringify(o).includes("구미")).slice(0, 12) });
+  }
 
   const mode = String(req.query.mode || "raw");
   try {

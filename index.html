@@ -880,6 +880,73 @@
     .st-note { font-size: 0.7rem; color: var(--sub2); line-height: 1.6; margin-top: 12px; }
     .st-prog { height: 4px; background: rgba(0,0,0,0.06); border-radius: 4px; overflow: hidden; margin-top: 10px; }
     .st-prog i { display: block; height: 100%; background: var(--blue); transition: width .3s; }
+    /* 면담기록 */
+    .vs-store { flex-shrink: 0; font: inherit; font-size: 0.72rem; font-weight: 700; color: var(--g2); background: rgba(45,155,111,0.10); border: 1px solid rgba(45,155,111,0.25); border-radius: 999px; padding: 6px 11px; cursor: pointer; }
+    .vs-info { margin: 0 16px 12px; display: flex; flex-direction: column; gap: 8px; }
+    .vs-opt { background: #fff; border: 1px solid var(--border); border-radius: var(--r-md); padding: 14px; }
+    .vs-opt.on { border-color: rgba(45,155,111,0.45); box-shadow: 0 0 0 3px rgba(45,155,111,0.08); }
+    .vs-opt > b { font-size: 0.9rem; display: flex; align-items: center; gap: 6px; }
+    .vs-opt > b span { font-size: 0.64rem; color: #fff; background: var(--g1); border-radius: 999px; padding: 2px 7px; }
+    .vs-opt > b span.soon { background: var(--sub2); }
+    .vs-opt p { font-size: 0.78rem; color: var(--sub); line-height: 1.65; margin: 6px 0 10px; }
+    .vs-opt p b { color: var(--text); }
+    .vs-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+    .vs-btns button { font: inherit; font-size: 0.78rem; font-weight: 700; padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.1); background: var(--card2); cursor: pointer; }
+    .vs-btns button:disabled { opacity: .5; cursor: default; }
+    .vs-cal { margin: 0 16px; background: #fff; border: 1px solid var(--border); border-radius: var(--r-md); padding: 12px 10px 10px; }
+    .vs-cal-head { display: flex; align-items: center; justify-content: space-between; padding: 0 6px 8px; }
+    .vs-cal-head b { font-size: 1rem; font-weight: 800; }
+    .vs-cal-head button { font-size: 1.4rem; line-height: 1; width: 36px; height: 36px; border: none; background: var(--card2); border-radius: 10px; cursor: pointer; color: var(--text); }
+    .vs-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+    .vs-dow span { text-align: center; font-size: 0.68rem; font-weight: 700; color: var(--sub2); padding: 4px 0; }
+    .vs-dow span:first-child { color: #E03131; } .vs-dow span:last-child { color: var(--blue); }
+    .vs-d { position: relative; aspect-ratio: 1 / 1; border: none; background: none; border-radius: 12px; font: inherit; font-size: 0.86rem; font-weight: 600; color: var(--text); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; }
+    .vs-d.out { color: #ccc; }
+    .vs-d.sun { color: #E03131; } .vs-d.sat { color: var(--blue); }
+    .vs-d.today { background: rgba(45,155,111,0.10); color: var(--g2); font-weight: 800; }
+    .vs-d.sel { background: var(--g1); color: #fff !important; }
+    .vs-d i { display: flex; gap: 2px; height: 5px; }
+    .vs-d i em { width: 5px; height: 5px; border-radius: 50%; background: var(--purple); }
+    .vs-d.sel i em { background: #fff; }
+    .vs-day { margin: 12px 16px 24px; }
+    .vs-day-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .vs-day-head b { font-size: 0.95rem; font-weight: 800; }
+    .vs-add { font: inherit; font-size: 0.82rem; font-weight: 800; color: #fff; background: var(--g1); border: none; border-radius: 999px; padding: 8px 14px; cursor: pointer; }
+    .vs-card { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 13px 14px; margin-bottom: 8px; cursor: pointer; }
+    .vs-card-top { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .vs-card-top b { font-size: 0.92rem; font-weight: 800; }
+    .vs-card-top span { font-size: 0.78rem; color: var(--sub); }
+    .vs-card p { font-size: 0.82rem; color: var(--text); line-height: 1.6; margin: 6px 0 0; white-space: pre-wrap; }
+    .vs-card .nx { font-size: 0.76rem; color: var(--purple); font-weight: 700; margin-top: 6px; }
+    .vs-empty { text-align: center; font-size: 0.82rem; color: var(--sub2); padding: 22px 0; background: rgba(255,255,255,0.6); border: 1px dashed rgba(0,0,0,0.1); border-radius: 16px; }
+    .vs-sheet-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 900; display: none; align-items: flex-end; justify-content: center; }
+    .vs-sheet-bg.on { display: flex; }
+    .vs-sheet { width: 100%; max-width: 560px; max-height: 92vh; overflow-y: auto; background: var(--bg); border-radius: 24px 24px 0 0; padding: 10px 18px 22px; }
+    .vs-sheet-title { font-size: 1.05rem; font-weight: 900; margin: 6px 0 4px; }
+    .vs-lb { display: block; font-size: 0.74rem; font-weight: 800; color: var(--sub); margin: 12px 0 6px; }
+    .vs-lb small { font-weight: 600; color: var(--sub2); margin-left: 4px; }
+    .vs-in { width: 100%; box-sizing: border-box; font: inherit; font-size: 0.95rem; padding: 11px 12px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.12); background: #fff; color: var(--text); }
+    textarea.vs-in { resize: vertical; line-height: 1.55; }
+    .vs-row { display: flex; gap: 8px; } .vs-row .vs-in { flex: 1; min-width: 0; } .vs-row .vs-title { flex: 0 0 38%; }
+    .vs-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
+    .vs-chips:empty { display: none; }
+    .vs-chips button { font: inherit; font-size: 0.8rem; font-weight: 600; padding: 6px 11px; border-radius: 999px; border: 1px solid rgba(0,0,0,0.1); background: #fff; color: var(--text); cursor: pointer; }
+    .vs-chips button.on { background: var(--g1); border-color: var(--g1); color: #fff; }
+    .vs-chips button small { color: var(--sub2); margin-left: 3px; }
+    .vs-form-btns { display: flex; gap: 8px; margin-top: 18px; }
+    .vs-form-btns button { font: inherit; font-size: 0.92rem; font-weight: 800; padding: 13px; border-radius: 14px; border: none; cursor: pointer; }
+    .vs-save { flex: 1; background: var(--g1); color: #fff; } .vs-cancel { background: var(--card2); color: var(--sub); } .vs-del { background: rgba(239,68,68,0.1); color: var(--red); }
+    .vs-h { background: #fff; border: 1px solid var(--border); border-radius: 16px; margin-bottom: 8px; overflow: hidden; }
+    .vs-h-top { display: flex; align-items: center; gap: 10px; padding: 13px 14px; cursor: pointer; }
+    .vs-h-top b { flex: 1; font-size: 0.95rem; font-weight: 800; }
+    .vs-h-top span { font-size: 0.74rem; color: var(--sub); text-align: right; line-height: 1.4; }
+    .vs-h-body { display: none; padding: 0 14px 12px; border-top: 1px solid var(--border); }
+    .vs-h.open .vs-h-body { display: block; }
+    .vs-h-docs { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 8px; }
+    .vs-h-docs span { font-size: 0.76rem; font-weight: 700; background: rgba(139,92,246,0.10); color: var(--purple); border-radius: 999px; padding: 4px 10px; }
+    .vs-h-log { font-size: 0.8rem; line-height: 1.6; padding: 7px 0; border-bottom: 1px dashed rgba(0,0,0,0.07); cursor: pointer; }
+    .vs-h-log:last-child { border-bottom: none; }
+    .vs-h-log em { font-style: normal; color: var(--sub); font-weight: 700; margin-right: 6px; }
     /* 더보기 (Coming Soon 축소) */
     .more-list { margin: 0 16px; background: rgba(255,255,255,0.85); border: 1px solid rgba(180,140,80,0.10); border-radius: var(--r-md); overflow: hidden; }
     .more-row { display: flex; align-items: center; gap: 12px; padding: 14px 16px; cursor: pointer; transition: background .15s; }
@@ -990,6 +1057,15 @@
         <div class="menu-desc">성분·계열별 한눈에 비교</div>
       </button>
 
+      <button class="menu-card c-purple menu-wide" onclick="goScreen('screen_visit','면담기록')">
+        <div class="menu-icon">📒</div>
+        <div class="menu-wide-tx">
+          <div class="menu-name">나의 면담기록 · 병원 관리 <span class="menu-new" style="background:var(--purple);">NEW</span></div>
+          <div class="menu-desc">달력에 일기처럼 기록 · 병원·교수님 이름 자동 기억</div>
+        </div>
+        <span class="more-arr">›</span>
+      </button>
+
       <button class="menu-card c-blue menu-wide" onclick="goScreen('screen_stat','지역 처방 분석')">
         <div class="menu-icon">🗺️</div>
         <div class="menu-wide-tx">
@@ -1014,7 +1090,7 @@
       <div class="more-soon">
         <div class="more-soon-label">🔒 준비 중 · 로그인 후 이용 가능</div>
         <div class="more-chips">
-          <span>💼 면담기록</span><span>🏥 병원 관리</span><span>🧾 영수증 관리</span>
+          <span>🧾 영수증 관리</span>
         </div>
       </div>
     </div>
@@ -1150,6 +1226,96 @@
       </div>
     </div>
     <div class="result-wrap" id="statContent" style="padding-top:6px;"></div>
+  </div>
+
+  <!-- ═══════════════ 면담기록 · 병원 관리 ═══════════════ -->
+  <div class="screen" id="screen_visit">
+    <div class="back-bar">
+      <button class="back-btn" onclick="history.back()">← 홈</button>
+    </div>
+    <div style="padding:0 16px 10px;display:flex;align-items:flex-end;justify-content:space-between;gap:10px;">
+      <div>
+        <div style="font-size:1.3rem;font-weight:900;letter-spacing:-0.04em;">나의 면담기록</div>
+        <div style="font-size:0.82rem;color:var(--sub);margin-top:4px;">날짜를 눌러 일기처럼 기록하세요</div>
+      </div>
+      <button class="vs-store" id="vsStoreBtn" onclick="vsToggleStoreInfo()">📱 이 폰에만 저장 중</button>
+    </div>
+
+    <div class="vs-info" id="vsStoreInfo" style="display:none;">
+      <div class="vs-opt on">
+        <b>📱 이 폰에만 저장 <span>현재 사용 중</span></b>
+        <p>로그인 없이 바로 사용해요. 기록이 폰 밖으로 나가지 않아 <b>보안상 가장 안전</b>합니다.
+        대신 앱을 지우거나 폰을 바꾸면 기록이 사라질 수 있으니, 가끔 <b>파일로 백업</b>해 두세요.</p>
+        <div class="vs-btns"><button onclick="vsExport()">⬇️ 파일로 백업</button><button onclick="document.getElementById('vsImportFile').click()">⬆️ 백업 불러오기</button></div>
+        <input type="file" id="vsImportFile" accept=".json,application/json" style="display:none" onchange="vsImport(this)">
+      </div>
+      <div class="vs-opt">
+        <b>☁️ 구글 계정에 백업 <span class="soon">준비 중</span></b>
+        <p>기록이 <b>날아갈까 걱정</b>되거나 폰을 바꿀 예정이라면 구글 로그인을 해 주세요.
+        내 구글 드라이브에 <b>"ALLAI 면담기록" 시트</b>가 만들어져 자동으로 보관돼요. ALLAI 서버에는 저장되지 않고, 본인만 볼 수 있습니다.</p>
+        <div class="vs-btns"><button disabled>G 구글로 로그인 (곧 제공)</button></div>
+      </div>
+    </div>
+
+    <div class="tabs-row">
+      <button class="tab on" id="vsTabCal" onclick="vsSetTab('cal')">📅 달력</button>
+      <button class="tab" id="vsTabHosp" onclick="vsSetTab('hosp')">🏥 병원별</button>
+    </div>
+    <div style="height:10px;"></div>
+
+    <div id="vsCalView">
+      <div class="vs-cal">
+        <div class="vs-cal-head">
+          <button onclick="vsMoveMonth(-1)">‹</button>
+          <b id="vsMonthLabel"></b>
+          <button onclick="vsMoveMonth(1)">›</button>
+        </div>
+        <div class="vs-cal-grid vs-dow"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+        <div class="vs-cal-grid" id="vsCalGrid"></div>
+      </div>
+      <div class="vs-day">
+        <div class="vs-day-head"><b id="vsDayLabel"></b><button class="vs-add" onclick="vsOpenForm()">＋ 기록 추가</button></div>
+        <div id="vsDayList"></div>
+      </div>
+    </div>
+
+    <div id="vsHospView" style="display:none;padding:0 16px 24px;"></div>
+  </div>
+
+  <!-- 면담 기록 작성 시트 -->
+  <div class="vs-sheet-bg" id="vsSheetBg" onclick="if(event.target===this)vsCloseForm()">
+    <div class="vs-sheet">
+      <div class="admin-handle"></div>
+      <div class="vs-sheet-title" id="vsFormTitle">면담 기록</div>
+      <input type="hidden" id="vsEditId">
+      <label class="vs-lb">병원</label>
+      <input class="vs-in" id="vsHosp" placeholder="병원 이름 (예: 영남대병원)" autocomplete="off" oninput="vsRenderHospChips()">
+      <div class="vs-chips" id="vsHospChips"></div>
+      <label class="vs-lb">만난 분 <small>교수님·원장님 이름</small></label>
+      <div class="vs-row">
+        <input class="vs-in" id="vsDoc" placeholder="이름" autocomplete="off" oninput="vsRenderDocChips()">
+        <select class="vs-in vs-title" id="vsDocTitle"><option>교수</option><option>원장</option><option>과장</option><option>부장</option><option>전공의</option><option>약제부</option><option>기타</option></select>
+      </div>
+      <div class="vs-chips" id="vsDocChips"></div>
+      <label class="vs-lb">진료과 <small>선택</small></label>
+      <input class="vs-in" id="vsDept" placeholder="예: 소화기내과" autocomplete="off">
+      <label class="vs-lb">면담 내용</label>
+      <textarea class="vs-in" id="vsNote" rows="4" placeholder="오늘 나눈 이야기, 디테일한 제품, 요청사항 등"></textarea>
+      <label class="vs-lb">반응</label>
+      <div class="vs-chips vs-react" id="vsReact">
+        <button data-v="good" onclick="vsPickReact(this)">😀 좋음</button><button data-v="soso" onclick="vsPickReact(this)">😐 보통</button><button data-v="bad" onclick="vsPickReact(this)">😟 아쉬움</button>
+      </div>
+      <label class="vs-lb">다음 할 일 <small>선택</small></label>
+      <div class="vs-row">
+        <input class="vs-in" id="vsNext" placeholder="예: 샘플 전달, 논문 자료 드리기" autocomplete="off">
+        <input class="vs-in vs-title" type="date" id="vsNextDate">
+      </div>
+      <div class="vs-form-btns">
+        <button class="vs-del" id="vsDelBtn" onclick="vsDelete()" style="display:none;">삭제</button>
+        <button class="vs-cancel" onclick="vsCloseForm()">취소</button>
+        <button class="vs-save" onclick="vsSave()">저장</button>
+      </div>
+    </div>
   </div>
 
   <!-- 관리자 오버레이 -->
@@ -1471,7 +1637,7 @@ function saveEmail() {
 /* ════════════════════════════════════════
    화면 라우팅
 ════════════════════════════════════════ */
-const LABELS = { screen1:'홈', screen2:'약품 검색', screen3:'약품 상세', screen_icd:'상병코드', screen_comp:'경쟁품 비교', screen_cut:'삭감 조회', screen_stat:'지역 처방 분석' };
+const LABELS = { screen1:'홈', screen2:'약품 검색', screen3:'약품 상세', screen_icd:'상병코드', screen_comp:'경쟁품 비교', screen_cut:'삭감 조회', screen_stat:'지역 처방 분석', screen_visit:'면담기록' };
 
 /* 대표 상병코드 옆에 붙일 간단 병명 매핑 (앞 3자리 기준). 매핑 없는 코드는 코드만 표시. */
 const ICD_NAME_KO = {
@@ -1502,6 +1668,7 @@ function goScreen(id, label, push=true) {
   document.getElementById(id).classList.add('active');
   document.getElementById('stepChip').textContent = label || LABELS[id] || '';
   if (id === 'screen_stat') renderStat();
+  if (id === 'screen_visit') vsInit();
   if (push && !_isPopState) history.pushState({ screen:id, label }, '', `#${id}`);
   window.scrollTo({ top:0, behavior:'smooth' });
 }
@@ -3136,6 +3303,188 @@ if (savedEmail) {
 const SKEY = 'allai_stats';
 function getStats() { try { return JSON.parse(localStorage.getItem(SKEY)||'{"users":128,"searches":2341}'); } catch { return {users:128,searches:2341}; } }
 function incSearch() { const s=getStats(); s.searches=(s.searches||0)+1; localStorage.setItem(SKEY,JSON.stringify(s)); renderStats(); }
+/* ════════════════════════════════════════
+   면담기록 · 병원 관리 (기본: 이 폰에만 저장 / localStorage)
+════════════════════════════════════════ */
+const VS_KEY = 'allai_visits_v1';
+let VS = { visits: [], hospitals: {} };   // hospitals: { 병원명: { docs: { 이름: {title, dept, last} }, last } }
+let vsSel = null, vsMonth = null, vsReactVal = '';
+function vsLoad() { try { const d = JSON.parse(localStorage.getItem(VS_KEY) || 'null'); if (d && d.visits) VS = d; } catch (e) {} }
+function vsPersist() { try { localStorage.setItem(VS_KEY, JSON.stringify(VS)); } catch (e) { alert('저장 공간이 부족해요. 파일로 백업 후 정리해 주세요.'); } }
+function vsDate(k) { const [y, m, d] = k.split('-').map(Number); return new Date(y, m - 1, d); }
+function vsYmd(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+function vsEsc(t) { return String(t || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+const VS_REACT = { good: '😀', soso: '😐', bad: '😟' };
+
+function vsInit() {
+  vsLoad();
+  const t = new Date();
+  if (!vsSel) vsSel = vsYmd(t);
+  if (!vsMonth) vsMonth = new Date(t.getFullYear(), t.getMonth(), 1);
+  vsRenderCal(); vsRenderDay();
+}
+function vsToggleStoreInfo() { const el = document.getElementById('vsStoreInfo'); el.style.display = el.style.display === 'none' ? 'flex' : 'none'; }
+function vsSetTab(t) {
+  document.getElementById('vsTabCal').classList.toggle('on', t === 'cal');
+  document.getElementById('vsTabHosp').classList.toggle('on', t === 'hosp');
+  document.getElementById('vsCalView').style.display = t === 'cal' ? '' : 'none';
+  document.getElementById('vsHospView').style.display = t === 'hosp' ? '' : 'none';
+  if (t === 'hosp') vsRenderHosp();
+}
+function vsMoveMonth(n) { vsMonth = new Date(vsMonth.getFullYear(), vsMonth.getMonth() + n, 1); vsRenderCal(); }
+function vsRenderCal() {
+  const y = vsMonth.getFullYear(), m = vsMonth.getMonth();
+  document.getElementById('vsMonthLabel').textContent = `${y}년 ${m + 1}월`;
+  const start = new Date(y, m, 1 - new Date(y, m, 1).getDay());
+  const today = vsYmd(new Date());
+  const count = {}; VS.visits.forEach(v => { count[v.date] = (count[v.date] || 0) + 1; });
+  let html = '';
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+    const k = vsYmd(d), c = count[k] || 0;
+    if (i >= 35 && d.getMonth() !== m) break;
+    const cls = ['vs-d', d.getMonth() !== m ? 'out' : '', d.getDay() === 0 ? 'sun' : '', d.getDay() === 6 ? 'sat' : '', k === today ? 'today' : '', k === vsSel ? 'sel' : ''].join(' ');
+    html += `<button class="${cls}" onclick="vsPick('${k}')">${d.getDate()}<i>${'<em></em>'.repeat(Math.min(c, 3))}</i></button>`;
+  }
+  document.getElementById('vsCalGrid').innerHTML = html;
+}
+function vsPick(k) {
+  vsSel = k;
+  const d = vsDate(k);
+  if (d.getMonth() !== vsMonth.getMonth()) vsMonth = new Date(d.getFullYear(), d.getMonth(), 1);
+  vsRenderCal(); vsRenderDay();
+}
+function vsRenderDay() {
+  const d = vsDate(vsSel);
+  document.getElementById('vsDayLabel').textContent = `${d.getMonth() + 1}월 ${d.getDate()}일 (${'일월화수목금토'[d.getDay()]})`;
+  const list = VS.visits.filter(v => v.date === vsSel).sort((a, b) => a.createdAt - b.createdAt);
+  document.getElementById('vsDayList').innerHTML = list.length ? list.map(v => `
+    <div class="vs-card" onclick="vsOpenForm('${v.id}')">
+      <div class="vs-card-top"><b>${vsEsc(v.hosp)}</b><span>${vsEsc(v.doc)} ${vsEsc(v.title || '')}${v.dept ? ' · ' + vsEsc(v.dept) : ''}</span>${v.react ? `<span style="margin-left:auto;font-size:1rem;">${VS_REACT[v.react]}</span>` : ''}</div>
+      ${v.note ? `<p>${vsEsc(v.note)}</p>` : ''}
+      ${v.next ? `<div class="nx">→ ${vsEsc(v.next)}${v.nextDate ? ' (' + v.nextDate.slice(5).replace('-', '/') + ')' : ''}</div>` : ''}
+    </div>`).join('') : '<div class="vs-empty">이 날의 기록이 없어요<br>＋ 기록 추가를 눌러 작성하세요</div>';
+}
+
+function vsOpenForm(id) {
+  const v = id ? VS.visits.find(x => x.id === id) : null;
+  document.getElementById('vsEditId').value = v ? v.id : '';
+  const fd = vsDate(v ? v.date : vsSel);
+  document.getElementById('vsFormTitle').textContent = `${fd.getMonth() + 1}월 ${fd.getDate()}일 면담 기록`;
+  document.getElementById('vsHosp').value = v ? v.hosp : '';
+  document.getElementById('vsDoc').value = v ? v.doc : '';
+  document.getElementById('vsDocTitle').value = v ? (v.title || '교수') : '교수';
+  document.getElementById('vsDept').value = v ? (v.dept || '') : '';
+  document.getElementById('vsNote').value = v ? (v.note || '') : '';
+  document.getElementById('vsNext').value = v ? (v.next || '') : '';
+  document.getElementById('vsNextDate').value = v ? (v.nextDate || '') : '';
+  vsReactVal = v ? (v.react || '') : '';
+  document.querySelectorAll('#vsReact button').forEach(b => b.classList.toggle('on', b.dataset.v === vsReactVal));
+  document.getElementById('vsDelBtn').style.display = v ? '' : 'none';
+  vsRenderHospChips(); vsRenderDocChips();
+  document.getElementById('vsSheetBg').classList.add('on');
+}
+function vsCloseForm() { document.getElementById('vsSheetBg').classList.remove('on'); }
+function vsPickReact(b) { vsReactVal = vsReactVal === b.dataset.v ? '' : b.dataset.v; document.querySelectorAll('#vsReact button').forEach(x => x.classList.toggle('on', x.dataset.v === vsReactVal)); }
+
+// 병원: 최근 방문순, 입력값으로 걸러서 칩으로
+function vsRenderHospChips() {
+  const q = document.getElementById('vsHosp').value.trim().replace(/\s+/g, '');
+  const names = Object.entries(VS.hospitals).sort((a, b) => (b[1].last || '').localeCompare(a[1].last || '')).map(e => e[0]);
+  const list = names.filter(n => !q || n.replace(/\s+/g, '').includes(q)).slice(0, 12);
+  const cur = document.getElementById('vsHosp').value.trim();
+  document.getElementById('vsHospChips').innerHTML = list.map(n => `<button class="${n === cur ? 'on' : ''}" onclick="vsPickHosp('${vsEsc(n).replace(/'/g, '&#39;')}')">${vsEsc(n)}</button>`).join('');
+}
+function vsPickHosp(n) { document.getElementById('vsHosp').value = n; vsRenderHospChips(); vsRenderDocChips(); }
+// 선택한 병원에서 만난 분들 (없으면 전체에서)
+function vsRenderDocChips() {
+  const hosp = document.getElementById('vsHosp').value.trim();
+  const q = document.getElementById('vsDoc').value.trim();
+  const H = VS.hospitals[hosp];
+  let docs = H ? Object.entries(H.docs) : [];
+  if (!H) Object.values(VS.hospitals).forEach(h => docs.push(...Object.entries(h.docs)));
+  docs.sort((a, b) => (b[1].last || '').localeCompare(a[1].last || ''));
+  const seen = new Set();
+  const list = docs.filter(([n]) => (!q || n.includes(q)) && !seen.has(n) && seen.add(n)).slice(0, 12);
+  document.getElementById('vsDocChips').innerHTML = list.map(([n, d]) => `<button class="${n === q ? 'on' : ''}" onclick="vsPickDoc('${vsEsc(n).replace(/'/g, '&#39;')}')">${vsEsc(n)}<small>${vsEsc(d.title || '')}</small></button>`).join('');
+}
+function vsPickDoc(n) {
+  const hosp = document.getElementById('vsHosp').value.trim();
+  let d = VS.hospitals[hosp]?.docs[n];
+  if (!d) for (const h of Object.values(VS.hospitals)) if (h.docs[n]) { d = h.docs[n]; break; }
+  document.getElementById('vsDoc').value = n;
+  if (d) { document.getElementById('vsDocTitle').value = d.title || '교수'; if (d.dept && !document.getElementById('vsDept').value) document.getElementById('vsDept').value = d.dept; }
+  vsRenderDocChips();
+}
+function vsSave() {
+  const g = id => document.getElementById(id).value.trim();
+  const hosp = g('vsHosp'), doc = g('vsDoc');
+  if (!hosp) { alert('병원 이름을 입력해 주세요'); return; }
+  const id = g('vsEditId');
+  const old = id ? VS.visits.find(x => x.id === id) : null;
+  const v = { id: id || ('v' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)), date: old ? old.date : vsSel,
+    hosp, doc, title: doc ? g('vsDocTitle') : '', dept: g('vsDept'), note: g('vsNote'), react: vsReactVal,
+    next: g('vsNext'), nextDate: g('vsNextDate'), createdAt: old ? old.createdAt : Date.now(), updatedAt: Date.now() };
+  if (old) Object.assign(old, v); else VS.visits.push(v);
+  // 병원·교수님 기억
+  const H = VS.hospitals[hosp] = VS.hospitals[hosp] || { docs: {} };
+  if (!H.last || v.date > H.last) H.last = v.date;
+  if (doc) { const D = H.docs[doc] = H.docs[doc] || {}; D.title = v.title; if (v.dept) D.dept = v.dept; if (!D.last || v.date > D.last) D.last = v.date; }
+  vsPersist(); vsCloseForm(); vsRenderCal(); vsRenderDay();
+}
+function vsDelete() {
+  const id = document.getElementById('vsEditId').value;
+  if (!id || !confirm('이 기록을 삭제할까요?')) return;
+  VS.visits = VS.visits.filter(x => x.id !== id);
+  vsPersist(); vsCloseForm(); vsRenderCal(); vsRenderDay();
+}
+function vsRenderHosp() {
+  const el = document.getElementById('vsHospView');
+  const names = Object.keys(VS.hospitals);
+  if (!names.length) { el.innerHTML = '<div class="vs-empty">아직 기록한 병원이 없어요<br>달력에서 첫 면담을 기록해 보세요</div>'; return; }
+  const byH = {}; VS.visits.forEach(v => (byH[v.hosp] = byH[v.hosp] || []).push(v));
+  names.sort((a, b) => (VS.hospitals[b].last || '').localeCompare(VS.hospitals[a].last || ''));
+  el.innerHTML = names.map((n, i) => {
+    const logs = (byH[n] || []).sort((a, b) => b.date.localeCompare(a.date));
+    const docs = Object.entries(VS.hospitals[n].docs);
+    return `<div class="vs-h" id="vsh${i}">
+      <div class="vs-h-top" onclick="document.getElementById('vsh${i}').classList.toggle('open')">
+        <b>🏥 ${vsEsc(n)}</b><span>면담 ${logs.length}회<br>최근 ${(VS.hospitals[n].last || '-').slice(2).replace(/-/g, '.')}</span>
+      </div>
+      <div class="vs-h-body">
+        ${docs.length ? `<div class="vs-h-docs">${docs.map(([dn, d]) => `<span>${vsEsc(dn)} ${vsEsc(d.title || '')}${d.dept ? ' · ' + vsEsc(d.dept) : ''}</span>`).join('')}</div>` : ''}
+        ${logs.slice(0, 20).map(v => `<div class="vs-h-log" onclick="vsSetTab('cal');vsPick('${v.date}')"><em>${v.date.slice(5).replace('-', '/')}</em>${vsEsc(v.doc)} ${VS_REACT[v.react] || ''} ${vsEsc((v.note || '').slice(0, 40))}</div>`).join('')}
+      </div></div>`;
+  }).join('');
+}
+// 파일 백업 / 복원 (로그인 없이 기록 보관)
+function vsExport() {
+  const blob = new Blob([JSON.stringify(VS, null, 1)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = `ALLAI_면담기록_${vsYmd(new Date())}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+function vsImport(input) {
+  const f = input.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const d = JSON.parse(r.result);
+      if (!d.visits || !d.hospitals) throw 0;
+      const ids = new Set(VS.visits.map(v => v.id));
+      d.visits.forEach(v => { if (!ids.has(v.id)) VS.visits.push(v); });
+      for (const [n, h] of Object.entries(d.hospitals)) {
+        const H = VS.hospitals[n] = VS.hospitals[n] || { docs: {} };
+        if (!H.last || (h.last && h.last > H.last)) H.last = h.last;
+        Object.assign(H.docs, h.docs, H.docs);
+      }
+      vsPersist(); vsRenderCal(); vsRenderDay(); alert(`불러오기 완료 (${d.visits.length}건 확인)`);
+    } catch (e) { alert('ALLAI 면담기록 백업 파일이 아니에요'); }
+    input.value = '';
+  };
+  r.readAsText(f);
+}
+
 function renderStats() { const s=getStats(); const ue=document.getElementById('statUsers'); const se=document.getElementById('statSearches'); if(ue) ue.textContent=s.users.toLocaleString()+'명'; if(se) se.textContent=s.searches.toLocaleString()+'회'; }
 
 function openRecentItem(id) {

@@ -971,6 +971,18 @@
     .vs-h-log { font-size: 0.8rem; line-height: 1.6; padding: 7px 0; border-bottom: 1px dashed rgba(0,0,0,0.07); cursor: pointer; }
     .vs-h-log:last-child { border-bottom: none; }
     .vs-h-log em { font-style: normal; color: var(--sub); font-weight: 700; margin-right: 6px; }
+    /* MR 한마디 */
+    .say-cnt { font-size: 0.64rem; font-weight: 700; color: var(--sub2); margin-left: 4px; }
+    .say-by { font-size: 0.72rem; color: var(--sub); margin-top: 4px; }
+    .say-fade { animation: sayIn .5s ease; }
+    @keyframes sayIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+    .say-item { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; margin-top: 8px; }
+    .say-item p { margin: 0; font-size: 0.88rem; line-height: 1.55; }
+    .say-item small { display: block; font-size: 0.7rem; color: var(--sub2); margin-top: 5px; }
+    .say-rules { font-size: 0.72rem; color: var(--sub); background: var(--card2); border-radius: 12px; padding: 10px 12px; line-height: 1.6; margin-top: 10px; }
+    .say-adm { display: flex; gap: 6px; margin-top: 8px; }
+    .say-adm button { flex: 1; font: inherit; font-size: 0.8rem; font-weight: 800; padding: 9px; border-radius: 10px; border: none; cursor: pointer; }
+    .admin-bar { margin: 8px 16px 0; padding: 11px 14px; border-radius: 14px; background: #fff; border: 1px dashed rgba(30,58,95,0.35); font-size: 0.8rem; font-weight: 700; color: #1E3A5F; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
     /* 창립 멤버 · PRO */
     .fm-banner:empty { display: none; }
     .fm-banner { margin: 14px 16px 0; padding: 14px 16px; border-radius: var(--r-md); background: linear-gradient(135deg, #1E3A5F, #2D4F7C); color: #fff; box-shadow: 0 8px 24px rgba(30,58,95,0.22); }
@@ -1080,6 +1092,7 @@
 
     <!-- 창립 멤버 -->
     <div class="fm-banner" id="fmBanner"></div>
+    <div id="adminBar"></div>
 
     <!-- 기능 메뉴 -->
     <div class="sec-head">
@@ -1341,6 +1354,14 @@
     <div id="vsHospView" style="display:none;padding:0 16px 24px;"></div>
   </div>
 
+  <!-- MR 한마디 시트 -->
+  <div class="vs-sheet-bg" id="saySheet" onclick="if(event.target===this)this.classList.remove('on')">
+    <div class="vs-sheet">
+      <div class="admin-handle"></div>
+      <div id="sayBody"></div>
+    </div>
+  </div>
+
   <!-- 면담 기록 작성 시트 -->
   <div class="vs-sheet-bg" id="vsSheetBg" onclick="if(event.target===this)vsCloseForm()">
     <div class="vs-sheet">
@@ -1560,18 +1581,32 @@ function getTodayMrSay() {
   return pick;
 }
 
+let _says = [], _sayIdx = 0, _sayTimer = null;
+function sayEsc(t) { return String(t || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 function renderMrSay() {
   const el = document.getElementById('mrSayWrap');
-  const say = getTodayMrSay();
-  if (!say) { el.innerHTML = ''; return; }
-  el.innerHTML = `
-    <div class="mr-say-card">
+  const base = getTodayMrSay();
+  const show = () => {
+    const s = _says.length ? _says[_sayIdx % _says.length] : null;
+    const text = s ? sayEsc(s.text) : (base ? base.text : '');
+    if (!text) { el.innerHTML = ''; return; }
+    el.innerHTML = `
+    <div class="mr-say-card" onclick="sayOpen()" style="cursor:pointer;">
       <div class="mr-say-icon">📣</div>
-      <div>
-        <div class="mr-say-label">오늘 MR 한마디</div>
-        <div class="mr-say-text">${say.text}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="mr-say-label">오늘 MR 한마디 ${_says.length ? `<span class="say-cnt">${(_sayIdx % _says.length) + 1}/${_says.length}</span>` : ''}</div>
+        <div class="mr-say-text say-fade">${text}</div>
+        <div class="say-by">${s ? `— ${sayEsc(s.sido || '지역 비공개')} · 익명 MR` : '✍️ 눌러서 한마디 남기기'}</div>
       </div>
     </div>`;
+  };
+  show();
+  fetch('/api/say').then(r => r.json()).then(d => {
+    if (!d.ok || !d.items?.length) return;
+    _says = d.items; _sayIdx = Math.floor(Math.random() * _says.length); show();
+    clearInterval(_sayTimer);
+    _sayTimer = setInterval(() => { _sayIdx++; show(); }, 6000);
+  }).catch(() => {});
 }
 
 /* ════════════════════════════════════════
@@ -3939,7 +3974,7 @@ async function fmJoin() {
     const r = await (await fetch('/api/member', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: tok }) })).json();
     if (!r.ok) throw new Error(r.error || '등록 실패');
     localStorage.setItem(FM_KEY, JSON.stringify({ email: r.email, joinedAt: r.joinedAt, tier: 'founder' }));
-    fmRender();
+    fmRender(); adminBarRender();
     showToast(r.already ? '이미 창립 멤버로 등록되어 있어요 🎖' : '창립 멤버로 등록됐어요! 🎖');
   } catch (e) {
     showToast(/popup/i.test(e.message) ? '로그인 창이 닫혔어요' : '등록에 실패했어요. 잠시 후 다시 시도해 주세요');
@@ -3962,6 +3997,116 @@ function fmRender() {
   }
 }
 fmRender();
+
+/* ── MR 한마디: 목록 · 작성 (창립 멤버) · 관리자 승인 ── */
+const SAY_ADMINS = ['junhoangel@gmail.com', 'k.no1.realtor@gmail.com'];
+let _idTok = null, _idTokExp = 0;
+async function idToken() {                        // 구글 로그인 (이메일 확인용), 50분 재사용
+  if (_idTok && Date.now() < _idTokExp) return _idTok;
+  await gLoad();
+  return new Promise((ok, no) => {
+    const c = google.accounts.oauth2.initTokenClient({ client_id: G_CLIENT_ID, scope: 'openid email profile',
+      callback: r => { if (r.error) return no(new Error(r.error)); _idTok = r.access_token; _idTokExp = Date.now() + 50 * 60e3; ok(_idTok); },
+      error_callback: e => no(new Error(e?.type || 'popup')) });
+    c.requestAccessToken({ prompt: '' });
+  });
+}
+async function sayApi(body) {
+  const r = await fetch('/api/say', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...body, token: await idToken() }) });
+  return r.json();
+}
+function sayOpen(tab) {
+  document.getElementById('saySheet').classList.add('on');
+  if (tab === 'write') return sayWrite();
+  const sidoOpts = ['<option value="">전체 지역</option>', ...(typeof ST_SIDO !== 'undefined' ? ST_SIDO : []).map(([, n]) => `<option>${n}</option>`)].join('');
+  document.getElementById('sayBody').innerHTML = `
+    <div class="vs-sheet-title">📣 MR 한마디</div>
+    <div style="font-size:0.78rem;color:var(--sub);">현장 MR들이 남긴 한마디예요. 지역만 공개되고 이름은 익명이에요.</div>
+    <div class="vs-row" style="margin-top:12px;">
+      <select class="vs-in" id="sayFilter" onchange="sayList()">${sidoOpts}</select>
+      <button class="vs-add" style="flex:0 0 auto;" onclick="sayWrite()">✍️ 한마디 쓰기</button>
+    </div>
+    <div id="sayListBox"></div>`;
+  sayList();
+}
+function sayList() {
+  const f = document.getElementById('sayFilter')?.value || '';
+  const box = document.getElementById('sayListBox'); if (!box) return;
+  const list = _says.filter(s => !f || s.sido === f);
+  box.innerHTML = list.length ? list.map(s => `<div class="say-item"><p>${sayEsc(s.text)}</p><small>${sayEsc(s.sido || '지역 비공개')} · 익명 MR · ${String(s.at || '').slice(0, 10).replace(/-/g, '.')}</small></div>`).join('')
+    : '<div class="vs-empty" style="margin-top:10px;">아직 한마디가 없어요. 첫 한마디를 남겨 주세요!</div>';
+}
+function sayWrite() {
+  const body = document.getElementById('sayBody');
+  if (!fmGet()) {
+    body.innerHTML = `<div class="vs-sheet-title">✍️ 한마디 쓰기</div>
+      <div class="say-rules" style="font-size:0.82rem;">한마디는 <b>창립 멤버</b>만 쓸 수 있어요.<br>구글 로그인으로 등록하면 나중에 유료 기능도 평생 무료예요.</div>
+      <div class="vs-form-btns"><button class="vs-cancel" onclick="sayOpen()">목록</button><button class="vs-save" onclick="fmJoin().then(()=>fmGet()&&sayWrite())">🎖 창립 멤버 등록하기</button></div>`;
+    return;
+  }
+  const sidoOpts = (typeof ST_SIDO !== 'undefined' ? ST_SIDO : []).map(([, n]) => `<option>${n}</option>`).join('');
+  body.innerHTML = `
+    <div class="vs-sheet-title">✍️ 한마디 쓰기</div>
+    <label class="vs-lb">내 지역</label>
+    <select class="vs-in" id="saySido">${sidoOpts}<option value="">비공개</option></select>
+    <label class="vs-lb">한마디 <small id="sayLen">0/120</small></label>
+    <textarea class="vs-in" id="sayText" rows="3" maxlength="120" placeholder="현장 팁, 응원, 요즘 분위기 등 동료 MR에게 한마디" oninput="document.getElementById('sayLen').textContent=this.value.length+'/120'"></textarea>
+    <div class="say-rules">✔ 이름은 공개되지 않고 <b>지역만</b> 표시돼요.<br>✔ 운영자 확인 후 게시돼요.<br>✖ 병원·의사 실명, 리베이트, 특정인·회사 비방 글은 게시되지 않아요.</div>
+    <div class="vs-form-btns"><button class="vs-cancel" onclick="sayOpen()">목록</button><button class="vs-save" id="saySubmit" onclick="saySubmit()">올리기</button></div>`;
+  try { const last = localStorage.getItem('allai_say_sido'); if (last !== null) document.getElementById('saySido').value = last; } catch (e) {}
+}
+async function saySubmit() {
+  const text = document.getElementById('sayText').value.trim(), sido = document.getElementById('saySido').value;
+  if (text.length < 5) { showToast('5자 이상 적어 주세요'); return; }
+  const btn = document.getElementById('saySubmit'); btn.disabled = true; btn.textContent = '올리는 중…';
+  try {
+    const r = await sayApi({ action: 'post', text, sido });
+    if (!r.ok) throw new Error(r.error);
+    try { localStorage.setItem('allai_say_sido', sido); } catch (e) {}
+    document.getElementById('sayBody').innerHTML = `<div style="text-align:center;padding:26px 0;"><div style="font-size:2rem;">🙌</div>
+      <b style="display:block;margin:8px 0 4px;">한마디가 접수됐어요</b><span style="font-size:0.8rem;color:var(--sub);">운영자 확인 후 홈에 게시돼요.</span>
+      <div class="vs-form-btns"><button class="vs-save" onclick="document.getElementById('saySheet').classList.remove('on')">확인</button></div></div>`;
+  } catch (e) {
+    const m = { limit: '오늘은 5개까지 쓸 수 있어요', not_member: '창립 멤버만 쓸 수 있어요', length: '5~120자로 적어 주세요' }[e.message];
+    showToast(m || '올리지 못했어요. 잠시 후 다시 시도해 주세요');
+    btn.disabled = false; btn.textContent = '올리기';
+  }
+}
+// 관리자
+function isSayAdmin() { const m = fmGet(); return !!(m && SAY_ADMINS.includes(String(m.email).toLowerCase())); }
+function adminBarRender() {
+  const el = document.getElementById('adminBar'); if (!el) return;
+  el.innerHTML = isSayAdmin() ? `<div class="admin-bar" onclick="sayAdmin()"><span>🛠 관리자 · 한마디 승인하기</span><span>›</span></div>` : '';
+}
+async function sayAdmin() {
+  document.getElementById('saySheet').classList.add('on');
+  const body = document.getElementById('sayBody');
+  body.innerHTML = `<div class="vs-sheet-title">🛠 한마디 승인</div><div class="vs-empty">불러오는 중…</div>`;
+  try {
+    const r = await sayApi({ action: 'queue' });
+    if (!r.ok) throw new Error(r.error);
+    body.innerHTML = `<div class="vs-sheet-title">🛠 한마디 승인 <span style="font-size:0.8rem;color:var(--sub);">대기 ${r.items.length}건</span></div>
+      <div class="say-rules">${r.ntfyTopic
+        ? `🔔 폰 알림 연결됨 · ntfy 앱 주제: <b style="user-select:all;">${r.ntfyTopic}</b><br>새 한마디·창립 멤버 가입 시 알림이 와요.`
+        : `🔔 폰 알림이 아직 꺼져 있어요.<br>① Play스토어에서 <b>ntfy</b> 앱 설치 → ② 아래 버튼으로 주제 만들기 → ③ ntfy 앱 ＋ 버튼에 주제 입력`}
+        <div style="margin-top:8px;"><button class="vs-add" onclick="saySetup()">${r.ntfyTopic ? '주제 새로 만들기' : '🔔 알림 주제 만들기'}</button></div></div>
+      ${r.items.map(s => `<div class="say-item" id="sq_${s.id}"><p>${sayEsc(s.text)}</p>
+        <small>${sayEsc(s.sido || '비공개')} · ${sayEsc(s.email)} · ${String(s.at || '').slice(0, 16).replace('T', ' ')}</small>
+        <div class="say-adm"><button style="background:rgba(239,68,68,0.1);color:var(--red);" onclick="sayReview('${s.id}','reject')">숨기기</button>
+        <button style="background:var(--g1);color:#fff;" onclick="sayReview('${s.id}','approve')">승인</button></div></div>`).join('') || '<div class="vs-empty" style="margin-top:10px;">승인 대기 중인 한마디가 없어요</div>'}`;
+  } catch (e) { body.innerHTML = `<div class="vs-sheet-title">🛠 한마디 승인</div><div class="vs-empty">불러오지 못했어요 (${sayEsc(e.message)})</div>`; }
+}
+async function sayReview(id, action) {
+  const r = await sayApi({ action, id });
+  if (r.ok) { document.getElementById('sq_' + id)?.remove(); showToast(action === 'approve' ? '승인했어요 ✅' : '숨겼어요'); renderMrSay(); }
+  else showToast('처리 실패: ' + r.error);
+}
+async function saySetup() {
+  const r = await sayApi({ action: 'setup' });
+  if (r.ok) sayAdmin(); else showToast('실패: ' + r.error);
+}
+adminBarRender();
+if (location.hash === '#admin-say') setTimeout(() => { if (isSayAdmin()) sayAdmin(); }, 800);
 
 function renderStats() { const s=getStats(); const ue=document.getElementById('statUsers'); const se=document.getElementById('statSearches'); if(ue) ue.textContent=s.users.toLocaleString()+'명'; if(se) se.textContent=s.searches.toLocaleString()+'회'; }
 

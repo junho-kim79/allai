@@ -41,6 +41,19 @@ export default async function handler(req, res) {
     const w = await fetch(base, { method: "PATCH", headers: H, body: JSON.stringify({ fields: {
       email: { stringValue: email }, name: { stringValue: u.name || "" }, tier: { stringValue: "founder" }, joinedAt: { timestampValue: now } } }) });
     if (!w.ok) return res.status(200).json({ ok: false, error: "db_" + w.status, detail: (await w.text()).slice(0, 200) });
+    // 관리자 폰으로 가입 알림 (ntfy, 관리자 화면에서 연결한 경우)
+    try {
+      const cfg = await fetch(`https://firestore.googleapis.com/v1/projects/${acc.project_id}/databases/(default)/documents/config/admin`, { headers: H });
+      const topic = cfg.ok ? (await cfg.json()).fields?.ntfyTopic?.stringValue : "";
+      if (topic) {
+        const q = await fetch(`https://firestore.googleapis.com/v1/projects/${acc.project_id}/databases/(default)/documents:runAggregationQuery`, { method: "POST", headers: H,
+          body: JSON.stringify({ structuredAggregationQuery: { structuredQuery: { from: [{ collectionId: "members" }] }, aggregations: [{ alias: "n", count: {} }] } }) });
+        const n = q.ok ? (await q.json())?.[0]?.result?.aggregateFields?.n?.integerValue : "";
+        const masked = email.replace(/^(.{2}).*(@.*)$/, "$1***$2");
+        await fetch(`https://ntfy.sh/${topic}`, { method: "POST", headers: { Title: encodeURIComponent("ALLAI 창립 멤버 가입"), Tags: "tada", "Content-Type": "text/plain; charset=utf-8" },
+          body: `${u.name || "새 회원"} (${masked})${n ? ` · 총 ${n}명` : ""}` });
+      }
+    } catch (e) {}
     return res.status(200).json({ ok: true, already: false, joinedAt: now, email });
   } catch (e) { return res.status(200).json({ ok: false, error: String(e.message || e).slice(0, 200) }); }
 }

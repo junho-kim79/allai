@@ -971,6 +971,20 @@
     .vs-h-log { font-size: 0.8rem; line-height: 1.6; padding: 7px 0; border-bottom: 1px dashed rgba(0,0,0,0.07); cursor: pointer; }
     .vs-h-log:last-child { border-bottom: none; }
     .vs-h-log em { font-style: normal; color: var(--sub); font-weight: 700; margin-right: 6px; }
+    /* 창립 멤버 · PRO */
+    .fm-banner:empty { display: none; }
+    .fm-banner { margin: 14px 16px 0; padding: 14px 16px; border-radius: var(--r-md); background: linear-gradient(135deg, #1E3A5F, #2D4F7C); color: #fff; box-shadow: 0 8px 24px rgba(30,58,95,0.22); }
+    .fm-banner b { font-size: 0.95rem; font-weight: 900; display: block; }
+    .fm-banner p { font-size: 0.76rem; line-height: 1.6; margin: 5px 0 10px; color: rgba(255,255,255,0.82); }
+    .fm-banner button { font: inherit; font-size: 0.8rem; font-weight: 800; padding: 9px 14px; border-radius: 999px; border: none; background: #fff; color: #1E3A5F; cursor: pointer; }
+    .fm-banner.done { background: linear-gradient(135deg, #b8860b, #d4a52a); }
+    .fm-banner small { display: block; font-size: 0.7rem; color: rgba(255,255,255,0.75); margin-top: 6px; }
+    .pro-tag { display: inline-block; font-size: 0.58rem; font-weight: 900; letter-spacing: .04em; color: #fff; background: #1E3A5F; border-radius: 5px; padding: 2px 5px; vertical-align: 2px; margin-left: 3px; }
+    .pro-lock { position: relative; overflow: hidden; }
+    .pro-lock > *:not(h4):not(.pro-veil) { filter: blur(6px); pointer-events: none; user-select: none; }
+    .pro-veil { position: absolute; inset: 42px 0 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; padding: 10px 16px; background: rgba(255,255,255,0.35); }
+    .pro-veil b { font-size: 0.86rem; font-weight: 900; }
+    .pro-veil span { font-size: 0.74rem; color: var(--sub); line-height: 1.5; }
     /* 더보기 (Coming Soon 축소) */
     .more-list { margin: 0 16px; background: rgba(255,255,255,0.85); border: 1px solid rgba(180,140,80,0.10); border-radius: var(--r-md); overflow: hidden; }
     .more-row { display: flex; align-items: center; gap: 12px; padding: 14px 16px; cursor: pointer; transition: background .15s; }
@@ -1063,6 +1077,9 @@
       </div>
       <div class="recent-list" id="recentList"></div>
     </div>
+
+    <!-- 창립 멤버 -->
+    <div class="fm-banner" id="fmBanner"></div>
 
     <!-- 기능 메뉴 -->
     <div class="sec-head">
@@ -1209,7 +1226,8 @@
   </button>
   <div id="shareMenu" style="display:none;position:absolute;top:110%;right:0;background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow-md);overflow:hidden;min-width:160px;z-index:50;">
     <button onclick="downloadShareImg()" style="width:100%;padding:12px 16px;text-align:left;border:none;background:none;font-family:inherit;font-size:0.88rem;font-weight:700;cursor:pointer;border-bottom:1px solid var(--border);">🖼️ 이미지 저장</button>
-    <button onclick="printComp()" style="width:100%;padding:12px 16px;text-align:left;border:none;background:none;font-family:inherit;font-size:0.88rem;font-weight:700;cursor:pointer;">🖨️ 프린트</button>
+    <button onclick="printComp()" style="width:100%;padding:12px 16px;text-align:left;border:none;background:none;font-family:inherit;font-size:0.88rem;font-weight:700;cursor:pointer;border-bottom:1px solid var(--border);">🖨️ 프린트</button>
+    <button onclick="exportCompExcel()" style="width:100%;padding:12px 16px;text-align:left;border:none;background:none;font-family:inherit;font-size:0.88rem;font-weight:700;cursor:pointer;">📊 엑셀로 내보내기 <span class="pro-tag">PRO</span></button>
   </div>
 </div>
     </div>
@@ -2236,8 +2254,10 @@ ${compItems.length ? `<div class="detail-section">
   priceEl.innerHTML = html;
 }
 
-// AI 호출 (캐시 없을 때만) - 약가 계산과 동시 실행
+// AI 호출 (캐시 없을 때만) - 약가 계산과 동시 실행 · 무료는 하루 3회 (유료 스위치 켜졌을 때만 제한)
   if (!cached) {
+    if (!proAllowAI()) { proLockAI(); return; }
+    proCountAI();
     fetchAISummary(name, ingr, company, efcy, useMethod, cacheKey);
   }
 }
@@ -3470,8 +3490,8 @@ async function stRun() {
         <div><small>전년 동월 대비</small>${months.length >= 13 ? stPct(last.amt, yoy.amt) : '<b>-</b>'}</div>
       </div>
     </div>
-    <div class="st-card">
-      <h4>최근 12개월 처방액 추이</h4>
+    <div class="st-card ${proLocked() ? 'pro-lock' : ''}">
+      <h4>최근 12개월 처방액 추이 <span class="pro-tag">PRO</span></h4>
       <div class="st-seg" id="stSeg">
         ${bySggu.length > 1 ? `<button data-v="sggu">시·군·구별</button>` : ''}
         <button data-v="type">기관 종별</button>
@@ -3480,12 +3500,12 @@ async function stRun() {
       </div>
       <div id="stLine"></div>
     </div>
-    <div class="st-card">
-      <h4>의료기관 종별 처방액<small>${stYm(last.ym)}</small></h4>
+    <div class="st-card ${proLocked() ? 'pro-lock' : ''}">
+      <h4>의료기관 종별 처방액 <span class="pro-tag">PRO</span><small>${stYm(last.ym)}</small></h4>
       ${types.map(([t, v]) => `<div class="st-hrow"><span class="l">${ST_TYPE[t] || t}</span><span class="t"><i style="width:${Math.round(v / typeMax * 100)}%"></i></span><span class="v">${stWon(v)}</span></div>`).join('') || '<div class="st-note">데이터 없음</div>'}
     </div>
-    ${bySggu.length > 1 ? `<div class="st-card">
-      <h4>시·군·구 순위<small>${stYm(last.ym)} 처방액</small></h4>
+    ${bySggu.length > 1 ? `<div class="st-card ${proLocked() ? 'pro-lock' : ''}">
+      <h4>시·군·구 순위 <span class="pro-tag">PRO</span><small>${stYm(last.ym)} 처방액</small></h4>
       ${bySggu.map((s, i) => `<div class="st-hrow"><span class="l">${i + 1}. ${s.name}</span><span class="t"><i style="width:${Math.round(s.amt / sgMax * 100)}%;background:var(--blue);"></i></span><span class="v">${stWon(s.amt)}</span></div>`).join('')}
     </div>` : ''}
     <div class="st-note" style="padding:0 4px 20px;" id="stNoteEnd">
@@ -3494,6 +3514,7 @@ async function stRun() {
     </div>`;
   document.querySelectorAll('#stSeg button').forEach(bt => bt.onclick = () => stDrawLine(bt.dataset.v));
   stDrawLine(bySggu.length > 1 ? 'sggu' : 'type');
+  proDecorateLocks(el);
 }
 
 
@@ -3855,6 +3876,91 @@ function vsImport(input) {
   };
   r.readAsText(f);
 }
+
+/* ════════════════════════════════════════
+   창립 멤버 · 유료(PRO) 기능
+   PAYWALL_ON = false 인 동안은 모두 무료 (PRO 표시만)
+   켜면: 무료 AI 하루 3회 · PRO 카드/엑셀은 "유료 전환 시 공개"
+════════════════════════════════════════ */
+const PAYWALL_ON = false;
+const FM_KEY = 'allai_member_v1', AI_CNT_KEY = 'allai_ai_count_v1', AI_FREE_PER_DAY = 3;
+const PRO_MSG = '유료 전환 시 공개됩니다';
+function fmGet() { try { return JSON.parse(localStorage.getItem(FM_KEY) || 'null'); } catch (e) { return null; } }
+function isPro() { const m = fmGet(); return !!(m && (m.tier === 'founder' || m.tier === 'pro')); }
+function proLocked() { return PAYWALL_ON && !isPro(); }
+function proToday() { const d = new Date(); return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; }
+function proAIUsed() { try { const c = JSON.parse(localStorage.getItem(AI_CNT_KEY) || '{}'); return c.day === proToday() ? c.n : 0; } catch (e) { return 0; } }
+function proCountAI() { try { localStorage.setItem(AI_CNT_KEY, JSON.stringify({ day: proToday(), n: proAIUsed() + 1 })); } catch (e) {} }
+function proAllowAI() { return !proLocked() || proAIUsed() < AI_FREE_PER_DAY; }
+function proLockAI() {
+  const body = document.getElementById('aiBody'); if (!body) return;
+  document.querySelector('#aiCard .ai-loading')?.remove();
+  body.innerHTML = `<div style="text-align:center;padding:6px 0;">
+    <div style="font-size:1.4rem;">🔒</div>
+    <b style="display:block;margin:4px 0;">오늘 무료 AI 요약 ${AI_FREE_PER_DAY}회를 모두 사용했어요</b>
+    <span style="font-size:0.78rem;color:var(--sub);">3회 초과분은 ${PRO_MSG}.<br>내일 다시 무료 ${AI_FREE_PER_DAY}회가 채워져요.</span>
+    ${fmGet() ? '' : `<button onclick="fmJoin()" style="margin-top:10px;font:inherit;font-size:0.8rem;font-weight:800;padding:8px 14px;border-radius:999px;border:none;background:#1E3A5F;color:#fff;cursor:pointer;">🎖 창립 멤버 등록하고 계속 쓰기</button>`}
+  </div>`;
+  ['clinicalVal', 'issueVal', 'fdaVal'].forEach(id => { const e = document.getElementById(id); if (e) e.innerHTML = '<span style="color:var(--sub2);font-weight:500;">🔒</span>'; });
+}
+function proDecorateLocks(root) {
+  (root || document).querySelectorAll('.pro-lock').forEach(c => {
+    if (c.querySelector('.pro-veil')) return;
+    c.insertAdjacentHTML('beforeend', `<div class="pro-veil"><b>🔒 ${PRO_MSG}</b><span>무료로는 이번 달 처방액까지 볼 수 있어요.<br>창립 멤버는 평생 무료예요.</span></div>`);
+  });
+}
+// 경쟁품 비교 → 엑셀(CSV) 내보내기 (PRO)
+function exportCompExcel() {
+  document.getElementById('shareMenu').style.display = 'none';
+  if (proLocked()) { showToast(`📊 엑셀 내보내기는 ${PRO_MSG} (창립 멤버는 무료)`); return; }
+  if (!cList.length) { showToast('비교할 제품을 먼저 추가해주세요'); return; }
+  const cols = [['제품명', 'name'], ['성분', 'ingredient'], ['회사', 'company'], ['약가(원)', 'price'], ['전문/일반', 'type'], ['제형', 'form'], ['FDA', 'fda'], ['용법', 'useMethod'], ['효능', 'efcy']];
+  const cell = v => `"${String(v ?? '').replace(/"/g, '""').replace(/\r?\n/g, ' ')}"`;
+  const csv = '﻿' + [cols.map(c => c[0]).join(','), ...cList.filter(Boolean).map(d => cols.map(c => cell(d[c[1]])).join(','))].join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = `ALLAI_경쟁품비교_${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  showToast('엑셀 파일 저장 완료 📊');
+}
+// 창립 멤버 등록 (구글 로그인 → 서버가 구글에 확인 → 명단 저장)
+async function fmJoin() {
+  const btn = document.querySelector('#fmBanner button');
+  try {
+    if (btn) { btn.disabled = true; btn.textContent = '구글 로그인 중…'; }
+    await gLoad();
+    const tok = await new Promise((ok, no) => {
+      const c = google.accounts.oauth2.initTokenClient({ client_id: G_CLIENT_ID, scope: 'openid email profile',
+        callback: r => r.error ? no(new Error(r.error)) : ok(r.access_token), error_callback: e => no(new Error(e?.type || 'popup')) });
+      c.requestAccessToken({ prompt: 'select_account' });
+    });
+    if (btn) btn.textContent = '등록 중…';
+    const r = await (await fetch('/api/member', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: tok }) })).json();
+    if (!r.ok) throw new Error(r.error || '등록 실패');
+    localStorage.setItem(FM_KEY, JSON.stringify({ email: r.email, joinedAt: r.joinedAt, tier: 'founder' }));
+    fmRender();
+    showToast(r.already ? '이미 창립 멤버로 등록되어 있어요 🎖' : '창립 멤버로 등록됐어요! 🎖');
+  } catch (e) {
+    showToast(/popup/i.test(e.message) ? '로그인 창이 닫혔어요' : '등록에 실패했어요. 잠시 후 다시 시도해 주세요');
+    fmRender();
+  }
+}
+function fmRender() {
+  const el = document.getElementById('fmBanner'); if (!el) return;
+  const m = fmGet();
+  if (m) {
+    const d = m.joinedAt ? new Date(m.joinedAt) : null;
+    el.className = 'fm-banner done';
+    el.innerHTML = `<b>🎖 ALLAI 창립 멤버</b><p style="margin-bottom:0;">나중에 유료 기능이 생겨도 <b style="display:inline;font-size:inherit;">평생 무료</b>로 이용하세요.</p><small>${m.email}${d ? ` · ${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()} 등록` : ''}</small>`;
+  } else {
+    el.className = 'fm-banner';
+    el.innerHTML = `<b>🎖 창립 멤버 모집 중</b>
+      <p>ALLAI는 광고 없이 운영돼요. 곧 AI 무제한·처방 분석·알림 같은 <b style="display:inline;font-size:inherit;">유료(PRO) 기능</b>이 생기는데,
+      지금 구글 로그인으로 등록하면 <b style="display:inline;font-size:inherit;">평생 무료</b>로 쓸 수 있어요.</p>
+      <button onclick="fmJoin()"><b style="display:inline;color:#4285F4;font-size:inherit;">G</b> 구글로 창립 멤버 등록</button>`;
+  }
+}
+fmRender();
 
 function renderStats() { const s=getStats(); const ue=document.getElementById('statUsers'); const se=document.getElementById('statSearches'); if(ue) ue.textContent=s.users.toLocaleString()+'명'; if(se) se.textContent=s.searches.toLocaleString()+'회'; }
 

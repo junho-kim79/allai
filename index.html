@@ -891,6 +891,14 @@
     .st-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 8px; }
     .st-legend button { font: inherit; font-size: 0.74rem; font-weight: 600; color: var(--sub); background: none; border: none; padding: 3px 0; display: flex; align-items: center; gap: 5px; cursor: pointer; }
     .st-legend button.dim { opacity: 0.35; }
+    .nw-card { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 13px 14px; margin-top: 8px; }
+    .nw-top { display: flex; align-items: center; gap: 8px; }
+    .nw-top b { flex: 1; font-size: 0.93rem; font-weight: 800; }
+    .nw-type { font-size: 0.68rem; font-weight: 800; color: var(--blue); background: rgba(59,130,246,0.10); border-radius: 999px; padding: 3px 8px; flex-shrink: 0; }
+    .nw-meta { font-size: 0.78rem; color: var(--text); margin-top: 5px; font-weight: 600; }
+    .nw-addr { font-size: 0.74rem; color: var(--sub); margin-top: 3px; line-height: 1.5; }
+    .nw-btns { display: flex; gap: 6px; margin-top: 9px; flex-wrap: wrap; }
+    .nw-btns a, .nw-btns button { font: inherit; font-size: 0.74rem; font-weight: 700; padding: 6px 10px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.1); background: var(--card2); color: var(--text); text-decoration: none; cursor: pointer; }
     .st-note { font-size: 0.7rem; color: var(--sub2); line-height: 1.6; margin-top: 12px; }
     .st-prog { height: 4px; background: rgba(0,0,0,0.06); border-radius: 4px; overflow: hidden; margin-top: 10px; }
     .st-prog i { display: block; height: 100%; background: var(--blue); transition: width .3s; }
@@ -1086,7 +1094,7 @@
         <div class="menu-icon">🗺️</div>
         <div class="menu-wide-tx">
           <div class="menu-name">지역 처방 분석 <span class="menu-new">NEW</span></div>
-          <div class="menu-desc">우리 지역 약효군 처방액·추이 · 심평원 실제 데이터</div>
+          <div class="menu-desc">약효군 처방액·추이 · 🆕 신규 개원 병원 · 심평원 실제 데이터</div>
         </div>
         <span class="more-arr">›</span>
       </button>
@@ -1103,6 +1111,11 @@
       <span class="sec-title">더보기</span>
     </div>
     <div class="more-list">
+      <a class="more-row" href="https://passbox.co.kr" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;">
+        <span class="more-ic">🔐</span>
+        <span class="more-tx"><b>PassBox <small style="font-size:0.62rem;color:var(--g2);font-weight:800;">ALLAI가 만든 앱</small></b><small>비밀번호·나만의 노래목록을 한곳에 안전하게 보관하는 개인 보관함</small></span>
+        <span class="more-arr">›</span>
+      </a>
       <div class="more-soon">
         <div class="more-soon-label">🔒 준비 중 · 로그인 후 이용 가능</div>
         <div class="more-chips">
@@ -1228,17 +1241,27 @@
       <button class="back-btn" onclick="history.back()">← 홈</button>
     </div>
     <div style="padding:0 16px 12px;">
-      <div style="font-size:1.3rem;font-weight:900;letter-spacing:-0.04em;">지역 처방 분석</div>
+      <div style="font-size:1.3rem;font-weight:900;letter-spacing:-0.04em;" id="stTitle">지역 처방 분석</div>
       <div style="font-size:0.82rem;color:var(--sub);margin-top:4px;" id="statSub">심평원 건강보험 청구 데이터 · 약효군(ATC 4단계) 기준</div>
     </div>
+    <div class="tabs-row" style="margin-bottom:10px;">
+      <button class="tab on" id="stTabRx" onclick="stSetTab('rx')">📈 처방 분석</button>
+      <button class="tab" id="stTabNew" onclick="stSetTab('new')">🆕 신규 개원</button>
+    </div>
     <div class="st-controls">
-      <label class="st-field"><span>약효군</span>
+      <label class="st-field" id="stAtcField"><span>약효군</span>
         <select id="stAtc" onchange="stRun()"></select></label>
       <div class="st-row2">
         <label class="st-field"><span>시·도</span>
           <select id="stSido" onchange="stSidoChanged()"></select></label>
         <label class="st-field"><span>시·군·구</span>
           <select id="stSggu" onchange="stRun()"><option value="all">전체</option></select></label>
+      </div>
+      <div class="st-row2" id="stNewOpts" style="display:none;">
+        <label class="st-field"><span>기간</span>
+          <select id="stNewMonths" onchange="stRun()"><option value="1">최근 1개월</option><option value="3" selected>최근 3개월</option><option value="6">최근 6개월</option><option value="12">최근 12개월</option></select></label>
+        <label class="st-field"><span>종류</span>
+          <select id="stNewKind" onchange="stNewRender()"><option value="med">의원·병원만</option><option value="all">전체</option></select></label>
       </div>
     </div>
     <div class="result-wrap" id="statContent" style="padding-top:6px;"></div>
@@ -3255,6 +3278,77 @@ function stDrawLine(mode) {
   hit.addEventListener('touchend', () => setTimeout(hide, 1800));
 }
 
+/* ── 신규 개원 병원 (/api/hosp?mode=new, 시군구별로 나눠 조회) ── */
+async function stNewRun() {
+  const run = ++_stRun;
+  const el = document.getElementById('statContent');
+  const sido = document.getElementById('stSido').value;
+  const sidoName = (ST_SIDO.find(x => x[0] === sido) || ['', ''])[1];
+  const sgguSel = document.getElementById('stSggu').value;
+  const months = document.getElementById('stNewMonths').value;
+  const list = sgguSel === 'all' ? (ST_SGGU[sido] || []) : [[sgguSel, document.getElementById('stSggu').selectedOptions[0]?.textContent || '']];
+  const place = sgguSel === 'all' ? `${sidoName} 전체` : `${sidoName} ${list[0]?.[1] || ''}`;
+  el.innerHTML = `<div class="st-card" style="text-align:center;padding:26px 14px;">
+      <div style="display:flex;justify-content:center;gap:6px;margin-bottom:10px;"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div></div>
+      <div style="font-size:0.85rem;font-weight:700;">${place} · 최근 ${months}개월 신규 개원</div>
+      <div style="font-size:0.74rem;color:var(--sub);margin-top:4px;">심평원 병원 목록 확인 중 <span id="stProgTx">0/${list.length}</span></div>
+      <div class="st-prog"><i id="stProg" style="width:0%"></i></div></div>`;
+  const found = []; let done = 0; const q = list.slice();
+  const worker = async () => {
+    while (q.length) {
+      const [code] = q.shift();
+      for (let t = 0; t < 2; t++) {
+        try {
+          const d = await (await fetchWithTimeout(`/api/hosp?mode=new&sido=${sido}&sggu=${code}&months=${months}`, 20000)).json();
+          if (!d.error) { found.push(...(d.items || [])); break; }
+        } catch (e) {}
+        await new Promise(r => setTimeout(r, 700));
+      }
+      done++;
+      if (run !== _stRun) return;
+      const pg = document.getElementById('stProg'); if (pg) pg.style.width = Math.round(done / list.length * 100) + '%';
+      const tx = document.getElementById('stProgTx'); if (tx) tx.textContent = `${done}/${list.length}`;
+    }
+  };
+  await Promise.all([worker(), worker(), worker()]);
+  if (run !== _stRun) return;
+  _stNew = found.sort((a, b) => b.open.localeCompare(a.open));
+  _stNewPlace = place;
+  stNewRender();
+}
+let _stNewPlace = '';
+function stNewRender() {
+  const el = document.getElementById('statContent');
+  const kind = document.getElementById('stNewKind').value;
+  const items = _stNew.filter(h => kind === 'all' || !/치과|한방|한의원|보건/.test(h.type || ''));
+  const esc = t => String(t || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const d8 = v => v && v.length === 8 ? `${v.slice(0, 4)}.${v.slice(4, 6)}.${v.slice(6)}` : v;
+  const byType = {}; items.forEach(h => byType[h.type] = (byType[h.type] || 0) + 1);
+  if (!items.length) { el.innerHTML = `<div class="vs-empty">${esc(_stNewPlace)} · 이 기간에 새로 연 곳이 없어요</div>`; return; }
+  el.innerHTML = `
+    <div class="st-card" style="margin-top:0;">
+      <h4>${esc(_stNewPlace)} · 신규 개원 ${items.length}곳</h4>
+      <div class="more-chips">${Object.entries(byType).sort((a, b) => b[1] - a[1]).map(([t, n]) => `<span>${esc(t)} ${n}</span>`).join('')}</div>
+    </div>
+    ${items.map((h, i) => `
+    <div class="nw-card">
+      <div class="nw-top"><b>${esc(h.name)}</b><span class="nw-type">${esc(h.type)}</span></div>
+      <div class="nw-meta">🗓 ${d8(h.open)} 개원 · ${esc((h.sggu || '').replace(/^(대구|부산|인천|광주|대전|울산|서울)/, ''))}${h.docs ? ` · 의사 ${h.docs}명` : ''}</div>
+      <div class="nw-addr">${esc(h.addr)}</div>
+      <div class="nw-btns">
+        ${h.tel ? `<a href="tel:${esc(h.tel)}">📞 ${esc(h.tel)}</a>` : ''}
+        <a href="https://map.naver.com/p/search/${encodeURIComponent(h.name)}" target="_blank" rel="noopener">🗺 지도</a>
+        <button onclick="stNewToVisit(${_stNew.indexOf(h)})">📒 면담기록</button>
+      </div>
+    </div>`).join('')}
+    <div class="st-note" style="padding:4px 4px 20px;">※ 건강보험심사평가원 병원정보서비스의 개설일자 기준입니다. 진료과는 병원 이름으로 확인해 주세요.</div>`;
+}
+function stNewToVisit(i) {
+  const h = _stNew[i]; if (!h) return;
+  goScreen('screen_visit', '면담기록');
+  setTimeout(() => { vsOpenForm(); document.getElementById('vsHosp').value = h.name; vsRenderHospChips(); vsRenderDocChips(); }, 150);
+}
+
 function renderStat() {
   if (!_stInit) {
     _stInit = true;
@@ -3281,7 +3375,19 @@ async function stSidoChanged(silent) {
   if (silent !== true) stRun();
 }
 
+let _stTab = 'rx', _stNew = [];
+function stSetTab(t) {
+  _stTab = t;
+  document.getElementById('stTabRx').classList.toggle('on', t === 'rx');
+  document.getElementById('stTabNew').classList.toggle('on', t === 'new');
+  document.getElementById('stAtcField').style.display = t === 'rx' ? '' : 'none';
+  document.getElementById('stNewOpts').style.display = t === 'new' ? '' : 'none';
+  document.getElementById('stTitle').textContent = t === 'rx' ? '지역 처방 분석' : '신규 개원 병원';
+  document.getElementById('statSub').textContent = t === 'rx' ? '심평원 건강보험 청구 데이터 · 약효군(ATC 4단계) 기준' : '심평원 요양기관 개설일자 기준 · 신규 거래처 발굴';
+  stRun();
+}
 async function stRun() {
+  if (_stTab === 'new') return stNewRun();
   const run = ++_stRun;
   const el = document.getElementById('statContent');
   const atc = document.getElementById('stAtc').value;

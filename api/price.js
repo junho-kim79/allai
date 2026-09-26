@@ -4,7 +4,7 @@
  * GET /api/price?page=1&rows=1000        → 전체 목록 페이지 단위 (매달 자동 갱신 작업이 사용)
  * 키: Vercel 환경변수 API_KEY_HIRA (없으면 API_KEY_MFDS)
  */
-const SVC = "https://apis.data.go.kr/B551182/dgamtCrtrInfoService1.2/getDgamtList";
+const SVC_BASE = "https://apis.data.go.kr/B551182/dgamtCrtrInfoService1.2/";
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -22,7 +22,9 @@ export default async function handler(req, res) {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), 9000);
   try {
-    const r = await fetch(`${SVC}?${qs}`, { signal: ctrl.signal, headers: { Accept: "application/json" } });
+    const op = /^[A-Za-z0-9]+$/.test(String(req.query.op||'')) ? req.query.op : 'getDgamtList';
+    if (req.query.nojson === '1') qs.delete('_type');
+    const r = await fetch(`${SVC_BASE}${op}?${qs}`, { signal: ctrl.signal, headers: { Accept: "application/json" } });
     const txt = await r.text();
     if (req.query.debug === "1") return res.status(200).json({ status: r.status, head: txt.slice(0, 1500) });
     let data; try { data = JSON.parse(txt); } catch {

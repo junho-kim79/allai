@@ -1,9 +1,12 @@
-name: 약가DB 월간 갱신
+name: 약가DB 자동 갱신
 
 on:
   schedule:
-    - cron: "0 18 1 * *"   # 매달 2일 03:00 (한국 시간)
-  workflow_dispatch: {}      # Actions 탭에서 수동 실행 가능
+    - cron: "0 18 * * 0"   # 매주 월요일 03:00 (한국 시간)
+  workflow_dispatch: {}      # Actions 탭에서 수동 실행
+  push:
+    branches: [main]
+    paths: [scripts/update-price-db.mjs]   # 갱신 스크립트가 바뀌면 한 번 실행
 
 permissions:
   contents: write
@@ -16,13 +19,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: 약가DB 새로 만들기
+      - name: 약가DB 갱신
         run: node scripts/update-price-db.mjs
       - name: 바뀐 게 있으면 올리기
         run: |
-          if git diff --quiet drugPriceDB.js; then echo "변경 없음"; exit 0; fi
+          if git diff --quiet -- drugPriceDB.js priceChanges.json && git ls-files --error-unmatch priceChanges.json >/dev/null 2>&1; then echo "변경 없음"; exit 0; fi
           git config user.name "allai-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add drugPriceDB.js
+          git add drugPriceDB.js priceChanges.json
           git commit -m "약가DB 자동 갱신 $(TZ=Asia/Seoul date +%Y-%m-%d)"
+          git pull --rebase origin main
           git push

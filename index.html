@@ -983,6 +983,15 @@
     .say-adm { display: flex; gap: 6px; margin-top: 8px; }
     .say-adm button { flex: 1; font: inherit; font-size: 0.8rem; font-weight: 800; padding: 9px; border-radius: 10px; border: none; cursor: pointer; }
     .admin-bar { margin: 8px 16px 0; padding: 11px 14px; border-radius: 14px; background: #fff; border: 1px dashed rgba(30,58,95,0.35); font-size: 0.8rem; font-weight: 700; color: #1E3A5F; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+    /* 약가 변동 */
+    .pc-card { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; margin-top: 8px; cursor: pointer; }
+    .pc-top { display: flex; align-items: flex-start; gap: 8px; }
+    .pc-top b { flex: 1; min-width: 0; font-size: 0.88rem; font-weight: 800; line-height: 1.4; overflow-wrap: anywhere; }
+    .pc-badge { flex-shrink: 0; font-size: 0.66rem; font-weight: 900; border-radius: 999px; padding: 3px 8px; color: #fff; }
+    .pc-meta { font-size: 0.74rem; color: var(--sub); margin-top: 4px; }
+    .pc-price { font-size: 0.86rem; font-weight: 800; margin-top: 6px; font-variant-numeric: tabular-nums; }
+    .pc-price s { color: var(--sub2); font-weight: 600; margin-right: 6px; }
+    .pc-day { font-size: 0.74rem; font-weight: 800; color: var(--sub); margin: 14px 2px 0; }
     /* 창립 멤버 · PRO */
     .fm-banner:empty { display: none; }
     .fm-banner { margin: 14px 16px 0; padding: 14px 16px; border-radius: var(--r-md); background: linear-gradient(135deg, #1E3A5F, #2D4F7C); color: #fff; box-shadow: 0 8px 24px rgba(30,58,95,0.22); }
@@ -1116,6 +1125,15 @@
         <div class="menu-wide-tx">
           <div class="menu-name">나의 면담기록 · 병원 관리 <span class="menu-new" style="background:var(--purple);">NEW</span></div>
           <div class="menu-desc">달력에 일기처럼 기록 · 병원·교수님 이름 자동 기억</div>
+        </div>
+        <span class="more-arr">›</span>
+      </button>
+
+      <button class="menu-card c-yellow menu-wide" onclick="goScreen('screen_pchg','약가 변동')">
+        <div class="menu-icon">📉</div>
+        <div class="menu-wide-tx">
+          <div class="menu-name">약가 변동 <span class="menu-new" style="background:var(--yellow);">NEW</span></div>
+          <div class="menu-desc">인하·인상·신규 등재·급여 삭제 · 심평원 약가기준 매주 반영</div>
         </div>
         <span class="more-arr">›</span>
       </button>
@@ -1296,6 +1314,23 @@
       </div>
     </div>
     <div class="result-wrap" id="statContent" style="padding-top:6px;"></div>
+  </div>
+
+  <!-- ═══════════════ 약가 변동 ═══════════════ -->
+  <div class="screen" id="screen_pchg">
+    <div class="back-bar"><button class="back-btn" onclick="history.back()">← 홈</button></div>
+    <div style="padding:0 16px 12px;">
+      <div style="font-size:1.3rem;font-weight:900;letter-spacing:-0.04em;">약가 변동</div>
+      <div style="font-size:0.82rem;color:var(--sub);margin-top:4px;" id="pcSub">건강보험심사평가원 약가기준정보 · 적용일 기준</div>
+    </div>
+    <div class="st-controls">
+      <div class="st-row2">
+        <label class="st-field"><span>적용 월</span><select id="pcMonth" onchange="pcRender()"></select></label>
+        <label class="st-field"><span>제품·회사 검색</span><input class="vs-in" id="pcQ" placeholder="예: 라베린, 일양" oninput="pcRender()" style="padding:10px 12px;"></label>
+      </div>
+      <div class="vs-chips" id="pcTypes" style="margin-top:0;"></div>
+    </div>
+    <div class="result-wrap" id="pcList" style="padding-top:4px;"></div>
   </div>
 
   <!-- ═══════════════ 면담기록 · 병원 관리 ═══════════════ -->
@@ -1732,7 +1767,7 @@ function saveEmail() {
 /* ════════════════════════════════════════
    화면 라우팅
 ════════════════════════════════════════ */
-const LABELS = { screen1:'홈', screen2:'약품 검색', screen3:'약품 상세', screen_icd:'상병코드', screen_comp:'경쟁품 비교', screen_cut:'삭감 조회', screen_stat:'지역 처방 분석', screen_visit:'면담기록' };
+const LABELS = { screen1:'홈', screen2:'약품 검색', screen3:'약품 상세', screen_icd:'상병코드', screen_comp:'경쟁품 비교', screen_cut:'삭감 조회', screen_stat:'지역 처방 분석', screen_visit:'면담기록', screen_pchg:'약가 변동' };
 
 /* 대표 상병코드 옆에 붙일 간단 병명 매핑 (앞 3자리 기준). 매핑 없는 코드는 코드만 표시. */
 const ICD_NAME_KO = {
@@ -1764,6 +1799,7 @@ function goScreen(id, label, push=true) {
   document.getElementById('stepChip').textContent = label || LABELS[id] || '';
   if (id === 'screen_stat') renderStat();
   if (id === 'screen_visit') vsInit();
+  if (id === 'screen_pchg') pcInit();
   if (push && !_isPopState) history.pushState({ screen:id, label }, '', `#${id}`);
   window.scrollTo({ top:0, behavior:'smooth' });
 }
@@ -3997,6 +4033,52 @@ function fmRender() {
   }
 }
 fmRender();
+
+/* ── 약가 변동 (priceChanges.json, 매주 자동 갱신) ── */
+const PC_TYPES = { '인하': ['#2a78d6', '📉'], '인상': ['#e34948', '📈'], '신규': ['#1baf7a', '🆕'], '삭제': ['#8a8984', '🚫'] };
+let _pc = null, _pcType = '전체';
+async function pcInit() {
+  const box = document.getElementById('pcList');
+  if (!_pc) {
+    box.innerHTML = '<div class="vs-empty">불러오는 중…</div>';
+    try { _pc = await (await fetch('/priceChanges.json?_=' + Math.floor(Date.now() / 3600e3))).json(); }
+    catch (e) { box.innerHTML = '<div class="vs-empty">아직 약가 변동 자료가 없어요. 첫 갱신 후 표시됩니다.</div>'; return; }
+    const months = [...new Set(_pc.changes.map(c => c.date.slice(0, 6)))].sort().reverse();
+    const thisM = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 7).replace('-', '');
+    document.getElementById('pcMonth').innerHTML = months.map(m => `<option value="${m}" ${m === thisM ? 'selected' : ''}>${m.slice(0, 4)}년 ${+m.slice(4)}월${m > thisM ? ' (예정)' : ''}</option>`).join('');
+    if (!months.includes(thisM) && months.length) document.getElementById('pcMonth').value = months.find(m => m <= thisM) || months[0];
+    const u = _pc.updatedAt ? new Date(_pc.updatedAt) : null;
+    document.getElementById('pcSub').textContent = `건강보험심사평가원 약가기준정보 · ${u ? `${u.getMonth() + 1}/${u.getDate()} 갱신` : ''}`;
+  }
+  pcRender();
+}
+function pcSetType(t) { _pcType = t; pcRender(); }
+function pcRender() {
+  if (!_pc) return;
+  const m = document.getElementById('pcMonth').value, q = document.getElementById('pcQ').value.trim().replace(/\s+/g, '');
+  const inMonth = _pc.changes.filter(c => c.date.startsWith(m) && (!q || (c.name + c.company).replace(/\s+/g, '').includes(q)));
+  const cnt = {}; inMonth.forEach(c => cnt[c.type] = (cnt[c.type] || 0) + 1);
+  document.getElementById('pcTypes').innerHTML = ['전체', '인하', '인상', '신규', '삭제'].map(t =>
+    `<button class="${_pcType === t ? 'on' : ''}" onclick="pcSetType('${t}')">${t === '전체' ? '전체' : PC_TYPES[t][1] + ' ' + t} <small>${t === '전체' ? inMonth.length : (cnt[t] || 0)}</small></button>`).join('');
+  const list = inMonth.filter(c => _pcType === '전체' || c.type === _pcType);
+  const esc = sayEsc, won = n => n == null ? '-' : Number(n).toLocaleString() + '원';
+  let html = '', lastDay = '';
+  list.slice(0, 300).forEach(c => {
+    if (c.date !== lastDay) { lastDay = c.date; html += `<div class="pc-day">${c.date.slice(0, 4)}.${c.date.slice(4, 6)}.${c.date.slice(6)} 적용${c.planned ? ' · 예정' : ''}</div>`; }
+    const [col, ic] = PC_TYPES[c.type];
+    const pct = c.before && c.after ? ` (${c.after > c.before ? '+' : ''}${((c.after - c.before) / c.before * 100).toFixed(1)}%)` : '';
+    html += `<div class="pc-card" onclick="pcOpen('${esc(c.name.split('_')[0].replace(/\(.*$/, ''))}')">
+      <div class="pc-top"><b>${esc(c.name.split('_')[0])}</b><span class="pc-badge" style="background:${col}">${ic} ${c.type}</span></div>
+      <div class="pc-meta">${esc(c.company || '')}${c.company ? ' · ' : ''}보험코드 ${c.code}</div>
+      <div class="pc-price">${c.type === '인하' || c.type === '인상' ? `<s>${won(c.before)}</s>→ ${won(c.after)}${pct}` : c.type === '신규' ? `상한가 ${won(c.after)}` : `급여 삭제 (종전 ${won(c.before)})`}</div>
+    </div>`;
+  });
+  document.getElementById('pcList').innerHTML = html || '<div class="vs-empty" style="margin-top:8px;">해당하는 변동이 없어요</div>';
+}
+function pcOpen(name) {
+  goScreen('screen2', '약품 검색');
+  const s = document.getElementById('drugSearch'); s.value = name; searchDrug();
+}
 
 /* ── MR 한마디: 목록 · 작성 (창립 멤버) · 관리자 승인 ── */
 const SAY_ADMINS = ['junhoangel@gmail.com', 'k.no1.realtor@gmail.com'];

@@ -209,6 +209,9 @@
     .fm-feat b{color:#0e8a4f;font-size:.8rem}
     .fm-steps{text-align:left;margin:14px 0 6px;padding-left:20px;font-size:.84rem;line-height:1.5}
     .fm-steps li{margin-bottom:10px}
+    .fm-steps > div > b{margin-right:6px}
+    .fm-opt{font-size:.66rem;font-weight:800;border:1px solid currentColor;border-radius:5px;padding:0 4px;margin-right:8px;opacity:.75}
+    .fm-cafe{display:inline-block;margin-top:8px;font-size:.78rem;font-weight:800;color:#cba258;text-decoration:none;border:1px solid rgba(203,162,88,.6);border-radius:999px;padding:6px 12px}
     .fm-steps li b{display:inline-block;margin-right:8px}
     .fm-steps a{font-size:.78rem;font-weight:800;color:#03c75a;text-decoration:none;border:1px solid #03c75a;border-radius:999px;padding:2px 9px}
     .fm-steps input{display:block;width:100%;margin-top:6px;font:inherit;font-size:.9rem;padding:9px 10px;border:1px solid rgba(0,0,0,.15);border-radius:10px;box-sizing:border-box}
@@ -4501,23 +4504,20 @@ function fmJoin() {
       <div class="mk-t">초기 가입</div>
       <div class="mk-who">지금은 베타 버전이라 거의 모든 기능을 무료로 쓰실 수 있습니다.<br>가입자가 ${EARLY_LIMIT}명을 넘어 서버비를 받게 되더라도<br><b style="color:#0e8a4f">지금 가입하신 분은 계속 이용하실 수 있습니다</b></div>
       <div class="fm-feat">스케줄 관리, 개원 정보, 약가 정보, 1페이퍼 경쟁품 비교(출력·전송), 지역별 처방통계까지 다 써먹는 MR 되셨으면 합니다.</div>
-      <ol class="fm-steps">
-        <li><b>네이버 카페 가입</b><a href="${CAFE_URL}" target="_blank" rel="noopener">카페 가기</a></li>
-        <li><b>카페 닉네임</b><input id="fmNick" maxlength="30" placeholder="카페에서 쓰는 닉네임" value="${(m && m.cafeNick) || ''}"></li>
-        <li><b>구글 계정으로 등록</b></li>
-      </ol>
+      <div class="fm-steps" style="padding-left:0;">
+        <div><b>카페 닉네임</b><small class="fm-opt">선택</small><a href="${CAFE_URL}" target="_blank" rel="noopener">카페 가기</a></div>
+        <input id="fmNick" maxlength="30" placeholder="적어 주시면 의견 확인이 쉽습니다" value="${(m && m.cafeNick) || ''}">
+      </div>
       <div class="fm-err" id="fmErr"></div>
-      <button class="mk-btn" style="border:0;width:100%;cursor:pointer;font:inherit;font-weight:800;" onclick="fmJoinGo()">구글 계정으로 등록하기</button>
-      <div class="fm-fine">※ 카페 닉네임은 회원 확인용입니다. 카페에 없는 닉네임은 나중에 정리될 수 있습니다.</div>
+      <button class="mk-btn" style="border:0;width:100%;cursor:pointer;font:inherit;font-weight:800;" onclick="fmJoinGo()">구글 계정으로 가입하기</button>
+      <div class="fm-fine">※ 초기 가입자는 구글 계정으로 확인합니다. 카페 닉네임은 적지 않으셔도 됩니다.</div>
       <button class="mk-close" onclick="closeMaker()">닫기</button>
     </div>
   </div>`);
-  setTimeout(() => document.getElementById('fmNick')?.focus(), 80);
 }
 async function fmJoinGo() {
   const nick = (document.getElementById('fmNick')?.value || '').trim();
   const err = document.getElementById('fmErr');
-  if (nick.length < 2) { err.textContent = '카페 닉네임을 적어 주세요'; return; }
   try {
     err.textContent = '구글 로그인 중…';
     await gLoad();
@@ -4564,7 +4564,7 @@ function fmRender() {
     el.className = 'fm-banner done';
     el.innerHTML = `<b>초기 가입 완료</b><p style="margin-bottom:0;">처음부터 함께해 주셔서 감사합니다. 나중에 서버비를 받게 되더라도 초기 가입자는 계속 이용하실 수 있습니다.</p>
       <small>${m.email}${m.cafeNick ? ` · 카페 ${sayEsc(m.cafeNick)}` : ''}${d ? ` · ${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()} 등록` : ''}</small>
-      ${m.cafeNick ? '' : `<button onclick="fmJoin()" style="margin-top:8px;">카페 닉네임 등록하기</button>`}`;
+      <a href="${CAFE_URL}" target="_blank" rel="noopener" class="fm-cafe">카페에서 의견 남기기</a>`;
   } else {
     el.className = 'fm-banner';
     if (PAYWALL_ON) { el.innerHTML = ''; return; }   // 유료 전환 후에는 모집 문구 숨김

@@ -63,7 +63,7 @@ export default async function handler(req, res) {
 
     if (b.action === "post") {
       const member = await db(acc, "GET", `/members/${hash(email)}`);
-      if (!member) return res.status(200).json({ ok: false, error: "not_member" });
+      if (!member || member.fields?.tier?.stringValue === "revoked") return res.status(200).json({ ok: false, error: "not_member" });
       const text = String(b.text || "").replace(/\s+/g, " ").trim();
       if (text.length < 5 || text.length > MAX_LEN) return res.status(200).json({ ok: false, error: "length" });
       const today = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
@@ -91,6 +91,19 @@ export default async function handler(req, res) {
       await db(acc, "PATCH", `/says/${id}?updateMask.fieldPaths=status&updateMask.fieldPaths=reviewedAt`,
         { fields: { status: toF(b.action === "approve" ? "approved" : "rejected"), reviewedAt: toF(new Date()) } });
       return res.status(200).json({ ok: true });
+    }
+    // 얼리버드 명단 · 해제/복구
+    if (b.action === "members") {
+      const d = await db(acc, "GET", "/members?pageSize=300");
+      const items = ((d && d.documents) || []).map((x) => ({ id: x.name.split("/").pop(), ...fromF(x.fields) }))
+        .sort((a, c) => String(c.joinedAt).localeCompare(String(a.joinedAt)));
+      return res.status(200).json({ ok: true, items });
+    }
+    if (b.action === "member_set") {
+      const id = String(b.id || "").replace(/[^a-f0-9]/g, "");
+      const tier = b.tier === "revoked" ? "revoked" : "founder";
+      await db(acc, "PATCH", `/members/${id}?updateMask.fieldPaths=tier`, { fields: { tier: toF(tier) } });
+      return res.status(200).json({ ok: true, tier });
     }
     if (b.action === "setup") {   // 알림 주제(topic) 새로 만들기
       const topic = "allai-" + crypto.randomBytes(9).toString("base64url").toLowerCase().replace(/[^a-z0-9]/g, "x");

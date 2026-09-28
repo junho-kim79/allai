@@ -181,6 +181,18 @@
     .st-hint{margin-top:6px;font-size:.72rem;color:var(--sub2)}
     .st-gnl .chips button{font:inherit;font-size:.76rem;font-weight:700;border:1px solid rgba(14,138,79,.35);background:#fff;color:#0e8a4f;border-radius:999px;padding:5px 10px;cursor:pointer}
     .st-gnl .chips button.on{background:#0e8a4f;color:#fff}
+    .fm-steps{text-align:left;margin:14px 0 6px;padding-left:20px;font-size:.84rem;line-height:1.5}
+    .fm-steps li{margin-bottom:10px}
+    .fm-steps li b{display:inline-block;margin-right:8px}
+    .fm-steps a{font-size:.78rem;font-weight:800;color:#03c75a;text-decoration:none;border:1px solid #03c75a;border-radius:999px;padding:2px 9px}
+    .fm-steps input{display:block;width:100%;margin-top:6px;font:inherit;font-size:.9rem;padding:9px 10px;border:1px solid rgba(0,0,0,.15);border-radius:10px;box-sizing:border-box}
+    .fm-err{min-height:1.1em;font-size:.78rem;color:#b45309;margin-bottom:4px}
+    .fm-fine{font-size:.68rem;color:var(--sub2);margin-top:8px;line-height:1.5;text-align:left}
+    .why-paid{margin-top:10px;font-size:.76rem;line-height:1.55;text-align:left}
+    .why-paid summary{cursor:pointer;font-weight:800;opacity:.85}
+    .why-paid p{margin:6px 0}
+    .fm-banner .why-paid b{display:inline!important;font-size:inherit!important;margin:0!important;color:inherit}
+    .why-paid ul{margin:4px 0;padding-left:18px}
     .mk-foot{margin-top:12px;font-size:.74rem;color:var(--sub);line-height:1.7}
     .mk-foot b{color:var(--text,#333)}
     .mk-foot span{font-size:.66rem;color:var(--sub2)}
@@ -1365,7 +1377,7 @@
   <div id="shareMenu" style="display:none;position:absolute;top:110%;right:0;background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow-md);overflow:hidden;min-width:160px;z-index:50;">
     <button onclick="downloadShareImg()" style="width:100%;padding:12px 16px;text-align:left;border:none;background:none;font-family:inherit;font-size:0.88rem;font-weight:700;cursor:pointer;border-bottom:1px solid var(--border);">🖼️ 이미지 저장</button>
     <button onclick="printComp()" style="width:100%;padding:12px 16px;text-align:left;border:none;background:none;font-family:inherit;font-size:0.88rem;font-weight:700;cursor:pointer;border-bottom:1px solid var(--border);">🖨️ 프린트</button>
-    <button onclick="exportCompExcel()" style="width:100%;padding:12px 16px;text-align:left;border:none;background:none;font-family:inherit;font-size:0.88rem;font-weight:700;cursor:pointer;">📊 엑셀로 내보내기 <span class="pro-tag">PRO</span></button>
+    <button onclick="exportCompExcel()" style="width:100%;padding:12px 16px;text-align:left;border:none;background:none;font-family:inherit;font-size:0.88rem;font-weight:700;cursor:pointer;">📊 엑셀로 내보내기 <span class="pro-tag">유료</span></button>
   </div>
 </div>
     </div>
@@ -1405,7 +1417,7 @@
       <button class="tab" id="stTabNew" onclick="stSetTab('new')">🆕 신규 개원</button>
     </div>
     <div class="st-controls">
-      <div class="st-kind" id="stKindRow"><button class="on" id="stKindAtc" onclick="stSetKind('atc')">약효군</button><button id="stKindCmpn" onclick="stSetKind('cmpn')">성분 비교 <span class="pro-tag">PRO</span></button></div>
+      <div class="st-kind" id="stKindRow"><button class="on" id="stKindAtc" onclick="stSetKind('atc')">약효군</button><button id="stKindCmpn" onclick="stSetKind('cmpn')">성분 비교 <span class="pro-tag">유료</span></button></div>
       <label class="st-field" id="stAtcField"><span>약효군</span>
         <select id="stAtc" onchange="stRun()"></select></label>
       <div id="stCmpnField" style="display:none;">
@@ -3921,12 +3933,12 @@ function stRenderCmp(results, ings, place, partial) {
       ${per.some(p => p.cos && p.cos <= 3) ? `<div class="st-note" style="margin-top:8px;color:#b45309;">⚠️ 판매 회사가 3곳 이하인 성분(신약·단독 제품)은 심평원이 일부 또는 전부를 공개하지 않아 <b>실제보다 작거나 0</b>으로 보여요. 이런 성분끼리의 비교는 참고만 해 주세요.</div>` : ''}
     </div>
     <div class="st-card ${proLocked() ? 'pro-lock' : ''}" data-veil="성분별 12개월 추이 비교는 PRO 기능이에요.">
-      <h4>최근 12개월 성분별 처방액 <span class="pro-tag">PRO</span></h4>
+      <h4>최근 12개월 성분별 처방액 <span class="pro-tag">유료</span></h4>
       <div class="st-seg" id="stSeg"><button data-v="cmp">처방액</button><button data-v="pct">증감률</button></div>
       <div id="stLine"></div>
     </div>
     ${sgNames.length > 1 ? `<div class="st-card ${proLocked() ? 'pro-lock' : ''}" data-veil="지역별 성분 비교는 PRO 기능이에요.">
-      <h4>시·군·구별 <span class="pro-tag">PRO</span><small>${stYm(lastYm)} 처방액</small></h4>
+      <h4>시·군·구별 <span class="pro-tag">유료</span><small>${stYm(lastYm)} 처방액</small></h4>
       <div style="overflow-x:auto;"><table class="st-cmp st-cmp-sg">
         <tr><th>지역</th>${per.map(p => `<th><i style="background:${p.color}"></i>${e(p.name.slice(0, 6))}</th>`).join('')}</tr>
         ${sgNames.map(sg => { const mx = Math.max(...per.map(p => p.bySg[sg] || 0));
@@ -3985,7 +3997,7 @@ function stRenderRx(results, place, atcLabel, isCmpn, partial) {
       ${partial ? `<div class="st-note" style="margin-top:8px;color:#b45309;">${String(partial).startsWith('cos') ? `⚠️ 판매사 ${String(partial).slice(3)}곳뿐인 성분이라 심평원이 일부를 공개하지 않아요. 실제보다 작게 보일 수 있어요.` : '⚠️ 심평원 서버가 바빠서 일부 지역·월이 빠졌을 수 있어요. 잠시 후 다시 열면 채워져요.'}</div>` : ''}
     </div>
     <div class="st-card ${proLocked() ? 'pro-lock' : ''}">
-      <h4>최근 12개월 처방액 추이 <span class="pro-tag">PRO</span></h4>
+      <h4>최근 12개월 처방액 추이 <span class="pro-tag">유료</span></h4>
       <div class="st-seg" id="stSeg">
         ${bySggu.length > 1 ? `<button data-v="sggu">시·군·구별</button>` : ''}
         <button data-v="type">기관 종별</button>
@@ -3995,11 +4007,11 @@ function stRenderRx(results, place, atcLabel, isCmpn, partial) {
       <div id="stLine"></div>
     </div>
     <div class="st-card ${proLocked() ? 'pro-lock' : ''}">
-      <h4>의료기관 종별 처방액 <span class="pro-tag">PRO</span><small>${stYm(last.ym)}</small></h4>
+      <h4>의료기관 종별 처방액 <span class="pro-tag">유료</span><small>${stYm(last.ym)}</small></h4>
       ${types.map(([t, v]) => `<div class="st-hrow"><span class="l">${ST_TYPE[t] || t}</span><span class="t"><i style="width:${Math.round(v / typeMax * 100)}%"></i></span><span class="v">${stWon(v)}</span></div>`).join('') || '<div class="st-note">데이터 없음</div>'}
     </div>
     ${bySggu.length > 1 ? `<div class="st-card ${proLocked() ? 'pro-lock' : ''}">
-      <h4>시·군·구 순위 <span class="pro-tag">PRO</span><small>${stYm(last.ym)} 처방액</small></h4>
+      <h4>시·군·구 순위 <span class="pro-tag">유료</span><small>${stYm(last.ym)} 처방액</small></h4>
       ${bySggu.map((s, i) => `<div class="st-hrow"><span class="l">${i + 1}. ${s.name}</span><span class="t"><i style="width:${Math.round(s.amt / sgMax * 100)}%;background:var(--blue);"></i></span><span class="v">${stWon(s.amt)}</span></div>`).join('')}
     </div>` : ''}
     <div class="st-note" style="padding:0 4px 20px;" id="stNoteEnd">
@@ -4372,7 +4384,7 @@ function vsImport(input) {
 }
 
 /* ════════════════════════════════════════
-   얼리버드 회원 · 유료(PRO) 기능
+   얼리버드 회원 · 유료 기능
    PAYWALL_ON = false 인 동안은 모두 무료 (PRO 표시만)
    켜면: 무료 AI 하루 3회 · PRO 카드/엑셀은 "유료 전환 시 공개"
 ════════════════════════════════════════ */
@@ -4399,7 +4411,7 @@ function aiHeaders(kind) {
 }
 function aiqText() {
   if (!PAYWALL_ON) return '✨ 얼리버드 기간 무제한';
-  if (isPro()) return '🐦 PRO 무제한';
+  if (isPro()) return '🐦 얼리버드 무제한';
   return `오늘 무료 ${Math.max(0, AI_FREE_PER_DAY - proAIUsed())}/${AI_FREE_PER_DAY}`;
 }
 function aiqChip() { return `<span class="aiq${PAYWALL_ON && !isPro() && proAIUsed() >= AI_FREE_PER_DAY ? ' out' : ''}">${aiqText()}</span>`; }
@@ -4416,14 +4428,14 @@ function proLockAI() {
     <div style="font-size:1.4rem;">🔒</div>
     <b style="display:block;margin:4px 0;">오늘 무료 AI 요약 ${AI_FREE_PER_DAY}회를 모두 사용했어요</b>
     <span style="font-size:0.78rem;color:var(--sub);">3회 초과분은 ${PRO_MSG}.<br>내일 다시 무료 ${AI_FREE_PER_DAY}회가 채워져요.</span>
-    ${fmGet() ? '' : `<button onclick="fmJoin()" style="margin-top:10px;font:inherit;font-size:0.8rem;font-weight:800;padding:8px 14px;border-radius:999px;border:none;background:#1E3A5F;color:#fff;cursor:pointer;">🐦 얼리버드 회원 등록하고 계속 쓰기</button>`}
+    ${isPro() ? '' : `<button onclick="fmJoin()" style="margin-top:10px;font:inherit;font-size:0.8rem;font-weight:800;padding:8px 14px;border-radius:999px;border:none;background:#1E3A5F;color:#fff;cursor:pointer;">🐦 카페 가입하고 무료로 계속 쓰기</button>`}
   </div>`;
   ['clinicalVal', 'issueVal', 'fdaVal'].forEach(id => { const e = document.getElementById(id); if (e) e.innerHTML = '<span style="color:var(--sub2);font-weight:500;">🔒</span>'; });
 }
 function proDecorateLocks(root) {
   (root || document).querySelectorAll('.pro-lock').forEach(c => {
     if (c.querySelector('.pro-veil')) return;
-    c.insertAdjacentHTML('beforeend', `<div class="pro-veil"><b>🔒 ${PRO_MSG}</b><span>${c.dataset.veil || '무료로는 이번 달 처방액까지 볼 수 있어요.'}<br>얼리버드 회원은 평생 무료예요.</span></div>`);
+    c.insertAdjacentHTML('beforeend', `<div class="pro-veil" onclick="fmJoin()" style="cursor:pointer;"><b>🔒 ${PRO_MSG}</b><span>${c.dataset.veil || '무료로는 이번 달 처방액까지 볼 수 있어요.'}<br>🐦 얼리버드 회원(네이버 카페 가입)은 무료예요.</span></div>`);
   });
 }
 // 경쟁품 비교 → 엑셀(CSV) 내보내기 (PRO)
@@ -4441,43 +4453,86 @@ function exportCompExcel() {
   showToast('엑셀 파일 저장 완료 📊');
 }
 // 얼리버드 회원 등록 (구글 로그인 → 서버가 구글에 확인 → 명단 저장)
-async function fmJoin() {
-  const btn = document.querySelector('#fmBanner button');
+const CAFE_URL = 'https://cafe.naver.com/allaiai';
+const WHY_PAID = `<details class="why-paid"><summary>💬 왜 유료인가요?</summary>
+  <p>ALLAI는 광고 없이 운영돼요. 유료 요금은 <b>최소한의 운영비</b>예요.</p>
+  <ul><li>🖥 서버 비용</li><li>🏥 심평원·식약처 공공데이터 조회 트래픽</li><li>🤖 AI 요약·멘트 사용료</li></ul>
+  <p>공공데이터와 AI는 하루 사용량 한도가 있어서, 사용자가 한꺼번에 몰리면 <b>일부 기능이 잠시 멈출 수 있어요</b>. 멈추면 보통 다음 날 자동으로 다시 열려요.</p></details>`;
+// 얼리버드 등록: ① 네이버 카페 가입 ② 카페 닉네임 ③ 구글 로그인 → 바로 승인(관리자가 나중에 확인)
+function fmJoin() {
+  closeMaker();
+  const m = fmGet();
+  document.body.insertAdjacentHTML('beforeend', `
+  <div class="mk-bg" id="mkBg" onclick="if(event.target.id==='mkBg')closeMaker()">
+    <div class="mk-card fm-card">
+      <div class="mk-emoji">🐦</div>
+      <div class="mk-t">얼리버드 회원 등록</div>
+      <div class="mk-who">네이버 카페 회원이면 유료 기능을 무료로 써요</div>
+      <ol class="fm-steps">
+        <li><b>네이버 카페 가입</b><a href="${CAFE_URL}" target="_blank" rel="noopener">카페 열기 ↗</a></li>
+        <li><b>카페 닉네임</b><input id="fmNick" maxlength="30" placeholder="카페에서 쓰는 닉네임" value="${(m && m.cafeNick) || ''}"></li>
+        <li><b>구글로 등록</b> 누르면 바로 열려요</li>
+      </ol>
+      <div class="fm-err" id="fmErr"></div>
+      <button class="mk-btn" style="border:0;width:100%;cursor:pointer;font:inherit;font-weight:800;" onclick="fmJoinGo()"><b style="color:#fff;">G</b>&nbsp; 구글로 등록</button>
+      <div class="fm-fine">※ 닉네임은 카페 회원 확인용이에요. 카페에 없는 닉네임은 나중에 해제될 수 있어요. 무료 혜택은 별도 공지 전까지 유지돼요.</div>
+      <button class="mk-close" onclick="closeMaker()">닫기</button>
+    </div>
+  </div>`);
+  setTimeout(() => document.getElementById('fmNick')?.focus(), 80);
+}
+async function fmJoinGo() {
+  const nick = (document.getElementById('fmNick')?.value || '').trim();
+  const err = document.getElementById('fmErr');
+  if (nick.length < 2) { err.textContent = '카페 닉네임을 적어 주세요 (2자 이상)'; return; }
   try {
-    if (btn) { btn.disabled = true; btn.textContent = '구글 로그인 중…'; }
+    err.textContent = '구글 로그인 중…';
     await gLoad();
     const tok = await new Promise((ok, no) => {
       const c = google.accounts.oauth2.initTokenClient({ client_id: G_CLIENT_ID, scope: 'openid email profile',
         callback: r => r.error ? no(new Error(r.error)) : ok(r.access_token), error_callback: e => no(new Error(e?.type || 'popup')) });
       c.requestAccessToken({ prompt: 'select_account' });
     });
-    if (btn) btn.textContent = '등록 중…';
-    const r = await (await fetch('/api/member', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: tok }) })).json();
+    err.textContent = '등록 중…';
+    const r = await (await fetch('/api/member', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: tok, cafeNick: nick }) })).json();
     if (!r.ok) throw new Error(r.error || '등록 실패');
-    localStorage.setItem(FM_KEY, JSON.stringify({ email: r.email, joinedAt: r.joinedAt, tier: 'founder' }));
-    fmRender(); adminBarRender();
-    showToast(r.already ? '이미 얼리버드 회원으로 등록되어 있어요 🐦' : '얼리버드 회원으로 등록됐어요! 🐦');
+    localStorage.setItem(FM_KEY, JSON.stringify({ email: r.email, joinedAt: r.joinedAt, tier: r.tier || 'founder', cafeNick: r.cafeNick || nick, checked: Date.now() }));
+    closeMaker(); fmRender(); adminBarRender(); try { aiqRefresh(); } catch (e) {}
+    showToast(r.already ? '얼리버드 회원 정보가 업데이트됐어요 🐦' : '얼리버드 회원으로 등록됐어요! 🐦');
   } catch (e) {
-    showToast(/popup/i.test(e.message) ? '로그인 창이 닫혔어요' : '등록에 실패했어요. 잠시 후 다시 시도해 주세요');
-    fmRender();
+    err.textContent = /popup/i.test(e.message) ? '로그인 창이 닫혔어요' : e.message === 'revoked' ? '이용이 해제된 계정이에요. 카페로 문의해 주세요.' : '등록에 실패했어요. 잠시 후 다시 시도해 주세요';
   }
+}
+// 하루 한 번 서버에서 상태 확인 (관리자가 해제했으면 반영)
+async function fmCheck() {
+  const m = fmGet(); if (!m || !m.email || (m.checked && Date.now() - m.checked < 864e5)) return;
+  try {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(String(m.email).toLowerCase()));
+    const id = [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 32);
+    const r = await (await fetch('/api/member?id=' + id)).json();
+    if (!r.ok) return;
+    m.checked = Date.now(); if (r.tier) m.tier = r.tier;
+    localStorage.setItem(FM_KEY, JSON.stringify(m)); fmRender();
+  } catch (e) {}
 }
 function fmRender() {
   const el = document.getElementById('fmBanner'); if (!el) return;
   const m = fmGet();
-  if (m) {
+  if (m && m.tier !== 'revoked') {
     const d = m.joinedAt ? new Date(m.joinedAt) : null;
     el.className = 'fm-banner done';
-    el.innerHTML = `<b>🐦 ALLAI 얼리버드 회원</b><p style="margin-bottom:0;">나중에 유료 기능이 생겨도 <b style="display:inline;font-size:inherit;">평생 무료</b>로 이용하세요.</p><small>${m.email}${d ? ` · ${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()} 등록` : ''}</small>`;
+    el.innerHTML = `<b>🐦 ALLAI 얼리버드 회원</b><p style="margin-bottom:0;">유료 기능을 <b style="display:inline;font-size:inherit;">무료</b>로 이용 중이에요. (별도 공지 전까지)</p>
+      <small>${m.email}${m.cafeNick ? ` · 카페 ${sayEsc(m.cafeNick)}` : ''}${d ? ` · ${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()} 등록` : ''}</small>
+      ${m.cafeNick ? '' : `<button onclick="fmJoin()" style="margin-top:8px;">카페 닉네임 등록하기</button>`}${WHY_PAID}`;
   } else {
     el.className = 'fm-banner';
     el.innerHTML = `<b>🐦 얼리버드 회원 모집 중</b>
-      <p>ALLAI는 광고 없이 운영돼요. 곧 AI 무제한·처방 분석·알림 같은 <b style="display:inline;font-size:inherit;">유료(PRO) 기능</b>이 생기는데,
-      지금 구글 로그인으로 등록하면 <b style="display:inline;font-size:inherit;">평생 무료</b>로 쓸 수 있어요.</p>
-      <button onclick="fmJoin()"><b style="display:inline;color:#4285F4;font-size:inherit;">G</b> 구글로 얼리버드 회원 등록</button>`;
+      <p>곧 AI 무제한·성분 비교·처방 분석 같은 <b style="display:inline;font-size:inherit;">유료 기능</b>이 생겨요.
+      지금 <b style="display:inline;font-size:inherit;">네이버 카페 가입 + 구글 등록</b>하면 유료 기능을 무료로 쓸 수 있어요.</p>
+      <button onclick="fmJoin()">🐦 얼리버드 회원 등록</button>${WHY_PAID}`;
   }
 }
-fmRender();
+fmRender(); setTimeout(fmCheck, 2500);
 
 /* ── 약가 변동 (priceChanges.json, 매주 자동 갱신) ── */
 const PC_TYPES = { '인하': ['#2a78d6', '📉'], '인상': ['#e34948', '📈'], '신규': ['#1baf7a', '🆕'], '삭제': ['#8a8984', '🚫'] };
@@ -4569,7 +4624,7 @@ function sayWrite() {
   const body = document.getElementById('sayBody');
   if (!fmGet()) {
     body.innerHTML = `<div class="vs-sheet-title">✍️ 한마디 쓰기</div>
-      <div class="say-rules" style="font-size:0.82rem;">한마디는 <b>얼리버드 회원</b>만 쓸 수 있어요.<br>구글 로그인으로 등록하면 나중에 유료 기능도 평생 무료예요.</div>
+      <div class="say-rules" style="font-size:0.82rem;">한마디는 <b>얼리버드 회원</b>만 쓸 수 있어요.<br>네이버 카페 가입 + 구글 등록하면 유료 기능도 무료예요.</div>
       <div class="vs-form-btns"><button class="vs-cancel" onclick="sayOpen()">목록</button><button class="vs-save" onclick="fmJoin().then(()=>fmGet()&&sayWrite())">🐦 얼리버드 회원 등록하기</button></div>`;
     return;
   }
@@ -4605,7 +4660,34 @@ async function saySubmit() {
 function isSayAdmin() { const m = fmGet(); return !!(m && SAY_ADMIN_H.includes(emailHash(m.email))); }
 function adminBarRender() {
   const el = document.getElementById('adminBar'); if (!el) return;
-  el.innerHTML = isSayAdmin() ? `<div class="admin-bar" onclick="sayAdmin()"><span>🛠 관리자 · 한마디 승인하기</span><span>›</span></div>` : '';
+  el.innerHTML = isSayAdmin() ? `<div class="admin-bar" onclick="sayAdmin()"><span>🛠 관리자 · 한마디 승인하기</span><span>›</span></div>
+    <div class="admin-bar" onclick="memberAdmin()"><span>🐦 관리자 · 얼리버드 명단</span><span>›</span></div>` : '';
+}
+async function memberAdmin() {
+  document.getElementById('saySheet').classList.add('on');
+  const body = document.getElementById('sayBody');
+  body.innerHTML = `<div class="vs-sheet-title">🐦 얼리버드 명단</div><div class="vs-empty">불러오는 중…</div>`;
+  try {
+    const r = await sayApi({ action: 'members' });
+    if (!r.ok) throw new Error(r.error);
+    const on = r.items.filter(m => m.tier !== 'revoked').length;
+    body.innerHTML = `<div class="vs-sheet-title">🐦 얼리버드 명단 <span style="font-size:0.8rem;color:var(--sub);">이용 중 ${on}명 · 전체 ${r.items.length}명</span></div>
+      <div class="say-rules">카페 회원 목록과 닉네임을 비교해서, 카페에 없는 사람만 <b>해제</b>하면 돼요.<br>
+        <a href="${CAFE_URL}" target="_blank" rel="noopener" style="color:#03c75a;font-weight:800;">네이버 카페 열기 ↗</a>
+        <input class="vs-in" id="mbFind" placeholder="닉네임·이메일 찾기" oninput="memberFilter()" style="margin-top:8px;width:100%;box-sizing:border-box;"></div>
+      <div id="mbList">${r.items.map(m => `<div class="say-item mb-row" data-k="${sayEsc(((m.cafeNick || '') + ' ' + (m.email || '')).toLowerCase())}" style="${m.tier === 'revoked' ? 'opacity:.5' : ''}">
+        <p><b>${m.cafeNick ? sayEsc(m.cafeNick) : '<span style="color:#b45309">닉네임 없음</span>'}</b> ${m.tier === 'revoked' ? '<small style="color:var(--red)">해제됨</small>' : ''}</p>
+        <small>${sayEsc(m.email)} · ${String(m.joinedAt || '').slice(0, 10)}</small>
+        <div class="say-adm">${m.tier === 'revoked'
+          ? `<button style="background:var(--g1);color:#fff;" onclick="memberSet('${m.id}','founder')">복구</button>`
+          : `<button style="background:rgba(239,68,68,0.1);color:var(--red);" onclick="memberSet('${m.id}','revoked')">해제</button>`}</div></div>`).join('') || '<div class="vs-empty">아직 없어요</div>'}</div>`;
+  } catch (e) { body.innerHTML = `<div class="vs-sheet-title">🐦 얼리버드 명단</div><div class="vs-empty">불러오지 못했어요 (${sayEsc(e.message)})</div>`; }
+}
+function memberFilter() { const q = document.getElementById('mbFind').value.trim().toLowerCase(); document.querySelectorAll('#mbList .mb-row').forEach(r => r.style.display = !q || r.dataset.k.includes(q) ? '' : 'none'); }
+async function memberSet(id, tier) {
+  if (tier === 'revoked' && !confirm('이 회원의 무료 이용을 해제할까요?')) return;
+  try { const r = await sayApi({ action: 'member_set', id, tier }); if (!r.ok) throw new Error(r.error); showToast(tier === 'revoked' ? '해제했어요' : '복구했어요'); memberAdmin(); }
+  catch (e) { showToast('실패: ' + e.message); }
 }
 async function sayAdmin() {
   document.getElementById('saySheet').classList.add('on');

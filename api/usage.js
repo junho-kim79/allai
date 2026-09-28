@@ -7,7 +7,8 @@
  * mode=sggu   &sido=230000 → 해당 시도의 시군구 목록 [{code,name}]
  * mode=trend  &atc=A02BC&sido=230000&sggu=230006|all&months=12&tp=02 → 월별 합계 + 기관종별
  */
-const SVC = "https://apis.data.go.kr/B551182/msupUserInfoService1.2/getAtcStp4AreaList1.2";
+const BASE = "https://apis.data.go.kr/B551182/msupUserInfoService1.2/";
+const SVC = BASE + "getAtcStp4AreaList1.2";
 const ALLOWED = ["diagYm", "atcStep4Cd", "insupTp", "cpmdPrscTp", "sidoCd", "sgguCd", "numOfRows", "pageNo"];
 
 export default async function handler(req, res) {
@@ -18,13 +19,13 @@ export default async function handler(req, res) {
   const KEY = process.env.API_KEY_HIRA || process.env.API_KEY_MFDS;
   if (!KEY) return res.status(200).json({ error: "API 키 미설정 (API_KEY_HIRA)" });
 
-  const call = async (params, ms = 7000) => {
+  const call = async (params, ms = 7000, op) => {
     const qs = new URLSearchParams({ serviceKey: KEY, _type: "json", numOfRows: "100", pageNo: "1", insupTp: "0", cpmdPrscTp: "02" });
     for (const [k, v] of Object.entries(params)) if (v !== undefined && v !== "") qs.set(k, String(v));
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), ms);
     try {
-      const r = await fetch(`${SVC}?${qs}`, { signal: ctrl.signal, headers: { Accept: "application/json" } });
+      const r = await fetch(`${op ? BASE + op : SVC}?${qs}`, { signal: ctrl.signal, headers: { Accept: "application/json" } });
       const txt = await r.text();
       let data; try { data = JSON.parse(txt); } catch {
         const msg = (txt.match(/<returnAuthMsg>([^<]*)</) || txt.match(/<resultMsg>([^<]*)</) || [])[1] || txt.slice(0, 120);
@@ -84,6 +85,25 @@ export default async function handler(req, res) {
 
   const mode = String(req.query.mode || "raw");
   try {
+    // 성분별 조회 기능 이름 찾기 (진단용): /api/usage?mode=probe&drug=파리에트
+    if (mode === "probe") {
+      const drug = String(req.query.drug || "파리에트");
+      let gnl = String(req.query.gnl || "");
+      if (!gnl) {
+        try {
+          const x = await (await fetch(`https://apis.data.go.kr/B551182/dgamtCrtrInfoService1.2/getDgamtList?serviceKey=${KEY}&numOfRows=5&pageNo=1&itmNm=${encodeURIComponent(drug)}`)).text();
+          gnl = (x.match(/<gnlNmCd>([^<]+)</) || [])[1] || "";
+        } catch {}
+      }
+      const ym = Number(req.query.ym) || await findLatest();
+      const ops = ["getCmpnAreaList1.2", "getGnlNmCdAreaList1.2", "getCmpnSgguList1.2", "getMsupCmpnAreaList1.2", "getCmpnList1.2", "getGnlNmAreaList1.2"];
+      const vars = [["gnlNmCd", gnl], ["gnlNmCd", gnl.slice(0, 4)], ["cmpnCd", gnl], ["mainIngrCd", gnl.slice(0, 4)]];
+      const jobs = []; for (const op of ops) for (const [k, v] of vars) jobs.push({ op, k, v });
+      const rs = await Promise.all(jobs.map((j) => call({ diagYm: ym, sidoCd: "230000", [j.k]: j.v }, 8000, j.op)));
+      return res.status(200).json({ drug, gnlNmCd: gnl, ym,
+        results: jobs.map((j, i) => ({ op: j.op, param: `${j.k}=${j.v}`, n: rs[i].items.length, err: rs[i].error ? String(rs[i].error).slice(0, 60) : undefined,
+          keys: rs[i].items[0] ? Object.keys(rs[i].items[0]).join(",") : undefined, sample: rs[i].items[0] })).sort((a, b) => b.n - a.n) });
+    }
     if (mode === "latest") return res.status(200).json({ latest: await findLatest() });
 
     if (mode === "sggu") {

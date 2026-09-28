@@ -183,6 +183,8 @@
     .st-gnl .chips button.on{background:#0e8a4f;color:#fff}
     .fm-card{max-height:calc(100vh - 32px);overflow-y:auto}
     .beta-tag{display:inline-block;font-size:.58rem;font-weight:900;letter-spacing:.06em;color:#fff;background:#f59e0b;border-radius:5px;padding:2px 5px;vertical-align:3px;font-style:normal}
+    .beta-thanks{display:inline-block;margin:6px 0 2px;font-size:.78rem;color:#b45309;background:rgba(245,158,11,.1);border-radius:8px;padding:5px 8px;line-height:1.5}
+    .mk-who .beta-thanks b{font-size:inherit;color:#92400e}
     .fm-feat{margin-top:10px;font-size:.74rem;line-height:1.6;color:var(--sub);background:rgba(14,138,79,.06);border-radius:10px;padding:8px 10px}
     .fm-feat b{color:#0e8a4f;font-size:.8rem}
     .fm-steps{text-align:left;margin:14px 0 6px;padding-left:20px;font-size:.84rem;line-height:1.5}
@@ -1273,7 +1275,7 @@
 
     <!-- 피드백 -->
     <div class="feedback-bar">
-      <span class="feedback-text">📬 의견·버그 제보</span>
+      <span class="feedback-text">📬 의견·버그 제보<small style="display:block;font-size:.68rem;font-weight:600;opacity:.75;">베타 기간 사용료 대신 의견 한마디 부탁드려요 🙏</small></span>
      <a class="feedback-btn" id="feedbackLink" href="https://cafe.naver.com/allaiai" target="_blank">의견 보내기</a>
     </div>
 
@@ -4471,7 +4473,7 @@ function fmJoin() {
     <div class="mk-card fm-card">
       <div class="mk-emoji">🐦</div>
       <div class="mk-t">얼리버드 사전 등록 <span class="beta-tag">BETA</span></div>
-      <div class="mk-who">지금은 <b>베타 버전</b>이라 모두 무료예요.<br>정식 버전 업데이트 후 <b style="color:#0e8a4f">그때부터 2개월 무료 → 딱 월 990원</b><br><small>얼리버드는 최소 비용만 받을게요 (일반 월 2,900원)</small></div>
+      <div class="mk-who">지금은 <b>베타 버전</b>이라 모두 무료예요.<br><span class="beta-thanks">베타 기간에는 <b>사전 등록·회원 가입 후 개선 의견을 보내 주시는 것</b>이 사용료를 대신해요 🙏</span><br>정식 버전 업데이트 후 <b style="color:#0e8a4f">그때부터 2개월 무료 → 딱 월 990원</b><br><small>얼리버드는 최소 비용만 받을게요 (일반 월 2,900원)</small></div>
       <div class="fm-feat">📅 스케줄 관리 · 🆕 개원 정보 · 📉 약가 정보 · ⚔️ 1페이퍼 경쟁품 비교 출력·전송 · 🗺 지역별 처방통계<br><b>모두 활용하는 전문 MR이 되세요</b></div>
       <ol class="fm-steps">
         <li><b>네이버 카페 가입</b><a href="${CAFE_URL}" target="_blank" rel="noopener">카페 열기 ↗</a></li>
@@ -4532,7 +4534,8 @@ function fmRender() {
   } else {
     el.className = 'fm-banner';
     el.innerHTML = `<b>🐦 얼리버드 사전 등록 <span class="beta-tag">BETA</span></b>
-      <p>지금은 <b style="display:inline;font-size:inherit;">베타 버전</b>이라 모든 기능이 무료예요. 정식 버전부터 일부 기능이 유료(월 2,900원)가 되는데,
+      <p>지금은 <b style="display:inline;font-size:inherit;">베타 버전</b>이라 모든 기능이 무료예요. 베타 기간에는 <b style="display:inline;font-size:inherit;">사전 등록·회원 가입 후 개선 의견을 보내 주시는 것</b>이 사용료를 대신해요 🙏
+      정식 버전부터 일부 기능이 유료(월 2,900원)가 되는데,
       지금 <b style="display:inline;font-size:inherit;">네이버 카페 가입 + 구글 등록</b>으로 사전 등록하면 <b style="display:inline;font-size:inherit;">정식 버전 업데이트 시점부터 2개월 무료 → 딱 월 990원</b>, 최소 비용만 받을게요.</p>
       <p style="font-size:.74rem;opacity:.9;">📅 스케줄 관리 · 🆕 개원 정보 · 📉 약가 정보 · ⚔️ 1페이퍼 경쟁품 비교 출력·전송 · 🗺 지역별 처방통계<br>모두 활용하는 전문 MR이 되세요</p>
       <button onclick="fmJoin()">🐦 얼리버드 사전 등록</button>${WHY_PAID}`;

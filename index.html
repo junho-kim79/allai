@@ -3780,8 +3780,10 @@ async function stCmpnFind() {
   const by = {};
   items.filter(x => x.gnlNmCd.startsWith(main)).forEach(x => { const c = x.gnlNmCd; (by[c] = by[c] || { code: c, route: c[6], n: 0 }).n++; });
   const codes = Object.values(by).filter(c => c.route === 'A' || c.route === 'B');
+  // 판매 회사 수 (3곳 이하면 심평원 비공개 대상 → 숫자가 작거나 0일 수 있음)
+  const cos = new Set(items.filter(x => x.gnlNmCd.startsWith(main)).map(x => String(x.mnfEntpNm || '').replace(/\(주\)|주식회사|㈜|\s/g, '')).filter(Boolean)).size;
   if (!codes.length) { box.textContent = '먹는 약·주사 제형이 없는 성분이에요.'; return; }
-  _stCmp.push({ main, ingr: stShortIngr(ingr), full: ingr, q, codes });
+  _stCmp.push({ main, ingr: stShortIngr(ingr), full: ingr, q, codes, cos });
   inp.value = ''; box.innerHTML = _stCmp.length < 4 ? `✅ <b>${stShortIngr(ingr)}</b> 추가 · 더 넣거나 아래 <b>비교 조회</b>를 눌러 주세요` : '✅ 4개 모두 채웠어요 · 아래 <b>비교 조회</b>를 눌러 주세요';
   setTimeout(() => inp.focus(), 50);
   if (!codes.some(c => c.route === _stRoute) && _stCmp.length === 1) _stRoute = codes[0].route;
@@ -3794,7 +3796,7 @@ function stCmpnChips() {
   el.innerHTML = _stCmp.length ? `<div class="st-gnl">
     <div class="st-route">${Object.entries(ST_ROUTE).map(([k, v]) => `<button class="${_stRoute === k ? 'on' : ''}" onclick="stSetRoute('${k}')">${v}</button>`).join('')}</div>
     <div class="st-slots">${[0, 1, 2, 3].map(i => { const c = _stCmp[i];
-      return c ? `<div class="st-slot on"><i style="background:${ST_COLORS[i]}"></i><span>${e(c.ingr)}${stCmpnCodes(c).length ? '' : '<small>이 제형 없음</small>'}</span><button onclick="stCmpnDel(${i})" aria-label="빼기">×</button></div>`
+      return c ? `<div class="st-slot on"><i style="background:${ST_COLORS[i]}"></i><span>${e(c.ingr)}${!stCmpnCodes(c).length ? '<small>이 제형 없음</small>' : c.cos && c.cos <= 3 ? `<small>⚠️ 판매사 ${c.cos}곳 · 비공개 가능</small>` : ''}</span><button onclick="stCmpnDel(${i})" aria-label="빼기">×</button></div>`
         : `<div class="st-slot${i === _stCmp.length ? ' next' : ''}" onclick="document.getElementById('stCmpnQ').focus()"><i></i><span>${i === _stCmp.length ? `성분 ${i + 1} · 위에 입력` : `성분 ${i + 1}`}</span></div>`; }).join('')}</div>
     <button class="st-go${_stDirty ? ' dirty' : ''}" onclick="stCmpnGo()">📊 ${_stCmp.length > 1 ? `${_stCmp.length}개 성분 비교 조회` : '조회'}${_stDirty ? '' : ' ✓'}</button>
     <div class="st-hint">함량(5·10·20mg)·회사 상관없이 같은 성분은 모두 합쳐요 · 같은 성분의 제품끼리는 나눠 볼 수 없어요</div></div>` : '';
@@ -3878,7 +3880,7 @@ async function stRun() {
   await Promise.all([worker(), worker(), worker()]);
   if (run !== _stRun) return;
   if (isCmpn && ings.length > 1) return stRenderCmp(results, ings, place, partial);
-  stRenderRx(results, place, atcLabel, isCmpn, partial);
+  stRenderRx(results, place, atcLabel, isCmpn, partial || (isCmpn && ings[0].c.cos && ings[0].c.cos <= 3 ? 'cos' + ings[0].c.cos : 0));
 }
 /* ── 성분 여러 개 비교 화면 ── */
 function stRenderCmp(results, ings, place, partial) {
@@ -3890,7 +3892,7 @@ function stRenderCmp(results, ings, place, partial) {
     const months = rs[0].d.months.map(m => ({ ym: m.ym, amt: 0 }));
     const bySg = {};
     rs.forEach(r => { r.d.months.forEach((m, k) => { if (months[k]) months[k].amt += m.amt; }); bySg[r.name] = r.d.months[r.d.months.length - 1].amt; });
-    return { name: o.c.ingr, color: ST_COLORS[o.i], months, bySg };
+    return { name: o.c.ingr, color: ST_COLORS[o.i], months, bySg, cos: o.c.cos };
   }).filter(Boolean);
   if (!per.length) { el.innerHTML = '<div class="empty">데이터를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</div>'; return; }
   const n = per[0].months.length, lastYm = per[0].months[n - 1].ym;
@@ -3903,7 +3905,7 @@ function stRenderCmp(results, ings, place, partial) {
   el.innerHTML = `
     <div class="st-card" style="margin-top:0;">
       <h4>${e(place)} · 성분 비교 <small>${ST_ROUTE[_stRoute]} · ${stYm(lastYm)}</small></h4>
-      ${(() => { const row = p => `<tr><td><i style="background:${p.color}"></i>${e(p.name)}<small>비교 중 ${Math.round(p.months[n - 1].amt / sum * 100)}%</small></td>
+      ${(() => { const row = p => `<tr><td><i style="background:${p.color}"></i>${e(p.name)}<small>${p.cos && p.cos <= 3 ? `<span style="color:#b45309;">⚠️ 판매사 ${p.cos}곳 · 일부 비공개</span>` : `비교 중 ${Math.round(p.months[n - 1].amt / sum * 100)}%`}</small></td>
           <td>${p.months.every(m => !m.amt) ? '<small style="color:#b45309;font-weight:700;">심평원 비공개</small>' : `<b>${stWon(p.months[n - 1].amt)}</b>`}</td><td>${stPct(p.months[n - 1].amt, p.months[n - 2]?.amt)}</td><td>${n >= 13 ? stPct(p.months[n - 1].amt, p.months[0].amt) : '-'}</td></tr>`;
         const head = '<tr><th>성분</th><th>처방액</th><th>전월</th><th>전년</th></tr>';
         // 무료: 1위 성분만 보이고 나머지는 흐리게 (미리보기)
@@ -3911,6 +3913,7 @@ function stRenderCmp(results, ings, place, partial) {
         return `<table class="st-cmp">${head}${row(rows[0])}</table>` + (rows.length > 1 ? `<div class="pro-lock flat" data-veil="성분 ${rows.length}개 비교는 PRO 기능이에요."><table class="st-cmp">${rows.slice(1).map(row).join('')}</table></div>` : '');
       })()}
       ${partial ? `<div class="st-note" style="margin-top:8px;color:#b45309;">⚠️ 심평원 서버가 바빠서 일부 지역·월이 빠졌을 수 있어요. 잠시 후 다시 열면 채워져요.</div>` : ''}
+      ${per.some(p => p.cos && p.cos <= 3) ? `<div class="st-note" style="margin-top:8px;color:#b45309;">⚠️ 판매 회사가 3곳 이하인 성분(신약·단독 제품)은 심평원이 일부 또는 전부를 공개하지 않아 <b>실제보다 작거나 0</b>으로 보여요. 이런 성분끼리의 비교는 참고만 해 주세요.</div>` : ''}
     </div>
     <div class="st-card ${proLocked() ? 'pro-lock' : ''}" data-veil="성분별 12개월 추이 비교는 PRO 기능이에요.">
       <h4>최근 12개월 성분별 처방액 <span class="pro-tag">PRO</span></h4>
@@ -3974,7 +3977,7 @@ function stRenderRx(results, place, atcLabel, isCmpn, partial) {
         <div><small>전월 대비</small>${stPct(last.amt, prev?.amt)}</div>
         <div><small>전년 동월 대비</small>${months.length >= 13 ? stPct(last.amt, yoy.amt) : '<b>-</b>'}</div>
       </div>
-      ${partial ? `<div class="st-note" style="margin-top:8px;color:#b45309;">⚠️ 심평원 서버가 바빠서 일부 지역·월이 빠졌을 수 있어요. 잠시 후 다시 열면 채워져요.</div>` : ''}
+      ${partial ? `<div class="st-note" style="margin-top:8px;color:#b45309;">${String(partial).startsWith('cos') ? `⚠️ 판매사 ${String(partial).slice(3)}곳뿐인 성분이라 심평원이 일부를 공개하지 않아요. 실제보다 작게 보일 수 있어요.` : '⚠️ 심평원 서버가 바빠서 일부 지역·월이 빠졌을 수 있어요. 잠시 후 다시 열면 채워져요.'}</div>` : ''}
     </div>
     <div class="st-card ${proLocked() ? 'pro-lock' : ''}">
       <h4>최근 12개월 처방액 추이 <span class="pro-tag">PRO</span></h4>

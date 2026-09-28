@@ -134,9 +134,21 @@ export default async function handler(req, res) {
       const jobs = [];
       if (gnls.length) { for (const ym of yms) for (const sg of sgguCodes) for (const g of gnls) jobs.push({ ym, sg, g }); }
       else for (const ym of yms) for (const sg of sgguCodes) jobs.push({ ym, sg });
-      const results = await Promise.all(jobs.map((j) => j.g
+      // 심평원이 한꺼번에 많이 부르면 일부를 거절함 → 동시 10개로 제한 + 실패한 것만 최대 2번 재시도
+      const one = (j) => j.g
         ? call({ diagYm: j.ym, gnlNmCd: j.g, sidoCd: sido, sgguCd: j.sg, cpmdPrscTp: tp }, 7000, "getCmpnAreaList1.2")
-        : call({ diagYm: j.ym, atcStep4Cd: atc, sidoCd: sido, sgguCd: j.sg, cpmdPrscTp: tp })));
+        : call({ diagYm: j.ym, atcStep4Cd: atc, sidoCd: sido, sgguCd: j.sg, cpmdPrscTp: tp });
+      const results = new Array(jobs.length);
+      const t0 = Date.now();
+      for (let round = 0; round < 3; round++) {
+        const todo = jobs.map((_, i) => i).filter((i) => !results[i] || results[i].error);
+        if (!todo.length || (round && Date.now() - t0 > 6500)) break;
+        if (round) await new Promise((r) => setTimeout(r, 400 * round));
+        let k = 0;
+        await Promise.all(Array.from({ length: Math.min(10, todo.length) }, async () => {
+          while (k < todo.length) { const i = todo[k++]; results[i] = await one(jobs[i]); }
+        }));
+      }
 
       let atcName = "", sidoName = "";
       const byMonth = Object.fromEntries(yms.map((ym) => [ym, { ym, amt: 0, qty: 0, byType: {} }]));

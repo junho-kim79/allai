@@ -29,11 +29,12 @@ export default async function handler(req, res) {
       const txt = await r.text();
       let data; try { data = JSON.parse(txt); } catch {
         const msg = (txt.match(/<returnAuthMsg>([^<]*)</) || txt.match(/<resultMsg>([^<]*)</) || [])[1] || txt.slice(0, 120);
-        return { items: [], error: msg };
+        return { items: [], error: msg, raw: txt.slice(0, 160) };
       }
       const body = data?.response?.body || data?.body || {};
       const it = body?.items?.item ?? body?.items ?? [];
-      return { items: Array.isArray(it) ? it : (it ? [it] : []) };
+      const hd = data?.response?.header || data?.header || {};
+      return { items: Array.isArray(it) ? it : (it ? [it] : []), rc: hd.resultCode, rm: hd.resultMsg, total: body?.totalCount, raw: txt.slice(0, 160) };
     } catch (e) { return { items: [], error: String(e) }; } finally { clearTimeout(t); }
   };
   const ymList = (endYm, n) => {
@@ -96,13 +97,15 @@ export default async function handler(req, res) {
         } catch {}
       }
       const ym = Number(req.query.ym) || await findLatest();
-      const ops = ["getCmpnAreaList1.2", "getGnlNmCdAreaList1.2", "getCmpnSgguList1.2", "getMsupCmpnAreaList1.2", "getCmpnList1.2", "getGnlNmAreaList1.2"];
-      const vars = [["gnlNmCd", gnl], ["gnlNmCd", gnl.slice(0, 4)], ["cmpnCd", gnl], ["mainIngrCd", gnl.slice(0, 4)]];
-      const jobs = []; for (const op of ops) for (const [k, v] of vars) jobs.push({ op, k, v });
-      const rs = await Promise.all(jobs.map((j) => call({ diagYm: ym, sidoCd: "230000", [j.k]: j.v }, 8000, j.op)));
+      const ops = String(req.query.ops || "getCmpnAreaList1.2,getCmpnSgguList1.2,getGnlNmCdAreaList1.2,getCmpnAreaList,getAtcStp4AreaList1.2").split(",");
+      const sg = String(req.query.sggu || "230005");
+      const vars = [{ gnlNmCd: gnl, sidoCd: "230000", sgguCd: sg }, { gnlNmCd: gnl.slice(0, 4), sidoCd: "230000", sgguCd: sg }, { cmpnCd: gnl, sidoCd: "230000", sgguCd: sg }, { atcStep4Cd: "A02BC", sidoCd: "230000", sgguCd: sg }];
+      const jobs = []; for (const op of ops) for (const v of vars) jobs.push({ op, v });
+      const rs = await Promise.all(jobs.map((j) => call({ diagYm: ym, ...j.v }, 8000, j.op)));
       return res.status(200).json({ drug, gnlNmCd: gnl, ym,
-        results: jobs.map((j, i) => ({ op: j.op, param: `${j.k}=${j.v}`, n: rs[i].items.length, err: rs[i].error ? String(rs[i].error).slice(0, 60) : undefined,
-          keys: rs[i].items[0] ? Object.keys(rs[i].items[0]).join(",") : undefined, sample: rs[i].items[0] })).sort((a, b) => b.n - a.n) });
+        results: jobs.map((j, i) => ({ op: j.op, param: Object.entries(j.v).filter(([k]) => !/sido|sggu/.test(k)).map(([k, v]) => `${k}=${v}`).join("&"), n: rs[i].items.length,
+          rc: rs[i].rc, rm: rs[i].rm, err: rs[i].error ? String(rs[i].error).slice(0, 80) : undefined,
+          raw: rs[i].items.length ? undefined : rs[i].raw, sample: rs[i].items[0] })).sort((a, b) => b.n - a.n) });
     }
     if (mode === "latest") return res.status(200).json({ latest: await findLatest() });
 

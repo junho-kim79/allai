@@ -185,6 +185,7 @@
     .beta-tag{display:inline-block;font-size:.58rem;font-weight:900;letter-spacing:.06em;color:#fff;background:#f59e0b;border-radius:5px;padding:2px 5px;vertical-align:3px;font-style:normal}
     .beta-thanks{display:inline-block;margin:6px 0 2px;font-size:.78rem;color:#b45309;background:rgba(245,158,11,.1);border-radius:8px;padding:5px 8px;line-height:1.5}
     .mk-who .beta-thanks b{font-size:inherit;color:#92400e}
+    .is-beta .pro-tag{display:none!important}
     .fm-feat{margin-top:10px;font-size:.74rem;line-height:1.6;color:var(--sub);background:rgba(14,138,79,.06);border-radius:10px;padding:8px 10px}
     .fm-feat b{color:#0e8a4f;font-size:.8rem}
     .fm-steps{text-align:left;margin:14px 0 6px;padding-left:20px;font-size:.84rem;line-height:1.5}
@@ -1275,7 +1276,7 @@
 
     <!-- 피드백 -->
     <div class="feedback-bar">
-      <span class="feedback-text">📬 의견·버그 제보<small style="display:block;font-size:.68rem;font-weight:600;opacity:.75;">베타 기간 사용료 대신 의견 한마디 부탁드려요 🙏</small></span>
+      <span class="feedback-text">📬 의견·버그 제보<small style="display:block;font-size:.68rem;font-weight:600;opacity:.75;">베타 기간 사용료 대신 의견 한마디 부탁드립니다</small></span>
      <a class="feedback-btn" id="feedbackLink" href="https://cafe.naver.com/allaiai" target="_blank">의견 보내기</a>
     </div>
 
@@ -3933,17 +3934,17 @@ function stRenderCmp(results, ings, place, partial) {
         const head = '<tr><th>성분</th><th>처방액</th><th>전월</th><th>전년</th></tr>';
         // 무료: 1위 성분만 보이고 나머지는 흐리게 (미리보기)
         if (!proLocked()) return `<table class="st-cmp">${head}${rows.map(row).join('')}</table>`;
-        return `<table class="st-cmp">${head}${row(rows[0])}</table>` + (rows.length > 1 ? `<div class="pro-lock flat" data-veil="성분 ${rows.length}개 비교는 PRO 기능이에요."><table class="st-cmp">${rows.slice(1).map(row).join('')}</table></div>` : '');
+        return `<table class="st-cmp">${head}${row(rows[0])}</table>` + (rows.length > 1 ? `<div class="pro-lock flat" data-veil="성분 여러 개 비교는 유료 기능입니다."><table class="st-cmp">${rows.slice(1).map(row).join('')}</table></div>` : '');
       })()}
       ${partial ? `<div class="st-note" style="margin-top:8px;color:#b45309;">⚠️ 심평원 서버가 바빠서 일부 지역·월이 빠졌을 수 있어요. 잠시 후 다시 열면 채워져요.</div>` : ''}
       ${per.some(p => p.cos && p.cos <= 3) ? `<div class="st-note" style="margin-top:8px;color:#b45309;">⚠️ 판매 회사가 3곳 이하인 성분(신약·단독 제품)은 심평원이 일부 또는 전부를 공개하지 않아 <b>실제보다 작거나 0</b>으로 보여요. 이런 성분끼리의 비교는 참고만 해 주세요.</div>` : ''}
     </div>
-    <div class="st-card ${proLocked() ? 'pro-lock' : ''}" data-veil="성분별 12개월 추이 비교는 PRO 기능이에요.">
+    <div class="st-card ${proLocked() ? 'pro-lock' : ''}" data-veil="성분별 12개월 추이는 유료 기능입니다.">
       <h4>최근 12개월 성분별 처방액 <span class="pro-tag">유료</span></h4>
       <div class="st-seg" id="stSeg"><button data-v="cmp">처방액</button><button data-v="pct">증감률</button></div>
       <div id="stLine"></div>
     </div>
-    ${sgNames.length > 1 ? `<div class="st-card ${proLocked() ? 'pro-lock' : ''}" data-veil="지역별 성분 비교는 PRO 기능이에요.">
+    ${sgNames.length > 1 ? `<div class="st-card ${proLocked() ? 'pro-lock' : ''}" data-veil="지역별 성분 비교는 유료 기능입니다.">
       <h4>시·군·구별 <span class="pro-tag">유료</span><small>${stYm(lastYm)} 처방액</small></h4>
       <div style="overflow-x:auto;"><table class="st-cmp st-cmp-sg">
         <tr><th>지역</th>${per.map(p => `<th><i style="background:${p.color}"></i>${e(p.name.slice(0, 6))}</th>`).join('')}</tr>
@@ -4395,8 +4396,9 @@ function vsImport(input) {
    켜면: 무료 AI 하루 3회 · PRO 카드/엑셀은 "유료 전환 시 공개"
 ════════════════════════════════════════ */
 const PAYWALL_ON = false;
+if (!PAYWALL_ON) document.documentElement.classList.add('is-beta');   // 베타 동안 '유료' 배지 숨김
 const FM_KEY = 'allai_member_v1', AI_CNT_KEY = 'allai_ai_count_v1', AI_FREE_PER_DAY = 3;
-const PRO_MSG = '정식 버전 유료 기능이에요';
+const PRO_MSG = '정식 버전 유료 기능';
 function fmGet() { try { return JSON.parse(localStorage.getItem(FM_KEY) || 'null'); } catch (e) { return null; } }
 function isPro() { const m = fmGet(); return !!(m && (m.tier === 'founder' || m.tier === 'pro' || m.tier === 'early')); }   // founder=초기 가입(무료 유지), early=얼리버드(990원 예정, 결제 붙기 전까지 이용), pro=유료 구독
 function proLocked() { return PAYWALL_ON && !isPro(); }
@@ -4416,8 +4418,8 @@ function aiHeaders(kind) {
   return h;
 }
 function aiqText() {
-  if (!PAYWALL_ON) return '✨ 얼리버드 기간 무제한';
-  if (isPro()) return '🐦 얼리버드 무제한';
+  if (!PAYWALL_ON) return '베타 기간 무제한';
+  if (isPro()) return '얼리버드 무제한';
   return `오늘 무료 ${Math.max(0, AI_FREE_PER_DAY - proAIUsed())}/${AI_FREE_PER_DAY}`;
 }
 function aiqChip() { return `<span class="aiq${PAYWALL_ON && !isPro() && proAIUsed() >= AI_FREE_PER_DAY ? ' out' : ''}">${aiqText()}</span>`; }
@@ -4434,14 +4436,14 @@ function proLockAI() {
     <div style="font-size:1.4rem;">🔒</div>
     <b style="display:block;margin:4px 0;">오늘 무료 AI 요약 ${AI_FREE_PER_DAY}회를 모두 사용했어요</b>
     <span style="font-size:0.78rem;color:var(--sub);">3회 초과분은 ${PRO_MSG}.<br>내일 다시 무료 ${AI_FREE_PER_DAY}회가 채워져요.</span>
-    ${isPro() ? '' : `<button onclick="fmJoin()" style="margin-top:10px;font:inherit;font-size:0.8rem;font-weight:800;padding:8px 14px;border-radius:999px;border:none;background:#1E3A5F;color:#fff;cursor:pointer;">🐦 얼리버드 사전 등록 (2개월 무료 → 990원)</button>`}
+    ${isPro() ? '' : `<button onclick="fmJoin()" style="margin-top:10px;font:inherit;font-size:0.8rem;font-weight:800;padding:8px 14px;border-radius:999px;border:none;background:#1E3A5F;color:#fff;cursor:pointer;">사전 등록하기</button>`}
   </div>`;
   ['clinicalVal', 'issueVal', 'fdaVal'].forEach(id => { const e = document.getElementById(id); if (e) e.innerHTML = '<span style="color:var(--sub2);font-weight:500;">🔒</span>'; });
 }
 function proDecorateLocks(root) {
   (root || document).querySelectorAll('.pro-lock').forEach(c => {
     if (c.querySelector('.pro-veil')) return;
-    c.insertAdjacentHTML('beforeend', `<div class="pro-veil" onclick="fmJoin()" style="cursor:pointer;"><b>🔒 ${PRO_MSG}</b><span>${c.dataset.veil || '무료로는 이번 달 처방액까지 볼 수 있어요.'}<br>🐦 베타 기간 사전 등록 시 정식 버전부터 2개월 무료 → 월 990원</span></div>`);
+    c.insertAdjacentHTML('beforeend', `<div class="pro-veil" onclick="fmJoin()" style="cursor:pointer;"><b>${PRO_MSG}</b><span>${c.dataset.veil || '무료로는 이번 달 처방액까지 볼 수 있습니다.'}<br>눌러서 사전 등록 혜택을 확인해 보세요.</span></div>`);
   });
 }
 // 경쟁품 비교 → 엑셀(CSV) 내보내기 (PRO)
@@ -4460,10 +4462,9 @@ function exportCompExcel() {
 }
 // 얼리버드 회원 등록 (구글 로그인 → 서버가 구글에 확인 → 명단 저장)
 const CAFE_URL = 'https://cafe.naver.com/allaiai';
-const WHY_PAID = `<details class="why-paid"><summary>💬 왜 유료인가요?</summary>
-  <p>ALLAI는 광고 없이 운영돼요. 유료 요금은 <b>최소한의 운영비</b>예요.</p>
-  <ul><li>🖥 서버 비용</li><li>🏥 심평원·식약처 공공데이터 조회 트래픽</li><li>🤖 AI 요약·멘트 사용료</li></ul>
-  <p>공공데이터와 AI는 하루 사용량 한도가 있어서, 사용자가 한꺼번에 몰리면 <b>일부 기능이 잠시 멈출 수 있어요</b>. 멈추면 보통 다음 날 자동으로 다시 열려요.</p></details>`;
+const WHY_PAID = `<details class="why-paid"><summary>정식 버전이 나오면요?</summary>
+  <p>사전 등록하신 분은 정식 버전 업데이트 날부터 2개월 더 무료로 쓰시고, 그 뒤엔 서버비 정도인 월 990원만 받겠습니다. 2개월은 등록한 날이 아니라 업데이트 날부터 계산됩니다.</p>
+  <p>광고 없이 운영하다 보니 서버비, 심평원·식약처 데이터 조회, AI 사용료가 매달 나가서 딱 그 정도만 받으려고 합니다. 사용하시는 분이 한꺼번에 몰리면 하루 한도에 걸려 잠깐 멈출 수 있는데, 보통 다음 날이면 풀립니다.</p></details>`;
 // 얼리버드 등록: ① 네이버 카페 가입 ② 카페 닉네임 ③ 구글 로그인 → 바로 승인(관리자가 나중에 확인)
 function fmJoin() {
   closeMaker();
@@ -4472,17 +4473,17 @@ function fmJoin() {
   <div class="mk-bg" id="mkBg" onclick="if(event.target.id==='mkBg')closeMaker()">
     <div class="mk-card fm-card">
       <div class="mk-emoji">🐦</div>
-      <div class="mk-t">얼리버드 사전 등록 <span class="beta-tag">BETA</span></div>
-      <div class="mk-who">지금은 <b>베타 버전</b>이라 모두 무료예요.<br><span class="beta-thanks">베타 기간에는 <b>사전 등록·회원 가입 후 개선 의견을 보내 주시는 것</b>이 사용료를 대신해요 🙏</span><br>정식 버전 업데이트 후 <b style="color:#0e8a4f">그때부터 2개월 무료 → 딱 월 990원</b><br><small>얼리버드는 최소 비용만 받을게요 (일반 월 2,900원)</small></div>
-      <div class="fm-feat">📅 스케줄 관리 · 🆕 개원 정보 · 📉 약가 정보 · ⚔️ 1페이퍼 경쟁품 비교 출력·전송 · 🗺 지역별 처방통계<br><b>모두 활용하는 전문 MR이 되세요</b></div>
+      <div class="mk-t">얼리버드 사전 등록</div>
+      <div class="mk-who">지금은 베타 버전이라 전부 무료입니다.<br>사전 등록하시면 정식 버전이 나와도<br><b style="color:#0e8a4f">업데이트 날부터 2개월 더 무료</b><br><small>그 뒤엔 서버비 정도인 월 990원만 받겠습니다</small></div>
+      <div class="fm-feat">스케줄 관리, 개원 정보, 약가 정보, 1페이퍼 경쟁품 비교(출력·전송), 지역별 처방통계까지 다 써먹는 MR 되셨으면 합니다.</div>
       <ol class="fm-steps">
-        <li><b>네이버 카페 가입</b><a href="${CAFE_URL}" target="_blank" rel="noopener">카페 열기 ↗</a></li>
+        <li><b>네이버 카페 가입</b><a href="${CAFE_URL}" target="_blank" rel="noopener">카페 가기</a></li>
         <li><b>카페 닉네임</b><input id="fmNick" maxlength="30" placeholder="카페에서 쓰는 닉네임" value="${(m && m.cafeNick) || ''}"></li>
-        <li><b>구글로 등록</b> 누르면 바로 등록돼요</li>
+        <li><b>구글 계정으로 등록</b></li>
       </ol>
       <div class="fm-err" id="fmErr"></div>
-      <button class="mk-btn" style="border:0;width:100%;cursor:pointer;font:inherit;font-weight:800;" onclick="fmJoinGo()"><b style="color:#fff;">G</b>&nbsp; 구글로 등록</button>
-      <div class="fm-fine">※ 베타 기간에는 모든 기능이 무료예요. 2개월 무료는 등록일이 아니라 <b>정식 버전 업데이트 시점부터</b> 시작되고, 얼리버드 요금(990원)은 베타 기간에 사전 등록한 분께만 적용돼요. 닉네임은 카페 회원 확인용이며, 카페에 없는 닉네임은 해제될 수 있어요.</div>
+      <button class="mk-btn" style="border:0;width:100%;cursor:pointer;font:inherit;font-weight:800;" onclick="fmJoinGo()">구글 계정으로 등록하기</button>
+      <div class="fm-fine">※ 2개월은 등록한 날이 아니라 정식 버전으로 업데이트되는 날부터 계산됩니다. 990원은 베타 기간에 사전 등록하신 분만 해당됩니다(정식 버전 이후 가입은 월 2,900원). 카페에 없는 닉네임은 나중에 정리될 수 있습니다.</div>
       <button class="mk-close" onclick="closeMaker()">닫기</button>
     </div>
   </div>`);
@@ -4491,7 +4492,7 @@ function fmJoin() {
 async function fmJoinGo() {
   const nick = (document.getElementById('fmNick')?.value || '').trim();
   const err = document.getElementById('fmErr');
-  if (nick.length < 2) { err.textContent = '카페 닉네임을 적어 주세요 (2자 이상)'; return; }
+  if (nick.length < 2) { err.textContent = '카페 닉네임을 적어 주세요'; return; }
   try {
     err.textContent = '구글 로그인 중…';
     await gLoad();
@@ -4505,9 +4506,9 @@ async function fmJoinGo() {
     if (!r.ok) throw new Error(r.error || '등록 실패');
     localStorage.setItem(FM_KEY, JSON.stringify({ email: r.email, joinedAt: r.joinedAt, tier: r.tier || 'founder', cafeNick: r.cafeNick || nick, checked: Date.now() }));
     closeMaker(); fmRender(); adminBarRender(); try { aiqRefresh(); } catch (e) {}
-    showToast(r.already ? '얼리버드 회원 정보가 업데이트됐어요 🐦' : '얼리버드 사전 등록 완료! 정식 버전부터 2개월 무료, 이후 월 990원이에요 🐦');
+    showToast(r.already ? '등록 정보가 수정됐습니다' : '사전 등록됐습니다. 감사합니다');
   } catch (e) {
-    err.textContent = /popup/i.test(e.message) ? '로그인 창이 닫혔어요' : e.message === 'revoked' ? '이용이 해제된 계정이에요. 카페로 문의해 주세요.' : '등록에 실패했어요. 잠시 후 다시 시도해 주세요';
+    err.textContent = /popup/i.test(e.message) ? '로그인 창이 닫혔습니다' : e.message === 'revoked' ? '이용이 해제된 계정입니다. 카페로 문의 주세요.' : '등록이 안 됐습니다. 잠시 후 다시 해 주세요';
   }
 }
 // 하루 한 번 서버에서 상태 확인 (관리자가 해제했으면 반영)
@@ -4528,17 +4529,17 @@ function fmRender() {
   if (m && m.tier !== 'revoked') {
     const d = m.joinedAt ? new Date(m.joinedAt) : null;
     el.className = 'fm-banner done';
-    el.innerHTML = `<b>🐦 ALLAI 얼리버드 회원</b><p style="margin-bottom:0;">${m.tier === 'founder' ? '초기 가입 회원이라 유료 기능을 <b style="display:inline;font-size:inherit;">계속 무료</b>로 이용해요.' : '베타 기간 무료 · 정식 버전 업데이트 후 <b style="display:inline;font-size:inherit;">2개월 무료 → 딱 월 990원</b> (일반 2,900원)'}</p>
+    el.innerHTML = `<b>얼리버드 사전 등록 완료</b><p style="margin-bottom:0;">${m.tier === 'founder'
+        ? '초기에 가입해 주셔서 정식 버전 이후에도 무료로 쓰시면 됩니다.'
+        : '베타 기간엔 전부 무료입니다. 정식 버전이 나와도 업데이트 날부터 2개월은 그대로 무료예요.'}</p>
       <small>${m.email}${m.cafeNick ? ` · 카페 ${sayEsc(m.cafeNick)}` : ''}${d ? ` · ${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()} 등록` : ''}</small>
       ${m.cafeNick ? '' : `<button onclick="fmJoin()" style="margin-top:8px;">카페 닉네임 등록하기</button>`}${WHY_PAID}`;
   } else {
     el.className = 'fm-banner';
-    el.innerHTML = `<b>🐦 얼리버드 사전 등록 <span class="beta-tag">BETA</span></b>
-      <p>지금은 <b style="display:inline;font-size:inherit;">베타 버전</b>이라 모든 기능이 무료예요. 베타 기간에는 <b style="display:inline;font-size:inherit;">사전 등록·회원 가입 후 개선 의견을 보내 주시는 것</b>이 사용료를 대신해요 🙏
-      정식 버전부터 일부 기능이 유료(월 2,900원)가 되는데,
-      지금 <b style="display:inline;font-size:inherit;">네이버 카페 가입 + 구글 등록</b>으로 사전 등록하면 <b style="display:inline;font-size:inherit;">정식 버전 업데이트 시점부터 2개월 무료 → 딱 월 990원</b>, 최소 비용만 받을게요.</p>
-      <p style="font-size:.74rem;opacity:.9;">📅 스케줄 관리 · 🆕 개원 정보 · 📉 약가 정보 · ⚔️ 1페이퍼 경쟁품 비교 출력·전송 · 🗺 지역별 처방통계<br>모두 활용하는 전문 MR이 되세요</p>
-      <button onclick="fmJoin()">🐦 얼리버드 사전 등록</button>${WHY_PAID}`;
+    el.innerHTML = `<b>얼리버드 사전 등록 <span class="beta-tag">BETA</span></b>
+      <p>지금은 베타 버전이라 전부 무료로 쓰시면 됩니다. 대신 써 보시고 불편한 점이나 있었으면 하는 기능을 카페에 남겨 주세요. 그게 베타 기간 사용료라고 생각하겠습니다.</p>
+      <p style="font-size:.76rem;opacity:.85;">스케줄 관리, 개원 정보, 약가 정보, 1페이퍼 경쟁품 비교(출력·전송), 지역별 처방통계까지 다 써먹는 MR 되셨으면 합니다.</p>
+      <button onclick="fmJoin()">사전 등록하기</button>${WHY_PAID}`;
   }
 }
 fmRender(); setTimeout(fmCheck, 2500);
@@ -4633,8 +4634,8 @@ function sayWrite() {
   const body = document.getElementById('sayBody');
   if (!fmGet()) {
     body.innerHTML = `<div class="vs-sheet-title">✍️ 한마디 쓰기</div>
-      <div class="say-rules" style="font-size:0.82rem;">한마디는 <b>얼리버드 회원</b>만 쓸 수 있어요.<br>네이버 카페 가입 + 구글 등록하면 얼리버드 요금(월 990원)이 적용돼요.</div>
-      <div class="vs-form-btns"><button class="vs-cancel" onclick="sayOpen()">목록</button><button class="vs-save" onclick="fmJoin().then(()=>fmGet()&&sayWrite())">🐦 얼리버드 회원 등록하기</button></div>`;
+      <div class="say-rules" style="font-size:0.82rem;">한마디는 <b>얼리버드 회원</b>만 쓸 수 있어요.<br>네이버 카페 가입 후 구글 계정으로 사전 등록하시면 쓸 수 있습니다.</div>
+      <div class="vs-form-btns"><button class="vs-cancel" onclick="sayOpen()">목록</button><button class="vs-save" onclick="fmJoin()">사전 등록하기</button></div>`;
     return;
   }
   const sidoOpts = (typeof ST_SIDO !== 'undefined' ? ST_SIDO : []).map(([, n]) => `<option>${n}</option>`).join('');

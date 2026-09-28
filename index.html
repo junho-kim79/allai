@@ -132,6 +132,32 @@
       to   { opacity: 1; transform: translateY(0); }
     }
 
+
+    /* ── 홈: 신규 개원 배너 ── */
+    .nwh{margin:14px 32px 0;padding:14px 16px 12px;border-radius:var(--r-lg);cursor:pointer;color:#fff;
+      background:linear-gradient(135deg,#0e8a4f 0%,#12a15e 55%,#1bb56d 100%);box-shadow:0 8px 24px rgba(14,138,79,.28);
+      position:relative;overflow:hidden;animation:fadeUp .4s ease both}
+    .nwh::after{content:'';position:absolute;right:-40px;top:-40px;width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,.08)}
+    .nwh:active{transform:scale(.99)}
+    .nwh-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+    .nwh-badge{display:inline-flex;align-items:center;gap:6px;background:#fff;color:#0e8a4f;font-weight:900;font-size:.72rem;border-radius:999px;padding:4px 10px;letter-spacing:.02em}
+    .nwh-badge i{width:7px;height:7px;border-radius:50%;background:#ef4444;animation:nwhPulse 1.4s infinite}
+    @keyframes nwhPulse{0%{box-shadow:0 0 0 0 rgba(239,68,68,.6)}70%{box-shadow:0 0 0 7px rgba(239,68,68,0)}100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}}
+    .nwh-place{font-size:.72rem;font-weight:700;opacity:.9;position:relative;z-index:1}
+    .nwh-mid{display:flex;justify-content:space-between;align-items:flex-end;margin-top:10px;position:relative;z-index:1}
+    .nwh-title{font-size:1.28rem;font-weight:900;letter-spacing:-.04em;line-height:1.2}
+    .nwh-sub{font-size:.78rem;opacity:.9;margin-top:3px}
+    .nwh-num{text-align:right;line-height:1}
+    .nwh-num b{font-size:2.3rem;font-weight:900;letter-spacing:-.04em}
+    .nwh-num small{font-size:.85rem;font-weight:800;margin-left:2px}
+    .nwh-list{margin-top:10px;background:rgba(255,255,255,.14);border-radius:12px;padding:4px 10px;position:relative;z-index:1}
+    .nwh-row{display:flex;justify-content:space-between;gap:8px;font-size:.8rem;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.14)}
+    .nwh-row:last-child{border-bottom:0}
+    .nwh-row b{font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .nwh-row span{opacity:.85;white-space:nowrap;font-size:.74rem}
+    .nwh-ph{opacity:.85;justify-content:center}
+    .nwh-cta{margin-top:10px;font-size:.8rem;font-weight:800;display:flex;justify-content:space-between;position:relative;z-index:1}
+    .nwh-cta span{font-size:1.1rem;line-height:1}
     /* ── 홈 히어로 ── */
     .hero {
       margin: 0 16px 0;
@@ -1075,6 +1101,23 @@
 
   </div>
 </div>
+    <!-- 🆕 신규 개원 (홈 맨 앞) -->
+    <div class="nwh" onclick="openNewOpen()" role="button" aria-label="신규 개원 병원 보기">
+      <div class="nwh-top">
+        <span class="nwh-badge"><i></i>NEW · 신규 개원</span>
+        <span class="nwh-place" id="nwhPlace">대구 · 최근 3개월</span>
+      </div>
+      <div class="nwh-mid">
+        <div>
+          <div class="nwh-title">새로 문 연 병원·의원</div>
+          <div class="nwh-sub">신규 거래처, 경쟁사보다 먼저 찾기</div>
+        </div>
+        <div class="nwh-num"><b id="nwhNum">·</b><small>곳</small></div>
+      </div>
+      <div class="nwh-list" id="nwhList"><div class="nwh-row nwh-ph">심평원 개설일자 확인 중…</div></div>
+      <div class="nwh-cta">전체 목록 · 전화 · 지도 · 면담기록 <span>›</span></div>
+    </div>
+
     <!-- MR 한마디 -->
     <div class="mr-say-wrap" id="mrSayWrap"></div>
 
@@ -1138,11 +1181,11 @@
         <span class="more-arr">›</span>
       </button>
 
-      <button class="menu-card c-blue menu-wide" onclick="goScreen('screen_stat','지역 처방 분석')">
+      <button class="menu-card c-blue menu-wide" onclick="stSetTab('rx',true);goScreen('screen_stat','지역 처방 분석')">
         <div class="menu-icon">🗺️</div>
         <div class="menu-wide-tx">
           <div class="menu-name">지역 처방 분석 <span class="menu-new">NEW</span></div>
-          <div class="menu-desc">약효군 처방액·추이 · 🆕 신규 개원 병원 · 심평원 실제 데이터</div>
+          <div class="menu-desc">약효군 처방액·추이 · 시군구별 비교 · 심평원 실제 데이터</div>
         </div>
         <span class="more-arr">›</span>
       </button>
@@ -3375,6 +3418,7 @@ async function stNewRun() {
   const run = ++_stRun;
   const el = document.getElementById('statContent');
   const sido = document.getElementById('stSido').value;
+  try { if (localStorage.getItem('allai_nw_sido') !== sido) { localStorage.setItem('allai_nw_sido', sido); setTimeout(nwHeroLoad, 0); } } catch (e) {}
   const sidoName = (ST_SIDO.find(x => x[0] === sido) || ['', ''])[1];
   const sgguSel = document.getElementById('stSggu').value;
   const months = document.getElementById('stNewMonths').value;
@@ -3441,15 +3485,52 @@ function stNewToVisit(i) {
   setTimeout(() => { vsOpenForm(); document.getElementById('vsHosp').value = h.name; vsRenderHospChips(); vsRenderDocChips(); }, 150);
 }
 
-function renderStat() {
-  if (!_stInit) {
-    _stInit = true;
-    document.getElementById('stAtc').innerHTML = ST_ATC.map(([c, n]) => `<option value="${c}">${n} · ${c}</option>`).join('');
-    document.getElementById('stSido').innerHTML = ST_SIDO.map(([c, n]) => `<option value="${c}">${n}</option>`).join('');
-    stSidoChanged(true);
-  }
-  stRun();
+function stInitOnce() {
+  if (_stInit) return;
+  _stInit = true;
+  document.getElementById('stAtc').innerHTML = ST_ATC.map(([c, n]) => `<option value="${c}">${n} · ${c}</option>`).join('');
+  document.getElementById('stSido').innerHTML = ST_SIDO.map(([c, n]) => `<option value="${c}">${n}</option>`).join('');
+  const saved = nwSido(); if (ST_SIDO.some(x => x[0] === saved)) document.getElementById('stSido').value = saved;
+  stSidoChanged(true);
 }
+function renderStat() { stInitOnce(); stRun(); }
+
+/* ── 홈 맨 앞 '신규 개원' 배너 ── */
+function nwSido() { try { return localStorage.getItem('allai_nw_sido') || '230000'; } catch (e) { return '230000'; } }
+function openNewOpen() {
+  stInitOnce();
+  stSetTab('new', true);
+  goScreen('screen_stat', '신규 개원 병원');
+}
+async function nwHeroLoad() {
+  const sido = nwSido(), months = 3;
+  const sidoName = (ST_SIDO.find(x => x[0] === sido) || ['', '대구'])[1];
+  const place = document.getElementById('nwhPlace'); if (!place) return;
+  place.textContent = `${sidoName} · 최근 ${months}개월`;
+  const key = `allai_nw_hero_${sido}_${months}`;
+  let items = null;
+  try { const c = JSON.parse(localStorage.getItem(key) || 'null'); if (c && Date.now() - c.t < 6 * 3600e3) items = c.items; } catch (e) {}
+  if (!items) {
+    let list = ST_SGGU[sido];
+    if (!list) { try { const d = await (await fetch(`/api/usage?mode=sggu&sido=${sido}`)).json(); list = ST_SGGU[sido] = (d.list || []).map(o => [o.code, o.name]); } catch (e) { list = []; } }
+    const q = list.slice(), found = []; let fail = 0;
+    const worker = async () => { while (q.length) { const [code] = q.shift();
+      try { const d = await (await fetchWithTimeout(`/api/hosp?mode=new&sido=${sido}&sggu=${code}&months=${months}`, 20000)).json();
+        if (d.error) fail++; else found.push(...(d.items || [])); } catch (e) { fail++; } } };
+    await Promise.all([worker(), worker(), worker()]);
+    items = found.filter(h => !/치과|한방|한의원|보건/.test(h.type || '')).sort((a, b) => (b.open || '').localeCompare(a.open || ''))
+      .map(h => ({ name: h.name, type: h.type, open: h.open, sggu: h.sggu }));
+    if (!fail || items.length) { try { localStorage.setItem(key, JSON.stringify({ t: Date.now(), items })); } catch (e) {} }
+    else { document.getElementById('nwhNum').textContent = '–'; document.getElementById('nwhList').innerHTML = '<div class="nwh-row nwh-ph">눌러서 바로 확인하기</div>'; return; }
+  }
+  const esc = t => String(t || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const d8 = v => v && v.length === 8 ? `${+v.slice(4, 6)}/${+v.slice(6)}` : '';
+  document.getElementById('nwhNum').textContent = items.length;
+  document.getElementById('nwhList').innerHTML = items.length
+    ? items.slice(0, 3).map(h => `<div class="nwh-row"><b>${esc(h.name)}</b><span>${esc((h.sggu || '').replace(/^(대구|부산|인천|광주|대전|울산|서울)/, ''))} · ${d8(h.open)} 개원</span></div>`).join('')
+    : '<div class="nwh-row nwh-ph">이 기간 새로 연 곳이 없어요 · 다른 지역 보기</div>';
+}
+setTimeout(() => { try { nwHeroLoad(); } catch (e) {} }, 800);
 
 async function stSidoChanged(silent) {
   const sido = document.getElementById('stSido').value;
@@ -3468,7 +3549,7 @@ async function stSidoChanged(silent) {
 }
 
 let _stTab = 'rx', _stNew = [];
-function stSetTab(t) {
+function stSetTab(t, noRun) {
   _stTab = t;
   document.getElementById('stTabRx').classList.toggle('on', t === 'rx');
   document.getElementById('stTabNew').classList.toggle('on', t === 'new');
@@ -3476,7 +3557,7 @@ function stSetTab(t) {
   document.getElementById('stNewOpts').style.display = t === 'new' ? '' : 'none';
   document.getElementById('stTitle').textContent = t === 'rx' ? '지역 처방 분석' : '신규 개원 병원';
   document.getElementById('statSub').textContent = t === 'rx' ? '심평원 건강보험 청구 데이터 · 약효군(ATC 4단계) 기준' : '심평원 요양기관 개설일자 기준 · 신규 거래처 발굴';
-  stRun();
+  if (!noRun) stRun();
 }
 async function stRun() {
   if (_stTab === 'new') return stNewRun();

@@ -166,6 +166,17 @@
     .st-ing i{width:9px;height:9px;border-radius:50%}
     .st-ing small{font-weight:600;color:var(--sub2)}
     .st-ing button{border:0;background:rgba(0,0,0,.06);width:22px;height:22px;border-radius:50%;cursor:pointer;font-size:.85rem;line-height:1;color:var(--sub)}
+    .st-slots{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+    .st-slot{display:flex;align-items:center;gap:7px;min-height:40px;border:1.5px dashed rgba(0,0,0,.15);border-radius:12px;padding:6px 6px 6px 10px;font-size:.8rem;color:var(--sub2);cursor:pointer;min-width:0}
+    .st-slot i{width:9px;height:9px;border-radius:50%;flex:none;background:rgba(0,0,0,.12)}
+    .st-slot span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .st-slot small{display:block;font-size:.66rem;color:#b45309;font-weight:600}
+    .st-slot.on{border:1px solid rgba(0,0,0,.1);background:#fff;color:var(--text,#222);font-weight:800;cursor:default}
+    .st-slot.next{border-color:#0e8a4f;color:#0e8a4f;font-weight:700}
+    .st-slot button{flex:none;border:0;background:rgba(0,0,0,.06);width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:.9rem;line-height:1;color:var(--sub)}
+    .st-go{width:100%;margin-top:10px;font:inherit;font-size:.92rem;font-weight:900;border:0;border-radius:12px;padding:12px;background:#e8efe9;color:#0e8a4f;cursor:pointer}
+    .st-go.dirty{background:#0e8a4f;color:#fff;box-shadow:0 4px 14px rgba(14,138,79,.3);animation:nwhPulse2 1.6s infinite}
+    @keyframes nwhPulse2{0%,100%{transform:scale(1)}50%{transform:scale(1.015)}}
     .st-hint{margin-top:6px;font-size:.72rem;color:var(--sub2)}
     .st-gnl .chips button{font:inherit;font-size:.76rem;font-weight:700;border:1px solid rgba(14,138,79,.35);background:#fff;color:#0e8a4f;border-radius:999px;padding:5px 10px;cursor:pointer}
     .st-gnl .chips button.on{background:#0e8a4f;color:#fff}
@@ -3729,7 +3740,7 @@ async function stSidoChanged(silent) {
 
 let _stTab = 'rx', _stNew = [];
 /* ── 처방 분석: 약효군 / 성분 ── */
-let _stKind = 'atc', _stRoute = 'A', _stCmp = [];   // _stCmp: [{ingr, q, codes:[{code, route, n}]}] 최대 4개
+let _stKind = 'atc', _stRoute = 'A', _stCmp = [], _stDirty = false;   // _stCmp: [{ingr, q, codes:[{code, route, n}]}] 최대 4개
 const ST_ROUTE = { A: '💊 먹는 약', B: '💉 주사' };
 function stSetKind(k) {
   _stKind = k;
@@ -3738,12 +3749,13 @@ function stSetKind(k) {
   document.getElementById('stAtcField').style.display = k === 'atc' ? '' : 'none';
   document.getElementById('stCmpnField').style.display = k === 'cmpn' ? '' : 'none';
   if (k === 'cmpn') stCmpnChips();
-  if (k === 'atc' || _stCmp.length) stRun();
+  if (k === 'atc' || (_stCmp.length && !_stDirty)) stRun();
+  else if (_stCmp.length) document.getElementById('statContent').innerHTML = '<div class="vs-empty">성분을 다 넣었으면 <b>📊 비교 조회</b>를 눌러 주세요.</div>';
   else { document.getElementById('statContent').innerHTML = '<div class="vs-empty">제품명이나 성분명을 넣고 <b>추가</b>를 눌러 주세요.<br><small>성분 최대 4개까지 한 그래프로 비교해요.<br>같은 성분이면 함량(5·10·20mg)과 제네릭까지 모두 합쳐요.</small></div>'; setTimeout(() => document.getElementById('stCmpnQ')?.focus(), 50); }
 }
 // "에스오메프라졸마그네슘삼수화물" → "에스오메프라졸" (염·수화물 떼기)
 function stShortIngr(n) {
-  const salt = /(마그네슘|삼수화물|이수화물|일수화물|수화물|나트륨|칼슘|칼륨|염산염|베실산염|말레산염|타르타르산염|메실산염|푸마르산염|숙신산염|브롬화수소산염|황산염|인산염|아세트산염|트로메타민|무수물)$/;
+  const salt = /(마그네슘|삼수화물|이수화물|일수화물|수화물|나트륨|칼슘|칼륨|염산염|베실산염|말레산염|타르타르산염|메실산염|푸마르산염|숙신산염|브롬화수소산염|황산염|인산염|아세트산염|트로메타민|무수물|시트르산염|구연산염|질산염|옥살산염|토실산염|벤조산염|에실산염|브롬화물|염)$/;
   let s = String(n).trim(), prev;
   do { prev = s; s = s.replace(salt, ''); } while (s !== prev && s.length > 3);
   return s || n;
@@ -3770,9 +3782,10 @@ async function stCmpnFind() {
   const codes = Object.values(by).filter(c => c.route === 'A' || c.route === 'B');
   if (!codes.length) { box.textContent = '먹는 약·주사 제형이 없는 성분이에요.'; return; }
   _stCmp.push({ main, ingr: stShortIngr(ingr), full: ingr, q, codes });
-  inp.value = ''; box.textContent = '';
+  inp.value = ''; box.innerHTML = _stCmp.length < 4 ? `✅ <b>${stShortIngr(ingr)}</b> 추가 · 더 넣거나 아래 <b>비교 조회</b>를 눌러 주세요` : '✅ 4개 모두 채웠어요 · 아래 <b>비교 조회</b>를 눌러 주세요';
+  setTimeout(() => inp.focus(), 50);
   if (!codes.some(c => c.route === _stRoute) && _stCmp.length === 1) _stRoute = codes[0].route;
-  stCmpnChips(); stRun();
+  _stDirty = true; stCmpnChips(); stCmpnWait();
 }
 function stCmpnCodes(c) { return c.codes.filter(x => x.route === _stRoute).sort((a, b) => b.n - a.n).slice(0, 5).map(x => x.code); }
 function stCmpnChips() {
@@ -3780,11 +3793,19 @@ function stCmpnChips() {
   const el = document.getElementById('stCmpnPick'); if (!el) return;
   el.innerHTML = _stCmp.length ? `<div class="st-gnl">
     <div class="st-route">${Object.entries(ST_ROUTE).map(([k, v]) => `<button class="${_stRoute === k ? 'on' : ''}" onclick="stSetRoute('${k}')">${v}</button>`).join('')}</div>
-    <div class="chips">${_stCmp.map((c, i) => `<span class="st-ing"><i style="background:${ST_COLORS[i]}"></i>${e(c.ingr)}${stCmpnCodes(c).length ? '' : ' <small>(제형 없음)</small>'}<button onclick="stCmpnDel(${i})" aria-label="빼기">×</button></span>`).join('')}</div>
-    <div class="st-hint">함량(5·10·20mg)·회사 상관없이 같은 성분은 모두 합쳐요 · ${4 - _stCmp.length ? `${4 - _stCmp.length}개 더 추가 가능` : '최대 4개'}</div></div>` : '';
+    <div class="st-slots">${[0, 1, 2, 3].map(i => { const c = _stCmp[i];
+      return c ? `<div class="st-slot on"><i style="background:${ST_COLORS[i]}"></i><span>${e(c.ingr)}${stCmpnCodes(c).length ? '' : '<small>이 제형 없음</small>'}</span><button onclick="stCmpnDel(${i})" aria-label="빼기">×</button></div>`
+        : `<div class="st-slot${i === _stCmp.length ? ' next' : ''}" onclick="document.getElementById('stCmpnQ').focus()"><i></i><span>${i === _stCmp.length ? `성분 ${i + 1} · 위에 입력` : `성분 ${i + 1}`}</span></div>`; }).join('')}</div>
+    <button class="st-go${_stDirty ? ' dirty' : ''}" onclick="stCmpnGo()">📊 ${_stCmp.length > 1 ? `${_stCmp.length}개 성분 비교 조회` : '조회'}${_stDirty ? '' : ' ✓'}</button>
+    <div class="st-hint">함량(5·10·20mg)·회사 상관없이 같은 성분은 모두 합쳐요 · 같은 성분의 제품끼리는 나눠 볼 수 없어요</div></div>` : '';
+  const inp = document.getElementById('stCmpnQ');
+  if (inp) inp.placeholder = _stCmp.length >= 4 ? '최대 4개 · ×로 빼고 추가' : _stCmp.length ? `${_stCmp.length + 1}번째 성분 (예: 넥시움, 케이캡)` : '예) 파리에트, 넥시움, 케이캡';
 }
-function stCmpnDel(i) { _stCmp.splice(i, 1); stCmpnChips(); if (_stCmp.length) stRun(); else stSetKind('cmpn'); }
-function stSetRoute(r) { _stRoute = r; stCmpnChips(); stRun(); }
+function stCmpnWait() { if (_stTab === 'rx' && _stKind === 'cmpn') document.getElementById('statContent').innerHTML = `<div class="vs-empty">성분 ${_stCmp.length}개 준비됐어요.<br><b>📊 비교 조회</b>를 누르면 그래프가 나와요.</div>`; }
+function stCmpnDel(i) { _stCmp.splice(i, 1); _stDirty = true; stCmpnChips(); if (!_stCmp.length) stSetKind('cmpn'); else stCmpnWait(); }
+function stSetRoute(r) { _stRoute = r; _stDirty = true; stCmpnChips(); stCmpnWait(); }
+function stCmpnGo() { if (!_stCmp.length) return; _stDirty = false; stCmpnChips(); document.getElementById('stCmpnMsg').textContent = ''; stRun();
+  setTimeout(() => document.getElementById('statContent')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80); }
 function stSetTab(t, noRun) {
   _stTab = t;
   document.getElementById('stTabRx').classList.toggle('on', t === 'rx');
@@ -3883,7 +3904,7 @@ function stRenderCmp(results, ings, place, partial) {
     <div class="st-card" style="margin-top:0;">
       <h4>${e(place)} · 성분 비교 <small>${ST_ROUTE[_stRoute]} · ${stYm(lastYm)}</small></h4>
       ${(() => { const row = p => `<tr><td><i style="background:${p.color}"></i>${e(p.name)}<small>비교 중 ${Math.round(p.months[n - 1].amt / sum * 100)}%</small></td>
-          <td><b>${stWon(p.months[n - 1].amt)}</b></td><td>${stPct(p.months[n - 1].amt, p.months[n - 2]?.amt)}</td><td>${n >= 13 ? stPct(p.months[n - 1].amt, p.months[0].amt) : '-'}</td></tr>`;
+          <td>${p.months.every(m => !m.amt) ? '<small style="color:#b45309;font-weight:700;">심평원 비공개</small>' : `<b>${stWon(p.months[n - 1].amt)}</b>`}</td><td>${stPct(p.months[n - 1].amt, p.months[n - 2]?.amt)}</td><td>${n >= 13 ? stPct(p.months[n - 1].amt, p.months[0].amt) : '-'}</td></tr>`;
         const head = '<tr><th>성분</th><th>처방액</th><th>전월</th><th>전년</th></tr>';
         // 무료: 1위 성분만 보이고 나머지는 흐리게 (미리보기)
         if (!proLocked()) return `<table class="st-cmp">${head}${rows.map(row).join('')}</table>`;
@@ -3913,6 +3934,13 @@ function stRenderCmp(results, ings, place, partial) {
 }
 function stRenderRx(results, place, atcLabel, isCmpn, partial) {
   const el = document.getElementById('statContent');
+  if (isCmpn && results.length && results.every(r => r.d.months.every(m => !m.amt))) {
+    el.innerHTML = `<div class="st-card" style="margin-top:0;text-align:center;padding:22px 16px;">
+      <div style="font-size:1.6rem;">🔒</div><h4 style="margin:6px 0;">${atcLabel}</h4>
+      <div style="font-size:.84rem;line-height:1.6;">심평원이 공개하지 않는 성분이에요.</div>
+      <div class="st-note" style="margin-top:6px;">판매 회사가 3곳 이하이거나 한 제품이 청구액의 80%를 넘으면<br>개인정보·영업비밀 보호로 통계를 비공개해요. (신약·단독 제품이 대부분)</div></div>`;
+    return;
+  }
   if (!results.length) { el.innerHTML = '<div class="empty">데이터를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</div>'; return; }
 
   // 합산

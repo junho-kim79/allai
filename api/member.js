@@ -32,6 +32,18 @@ export default async function handler(req, res) {
         const d = await r.json(); return res.status(200).json({ ok: true, tier: d.fields?.tier?.stringValue || null });
       } catch { return res.status(200).json({ ok: false }); }
     }
+    // 가입자 수: /api/member?count=1 (10분 캐시)
+    if (req.query.count && acc) {
+      try {
+        const tok = await gAccess(acc);
+        const q = await fetch(`https://firestore.googleapis.com/v1/projects/${acc.project_id}/databases/(default)/documents:runAggregationQuery`, { method: "POST",
+          headers: { Authorization: `Bearer ${tok}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ structuredAggregationQuery: { structuredQuery: { from: [{ collectionId: "members" }] }, aggregations: [{ alias: "n", count: {} }] } }) });
+        const n = q.ok ? Number((await q.json())?.[0]?.result?.aggregateFields?.n?.integerValue || 0) : null;
+        res.setHeader("Cache-Control", "s-maxage=600, stale-while-revalidate=3600");
+        return res.status(200).json({ ok: n !== null, n });
+      } catch { return res.status(200).json({ ok: false }); }
+    }
     return res.status(200).json({ configured: !!acc, project: acc?.project_id || null });
   }
   if (req.method !== "POST") return res.status(405).end();

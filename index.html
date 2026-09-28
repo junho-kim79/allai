@@ -202,6 +202,9 @@
     .fm-card .fm-err { color: #f2c75c; }
     .fm-card .mk-close { color: rgba(242,240,235,0.7); }
     .is-beta .pro-tag{display:none!important}
+    .fm-count{margin:4px 0 12px;font-size:.72rem;color:rgba(255,255,255,.8)}
+    .fm-bar{height:6px;border-radius:99px;background:rgba(255,255,255,.18);overflow:hidden;margin-bottom:5px}
+    .fm-bar i{display:block;height:100%;background:#cba258;border-radius:99px}
     .fm-feat{margin-top:10px;font-size:.74rem;line-height:1.6;color:var(--sub);background:rgba(14,138,79,.06);border-radius:10px;padding:8px 10px}
     .fm-feat b{color:#0e8a4f;font-size:.8rem}
     .fm-steps{text-align:left;margin:14px 0 6px;padding-left:20px;font-size:.84rem;line-height:1.5}
@@ -4483,8 +4486,9 @@ function exportCompExcel() {
 }
 // 얼리버드 회원 등록 (구글 로그인 → 서버가 구글에 확인 → 명단 저장)
 const CAFE_URL = 'https://cafe.naver.com/allaiai';
+const EARLY_LIMIT = 500;   // 초기 가입자 목표 인원 (넘으면 서버비 전환 검토)
 const WHY_PAID = `<details class="why-paid"><summary>앞으로는요?</summary>
-  <p>아직 초기라 거의 모든 기능을 무료로 쓰실 수 있습니다. 다만 사용하시는 분이 일정 인원을 넘으면 서버, 심평원·식약처 데이터 조회, AI 사용료가 늘어나 어쩔 수 없이 서버비를 받아야 운영이 가능합니다.</p>
+  <p>아직 초기라 거의 모든 기능을 무료로 쓰실 수 있습니다. 다만 가입하신 분이 ${EARLY_LIMIT}명을 넘으면 서버, 심평원·식약처 데이터 조회, AI 사용료가 늘어나 어쩔 수 없이 서버비를 받아야 운영이 가능합니다.</p>
   <p>그때가 되더라도 지금 가입해 주신 초기 가입자분들은 계속 이용하실 수 있게 하겠습니다.</p></details>`;
 // 얼리버드 등록: ① 네이버 카페 가입 ② 카페 닉네임 ③ 구글 로그인 → 바로 승인(관리자가 나중에 확인)
 function fmJoin() {
@@ -4495,7 +4499,7 @@ function fmJoin() {
     <div class="mk-card fm-card">
       <div class="mk-emoji">🐦</div>
       <div class="mk-t">초기 가입</div>
-      <div class="mk-who">지금은 베타 버전이라 거의 모든 기능을 무료로 쓰실 수 있습니다.<br>나중에 사용자가 늘어 서버비를 받게 되더라도<br><b style="color:#0e8a4f">지금 가입하신 분은 계속 이용하실 수 있습니다</b></div>
+      <div class="mk-who">지금은 베타 버전이라 거의 모든 기능을 무료로 쓰실 수 있습니다.<br>가입자가 ${EARLY_LIMIT}명을 넘어 서버비를 받게 되더라도<br><b style="color:#0e8a4f">지금 가입하신 분은 계속 이용하실 수 있습니다</b></div>
       <div class="fm-feat">스케줄 관리, 개원 정보, 약가 정보, 1페이퍼 경쟁품 비교(출력·전송), 지역별 처방통계까지 다 써먹는 MR 되셨으면 합니다.</div>
       <ol class="fm-steps">
         <li><b>네이버 카페 가입</b><a href="${CAFE_URL}" target="_blank" rel="noopener">카페 가기</a></li>
@@ -4544,6 +4548,14 @@ async function fmCheck() {
     localStorage.setItem(FM_KEY, JSON.stringify(m)); fmRender();
   } catch (e) {}
 }
+async function fmCountLoad() {
+  try {
+    const r = await (await fetch('/api/member?count=1')).json();
+    const el = document.getElementById('fmCount'); if (!el || !r.ok || r.n == null) return;
+    const n = Math.min(r.n, EARLY_LIMIT), pct = Math.round(n / EARLY_LIMIT * 100);
+    el.innerHTML = `<div class="fm-bar"><i style="width:${Math.max(pct, 2)}%"></i></div><span>초기 가입자 ${r.n.toLocaleString()}명 / ${EARLY_LIMIT}명</span>`;
+  } catch (e) {}
+}
 function fmRender() {
   const el = document.getElementById('fmBanner'); if (!el) return;
   const m = fmGet();
@@ -4559,7 +4571,9 @@ function fmRender() {
     el.innerHTML = `<b>초기 가입자 모집 <span class="beta-tag">BETA</span></b>
       <p>지금은 베타 버전이라 거의 모든 기능을 무료로 쓰실 수 있습니다. 써 보시고 불편한 점이나 있었으면 하는 기능을 카페에 남겨 주세요. 그게 베타 기간 사용료라고 생각하겠습니다.</p>
       <p style="font-size:.76rem;opacity:.85;">스케줄 관리, 개원 정보, 약가 정보, 1페이퍼 경쟁품 비교(출력·전송), 지역별 처방통계까지 다 써먹는 MR 되셨으면 합니다.</p>
+      <div class="fm-count" id="fmCount"></div>
       <button onclick="fmJoin()">초기 가입하기</button>${WHY_PAID}`;
+    fmCountLoad();
   }
 }
 fmRender(); setTimeout(fmCheck, 2500);

@@ -1,7 +1,7 @@
 /**
- * MR 한마디 — 창립 멤버 작성 → 관리자 승인 후 노출
+ * MR 한마디 — 얼리버드 회원 작성 → 관리자 승인 후 노출
  * GET  /api/say                         승인된 한마디 목록 (지역·익명)
- * POST /api/say {action:'post', token, text, sido}         작성 (창립 멤버, 하루 5개)
+ * POST /api/say {action:'post', token, text, sido}         작성 (얼리버드 회원, 하루 5개)
  * POST /api/say {action:'queue'|'approve'|'reject'|'setup', token, id}  관리자
  * 알림: 새 글이 오면 ntfy.sh/<topic> 으로 푸시 (topic은 관리자 화면에서 만든 값, Firestore config/admin)
  * 저장: Firestore (pharma-ai) says / members / config

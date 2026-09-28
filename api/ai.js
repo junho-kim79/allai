@@ -4,7 +4,7 @@ import { sa, sha, fsGet, fsInc } from "./_fs.js";
    Vercel 환경변수 AI_LIMIT_ON=1 일 때만 제한 (기본은 꺼짐 = 무제한, 앱의 PAYWALL_ON과 같이 켜기)
    · 세는 종류: summary(약품 AI 요약), newopen(신규 개원 첫 방문 멘트) — 경쟁품 비교 등은 안 셈
    · 기기별 하루 AI_FREE_PER_DAY회(기본 3) + 같은 IP 하루 IP_CAP회(기본 40) 안전장치
-   · 창립 멤버/PRO(Firestore members)는 무제한
+   · 얼리버드 회원/PRO(Firestore members)는 무제한
    · Firestore 설정이 없거나 오류면 막지 않음(fail-open) */
 const COUNTED = new Set(["summary", "newopen"]);
 const ALLOWED_ORIGIN = /^https:\/\/([a-z0-9-]+\.)*(allai\.ai\.kr|vercel\.app)$|^https?:\/\/localhost(:\d+)?$/;

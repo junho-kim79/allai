@@ -1,5 +1,5 @@
 /**
- * 창립 멤버 등록 — 구글 로그인으로 확인된 이메일을 Firestore(pharma-ai) members 컬렉션에 저장
+ * 얼리버드 회원 등록 — 구글 로그인으로 확인된 이메일을 Firestore(pharma-ai) members 컬렉션에 저장
  * POST /api/member   body: { token }  (구글 access token, 서버에서 구글에 직접 확인)
  * GET  /api/member?status=1             설정 확인용 (값은 노출하지 않음)
  * 키: Vercel 환경변수 FIREBASE_SERVICE_ACCOUNT (서비스 계정 JSON)
@@ -50,7 +50,7 @@ export default async function handler(req, res) {
           body: JSON.stringify({ structuredAggregationQuery: { structuredQuery: { from: [{ collectionId: "members" }] }, aggregations: [{ alias: "n", count: {} }] } }) });
         const n = q.ok ? (await q.json())?.[0]?.result?.aggregateFields?.n?.integerValue : "";
         const masked = email.replace(/^(.{2}).*(@.*)$/, "$1***$2");
-        await fetch(`https://ntfy.sh/${topic}`, { method: "POST", headers: { Title: encodeURIComponent("ALLAI 창립 멤버 가입"), Tags: "tada", "Content-Type": "text/plain; charset=utf-8" },
+        await fetch(`https://ntfy.sh/${topic}`, { method: "POST", headers: { Title: encodeURIComponent("ALLAI 얼리버드 회원 가입"), Tags: "tada", "Content-Type": "text/plain; charset=utf-8" },
           body: `${u.name || "새 회원"} (${masked})${n ? ` · 총 ${n}명` : ""}` });
       }
     } catch (e) {}

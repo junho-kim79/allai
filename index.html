@@ -1079,7 +1079,7 @@
     .pc-price { font-size: 0.86rem; font-weight: 800; margin-top: 6px; font-variant-numeric: tabular-nums; }
     .pc-price s { color: var(--sub2); font-weight: 600; margin-right: 6px; }
     .pc-day { font-size: 0.74rem; font-weight: 800; color: var(--sub); margin: 14px 2px 0; }
-    /* 창립 멤버 · PRO */
+    /* 얼리버드 회원 · PRO */
     .fm-banner:empty { display: none; }
     .fm-banner { margin: 14px 16px 0; padding: 14px 16px; border-radius: var(--r-md); background: linear-gradient(135deg, #1E3A5F, #2D4F7C); color: #fff; box-shadow: 0 8px 24px rgba(30,58,95,0.22); }
     .fm-banner b { font-size: 0.95rem; font-weight: 900; display: block; }
@@ -1205,7 +1205,7 @@
       <div class="recent-list" id="recentList"></div>
     </div>
 
-    <!-- 창립 멤버 -->
+    <!-- 얼리버드 회원 -->
     <div class="fm-banner" id="fmBanner"></div>
     <div id="adminBar"></div>
 
@@ -4372,7 +4372,7 @@ function vsImport(input) {
 }
 
 /* ════════════════════════════════════════
-   창립 멤버 · 유료(PRO) 기능
+   얼리버드 회원 · 유료(PRO) 기능
    PAYWALL_ON = false 인 동안은 모두 무료 (PRO 표시만)
    켜면: 무료 AI 하루 3회 · PRO 카드/엑셀은 "유료 전환 시 공개"
 ════════════════════════════════════════ */
@@ -4398,8 +4398,8 @@ function aiHeaders(kind) {
   return h;
 }
 function aiqText() {
-  if (!PAYWALL_ON) return '✨ 창립 기간 무제한';
-  if (isPro()) return '🎖 PRO 무제한';
+  if (!PAYWALL_ON) return '✨ 얼리버드 기간 무제한';
+  if (isPro()) return '🐦 PRO 무제한';
   return `오늘 무료 ${Math.max(0, AI_FREE_PER_DAY - proAIUsed())}/${AI_FREE_PER_DAY}`;
 }
 function aiqChip() { return `<span class="aiq${PAYWALL_ON && !isPro() && proAIUsed() >= AI_FREE_PER_DAY ? ' out' : ''}">${aiqText()}</span>`; }
@@ -4416,20 +4416,20 @@ function proLockAI() {
     <div style="font-size:1.4rem;">🔒</div>
     <b style="display:block;margin:4px 0;">오늘 무료 AI 요약 ${AI_FREE_PER_DAY}회를 모두 사용했어요</b>
     <span style="font-size:0.78rem;color:var(--sub);">3회 초과분은 ${PRO_MSG}.<br>내일 다시 무료 ${AI_FREE_PER_DAY}회가 채워져요.</span>
-    ${fmGet() ? '' : `<button onclick="fmJoin()" style="margin-top:10px;font:inherit;font-size:0.8rem;font-weight:800;padding:8px 14px;border-radius:999px;border:none;background:#1E3A5F;color:#fff;cursor:pointer;">🎖 창립 멤버 등록하고 계속 쓰기</button>`}
+    ${fmGet() ? '' : `<button onclick="fmJoin()" style="margin-top:10px;font:inherit;font-size:0.8rem;font-weight:800;padding:8px 14px;border-radius:999px;border:none;background:#1E3A5F;color:#fff;cursor:pointer;">🐦 얼리버드 회원 등록하고 계속 쓰기</button>`}
   </div>`;
   ['clinicalVal', 'issueVal', 'fdaVal'].forEach(id => { const e = document.getElementById(id); if (e) e.innerHTML = '<span style="color:var(--sub2);font-weight:500;">🔒</span>'; });
 }
 function proDecorateLocks(root) {
   (root || document).querySelectorAll('.pro-lock').forEach(c => {
     if (c.querySelector('.pro-veil')) return;
-    c.insertAdjacentHTML('beforeend', `<div class="pro-veil"><b>🔒 ${PRO_MSG}</b><span>${c.dataset.veil || '무료로는 이번 달 처방액까지 볼 수 있어요.'}<br>창립 멤버는 평생 무료예요.</span></div>`);
+    c.insertAdjacentHTML('beforeend', `<div class="pro-veil"><b>🔒 ${PRO_MSG}</b><span>${c.dataset.veil || '무료로는 이번 달 처방액까지 볼 수 있어요.'}<br>얼리버드 회원은 평생 무료예요.</span></div>`);
   });
 }
 // 경쟁품 비교 → 엑셀(CSV) 내보내기 (PRO)
 function exportCompExcel() {
   document.getElementById('shareMenu').style.display = 'none';
-  if (proLocked()) { showToast(`📊 엑셀 내보내기는 ${PRO_MSG} (창립 멤버는 무료)`); return; }
+  if (proLocked()) { showToast(`📊 엑셀 내보내기는 ${PRO_MSG} (얼리버드 회원은 무료)`); return; }
   if (!cList.length) { showToast('비교할 제품을 먼저 추가해주세요'); return; }
   const cols = [['제품명', 'name'], ['성분', 'ingredient'], ['회사', 'company'], ['약가(원)', 'price'], ['전문/일반', 'type'], ['제형', 'form'], ['FDA', 'fda'], ['용법', 'useMethod'], ['효능', 'efcy']];
   const cell = v => `"${String(v ?? '').replace(/"/g, '""').replace(/\r?\n/g, ' ')}"`;
@@ -4440,7 +4440,7 @@ function exportCompExcel() {
   document.body.appendChild(a); a.click(); a.remove();
   showToast('엑셀 파일 저장 완료 📊');
 }
-// 창립 멤버 등록 (구글 로그인 → 서버가 구글에 확인 → 명단 저장)
+// 얼리버드 회원 등록 (구글 로그인 → 서버가 구글에 확인 → 명단 저장)
 async function fmJoin() {
   const btn = document.querySelector('#fmBanner button');
   try {
@@ -4456,7 +4456,7 @@ async function fmJoin() {
     if (!r.ok) throw new Error(r.error || '등록 실패');
     localStorage.setItem(FM_KEY, JSON.stringify({ email: r.email, joinedAt: r.joinedAt, tier: 'founder' }));
     fmRender(); adminBarRender();
-    showToast(r.already ? '이미 창립 멤버로 등록되어 있어요 🎖' : '창립 멤버로 등록됐어요! 🎖');
+    showToast(r.already ? '이미 얼리버드 회원으로 등록되어 있어요 🐦' : '얼리버드 회원으로 등록됐어요! 🐦');
   } catch (e) {
     showToast(/popup/i.test(e.message) ? '로그인 창이 닫혔어요' : '등록에 실패했어요. 잠시 후 다시 시도해 주세요');
     fmRender();
@@ -4468,13 +4468,13 @@ function fmRender() {
   if (m) {
     const d = m.joinedAt ? new Date(m.joinedAt) : null;
     el.className = 'fm-banner done';
-    el.innerHTML = `<b>🎖 ALLAI 창립 멤버</b><p style="margin-bottom:0;">나중에 유료 기능이 생겨도 <b style="display:inline;font-size:inherit;">평생 무료</b>로 이용하세요.</p><small>${m.email}${d ? ` · ${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()} 등록` : ''}</small>`;
+    el.innerHTML = `<b>🐦 ALLAI 얼리버드 회원</b><p style="margin-bottom:0;">나중에 유료 기능이 생겨도 <b style="display:inline;font-size:inherit;">평생 무료</b>로 이용하세요.</p><small>${m.email}${d ? ` · ${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()} 등록` : ''}</small>`;
   } else {
     el.className = 'fm-banner';
-    el.innerHTML = `<b>🎖 창립 멤버 모집 중</b>
+    el.innerHTML = `<b>🐦 얼리버드 회원 모집 중</b>
       <p>ALLAI는 광고 없이 운영돼요. 곧 AI 무제한·처방 분석·알림 같은 <b style="display:inline;font-size:inherit;">유료(PRO) 기능</b>이 생기는데,
       지금 구글 로그인으로 등록하면 <b style="display:inline;font-size:inherit;">평생 무료</b>로 쓸 수 있어요.</p>
-      <button onclick="fmJoin()"><b style="display:inline;color:#4285F4;font-size:inherit;">G</b> 구글로 창립 멤버 등록</button>`;
+      <button onclick="fmJoin()"><b style="display:inline;color:#4285F4;font-size:inherit;">G</b> 구글로 얼리버드 회원 등록</button>`;
   }
 }
 fmRender();
@@ -4525,7 +4525,7 @@ function pcOpen(name) {
   const s = document.getElementById('drugSearch'); s.value = name; searchDrug();
 }
 
-/* ── MR 한마디: 목록 · 작성 (창립 멤버) · 관리자 승인 ── */
+/* ── MR 한마디: 목록 · 작성 (얼리버드 회원) · 관리자 승인 ── */
 // 관리자 이메일은 소스에 그대로 두지 않고 해시로만 비교 (실제 권한 확인은 서버 api/say.js)
 const SAY_ADMIN_H = ["16xe9p023yi","r1ygqfwjf"];
 function emailHash(str, seed = 7) { str = String(str || '').toLowerCase().trim(); let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed; for (let i = 0, ch; i < str.length; i++) { ch = str.charCodeAt(i); h1 = Math.imul(h1 ^ ch, 2654435761); h2 = Math.imul(h2 ^ ch, 1597334677); } h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507); h1 ^= Math.imul(h2 ^ (h2 >>> 13), 3266489909); h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507); h2 ^= Math.imul(h1 ^ (h1 >>> 13), 3266489909); return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36); }
@@ -4569,8 +4569,8 @@ function sayWrite() {
   const body = document.getElementById('sayBody');
   if (!fmGet()) {
     body.innerHTML = `<div class="vs-sheet-title">✍️ 한마디 쓰기</div>
-      <div class="say-rules" style="font-size:0.82rem;">한마디는 <b>창립 멤버</b>만 쓸 수 있어요.<br>구글 로그인으로 등록하면 나중에 유료 기능도 평생 무료예요.</div>
-      <div class="vs-form-btns"><button class="vs-cancel" onclick="sayOpen()">목록</button><button class="vs-save" onclick="fmJoin().then(()=>fmGet()&&sayWrite())">🎖 창립 멤버 등록하기</button></div>`;
+      <div class="say-rules" style="font-size:0.82rem;">한마디는 <b>얼리버드 회원</b>만 쓸 수 있어요.<br>구글 로그인으로 등록하면 나중에 유료 기능도 평생 무료예요.</div>
+      <div class="vs-form-btns"><button class="vs-cancel" onclick="sayOpen()">목록</button><button class="vs-save" onclick="fmJoin().then(()=>fmGet()&&sayWrite())">🐦 얼리버드 회원 등록하기</button></div>`;
     return;
   }
   const sidoOpts = (typeof ST_SIDO !== 'undefined' ? ST_SIDO : []).map(([, n]) => `<option>${n}</option>`).join('');
@@ -4596,7 +4596,7 @@ async function saySubmit() {
       <b style="display:block;margin:8px 0 4px;">한마디가 접수됐어요</b><span style="font-size:0.8rem;color:var(--sub);">운영자 확인 후 홈에 게시돼요.</span>
       <div class="vs-form-btns"><button class="vs-save" onclick="document.getElementById('saySheet').classList.remove('on')">확인</button></div></div>`;
   } catch (e) {
-    const m = { limit: '오늘은 5개까지 쓸 수 있어요', not_member: '창립 멤버만 쓸 수 있어요', length: '5~120자로 적어 주세요' }[e.message];
+    const m = { limit: '오늘은 5개까지 쓸 수 있어요', not_member: '얼리버드 회원만 쓸 수 있어요', length: '5~120자로 적어 주세요' }[e.message];
     showToast(m || '올리지 못했어요. 잠시 후 다시 시도해 주세요');
     btn.disabled = false; btn.textContent = '올리기';
   }
@@ -4616,7 +4616,7 @@ async function sayAdmin() {
     if (!r.ok) throw new Error(r.error);
     body.innerHTML = `<div class="vs-sheet-title">🛠 한마디 승인 <span style="font-size:0.8rem;color:var(--sub);">대기 ${r.items.length}건</span></div>
       <div class="say-rules">${r.ntfyTopic
-        ? `🔔 폰 알림 연결됨 · ntfy 앱 주제: <b style="user-select:all;">${r.ntfyTopic}</b><br>새 한마디·창립 멤버 가입 시 알림이 와요.`
+        ? `🔔 폰 알림 연결됨 · ntfy 앱 주제: <b style="user-select:all;">${r.ntfyTopic}</b><br>새 한마디·얼리버드 회원 가입 시 알림이 와요.`
         : `🔔 폰 알림이 아직 꺼져 있어요.<br>① Play스토어에서 <b>ntfy</b> 앱 설치 → ② 아래 버튼으로 주제 만들기 → ③ ntfy 앱 ＋ 버튼에 주제 입력`}
         <div style="margin-top:8px;"><button class="vs-add" onclick="saySetup()">${r.ntfyTopic ? '주제 새로 만들기' : '🔔 알림 주제 만들기'}</button></div></div>
       ${r.items.map(s => `<div class="say-item" id="sq_${s.id}"><p>${sayEsc(s.text)}</p>

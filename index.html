@@ -4550,11 +4550,12 @@ function fmRender() {
   if (m && m.tier !== 'revoked') {
     const d = m.joinedAt ? new Date(m.joinedAt) : null;
     el.className = 'fm-banner done';
-    el.innerHTML = `<b>얼리버드 사전 등록 완료</b><p style="margin-bottom:0;">${m.tier === 'founder'
-        ? '초기에 가입해 주셔서 정식 버전 이후에도 무료로 쓰시면 됩니다.'
+    const founder = m.tier === 'founder';
+    el.innerHTML = `<b>${founder ? '초기 회원' : '얼리버드 사전 등록 완료'}</b><p style="margin-bottom:0;">${founder
+        ? '처음부터 함께해 주셔서 감사합니다. 초기 회원은 정식 버전 이후에도 계속 무료로 쓰실 수 있습니다.'
         : '베타 기간엔 전부 무료입니다. 정식 버전이 나와도 업데이트 날부터 2개월은 그대로 무료예요.'}</p>
       <small>${m.email}${m.cafeNick ? ` · 카페 ${sayEsc(m.cafeNick)}` : ''}${d ? ` · ${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()} 등록` : ''}</small>
-      ${m.cafeNick ? '' : `<button onclick="fmJoin()" style="margin-top:8px;">카페 닉네임 등록하기</button>`}${WHY_PAID}`;
+      ${m.cafeNick ? '' : `<button onclick="fmJoin()" style="margin-top:8px;">카페 닉네임 등록하기</button>`}${founder ? '' : WHY_PAID}`;
   } else {
     el.className = 'fm-banner';
     el.innerHTML = `<b>얼리버드 사전 등록 <span class="beta-tag">BETA</span></b>

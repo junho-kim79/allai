@@ -18,7 +18,7 @@ async function quota(req) {
   const ip = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim();
   const member = String(req.headers["x-allai-member"] || "").toLowerCase().trim();
   try {
-    if (member) { const m = await fsGet(acc, `members/${sha(member)}`); if (m && /founder|pro/.test(m.tier?.stringValue || "")) return { skip: true, pro: true }; }
+    if (member) { const m = await fsGet(acc, `members/${sha(member)}`); if (m && /founder|pro|early/.test(m.tier?.stringValue || "")) return { skip: true, pro: true }; }
     const day = kstDay();
     const devPath = `aiUsage/${day}_d_${sha(dev || ip)}`, ipPath = `aiUsage/${day}_ip_${sha(ip)}`;
     const [d, i] = await Promise.all([fsGet(acc, devPath), fsGet(acc, ipPath)]);

@@ -101,7 +101,7 @@ export default async function handler(req, res) {
     }
     if (b.action === "member_set") {
       const id = String(b.id || "").replace(/[^a-f0-9]/g, "");
-      const tier = b.tier === "revoked" ? "revoked" : "founder";
+      const tier = ["revoked", "early", "founder"].includes(b.tier) ? b.tier : "early";
       await db(acc, "PATCH", `/members/${id}?updateMask.fieldPaths=tier`, { fields: { tier: toF(tier) } });
       return res.status(200).json({ ok: true, tier });
     }

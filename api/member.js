@@ -60,7 +60,7 @@ export default async function handler(req, res) {
     }
     const now = new Date().toISOString();
     const w = await fetch(base, { method: "PATCH", headers: H, body: JSON.stringify({ fields: {
-      email: { stringValue: email }, name: { stringValue: u.name || "" }, tier: { stringValue: "founder" }, cafeNick: { stringValue: cafeNick }, joinedAt: { timestampValue: now } } }) });
+      email: { stringValue: email }, name: { stringValue: u.name || "" }, tier: { stringValue: "early" }, cafeNick: { stringValue: cafeNick }, joinedAt: { timestampValue: now } } }) });
     if (!w.ok) return res.status(200).json({ ok: false, error: "db_" + w.status, detail: (await w.text()).slice(0, 200) });
     // 관리자 폰으로 가입 알림 (ntfy, 관리자 화면에서 연결한 경우)
     try {
@@ -75,6 +75,6 @@ export default async function handler(req, res) {
           body: `${u.name || "새 회원"} (${masked})${cafeNick ? ` · 카페 닉네임 ${cafeNick}` : " · 카페 닉네임 없음"}${n ? ` · 총 ${n}명` : ""} (자동 승인)` });
       }
     } catch (e) {}
-    return res.status(200).json({ ok: true, already: false, joinedAt: now, email, tier: "founder", cafeNick });
+    return res.status(200).json({ ok: true, already: false, joinedAt: now, email, tier: "early", cafeNick });
   } catch (e) { return res.status(200).json({ ok: false, error: String(e.message || e).slice(0, 200) }); }
 }

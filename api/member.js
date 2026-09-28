@@ -71,7 +71,7 @@ export default async function handler(req, res) {
           body: JSON.stringify({ structuredAggregationQuery: { structuredQuery: { from: [{ collectionId: "members" }] }, aggregations: [{ alias: "n", count: {} }] } }) });
         const n = q.ok ? (await q.json())?.[0]?.result?.aggregateFields?.n?.integerValue : "";
         const masked = email.replace(/^(.{2}).*(@.*)$/, "$1***$2");
-        await fetch(`https://ntfy.sh/${topic}`, { method: "POST", headers: { Title: encodeURIComponent("ALLAI 얼리버드 회원 가입"), Tags: "tada", "Content-Type": "text/plain; charset=utf-8" },
+        await fetch(`https://ntfy.sh/${topic}`, { method: "POST", headers: { Title: encodeURIComponent("ALLAI 초기 가입"), Tags: "tada", "Content-Type": "text/plain; charset=utf-8" },
           body: `${u.name || "새 회원"} (${masked})${cafeNick ? ` · 카페 닉네임 ${cafeNick}` : " · 카페 닉네임 없음"}${n ? ` · 총 ${n}명` : ""} (자동 승인)` });
       }
     } catch (e) {}

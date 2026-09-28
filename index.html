@@ -4440,7 +4440,7 @@ function aiHeaders(kind) {
 }
 function aiqText() {
   if (!PAYWALL_ON) return '베타 기간 무제한';
-  if (isPro()) return '얼리버드 무제한';
+  if (isPro()) return '초기 가입자 무제한';
   return `오늘 무료 ${Math.max(0, AI_FREE_PER_DAY - proAIUsed())}/${AI_FREE_PER_DAY}`;
 }
 function aiqChip() { return `<span class="aiq${PAYWALL_ON && !isPro() && proAIUsed() >= AI_FREE_PER_DAY ? ' out' : ''}">${aiqText()}</span>`; }
@@ -4464,13 +4464,13 @@ function proLockAI() {
 function proDecorateLocks(root) {
   (root || document).querySelectorAll('.pro-lock').forEach(c => {
     if (c.querySelector('.pro-veil')) return;
-    c.insertAdjacentHTML('beforeend', `<div class="pro-veil" onclick="fmJoin()" style="cursor:pointer;"><b>${PRO_MSG}</b><span>${c.dataset.veil || '무료로는 이번 달 처방액까지 볼 수 있습니다.'}<br>눌러서 사전 등록 혜택을 확인해 보세요.</span></div>`);
+    c.insertAdjacentHTML('beforeend', `<div class="pro-veil" onclick="fmJoin()" style="cursor:pointer;"><b>${PRO_MSG}</b><span>${c.dataset.veil || '무료로는 이번 달 처방액까지 볼 수 있습니다.'}<br>초기 가입자는 계속 이용하실 수 있습니다.</span></div>`);
   });
 }
 // 경쟁품 비교 → 엑셀(CSV) 내보내기 (PRO)
 function exportCompExcel() {
   document.getElementById('shareMenu').style.display = 'none';
-  if (proLocked()) { showToast(`📊 엑셀 내보내기는 ${PRO_MSG} (얼리버드 회원은 무료)`); return; }
+  if (proLocked()) { showToast(`📊 엑셀 내보내기는 ${PRO_MSG} (초기 가입자는 무료)`); return; }
   if (!cList.length) { showToast('비교할 제품을 먼저 추가해주세요'); return; }
   const cols = [['제품명', 'name'], ['성분', 'ingredient'], ['회사', 'company'], ['약가(원)', 'price'], ['전문/일반', 'type'], ['제형', 'form'], ['FDA', 'fda'], ['용법', 'useMethod'], ['효능', 'efcy']];
   const cell = v => `"${String(v ?? '').replace(/"/g, '""').replace(/\r?\n/g, ' ')}"`;
@@ -4483,9 +4483,9 @@ function exportCompExcel() {
 }
 // 얼리버드 회원 등록 (구글 로그인 → 서버가 구글에 확인 → 명단 저장)
 const CAFE_URL = 'https://cafe.naver.com/allaiai';
-const WHY_PAID = `<details class="why-paid"><summary>정식 버전이 나오면요?</summary>
-  <p>사전 등록하신 분은 정식 버전 업데이트 날부터 2개월 더 무료로 쓰시고, 그 뒤엔 서버 비용으로 월 990원 정도만 받을 예정입니다. 양해 부탁드립니다. 2개월은 등록한 날이 아니라 업데이트 날부터 계산됩니다.</p>
-  <p>광고 없이 운영하다 보니 서버비, 심평원·식약처 데이터 조회, AI 사용료가 매달 나가서 딱 그 정도만 받으려고 합니다. 사용하시는 분이 한꺼번에 몰리면 하루 한도에 걸려 잠깐 멈출 수 있는데, 보통 다음 날이면 풀립니다.</p></details>`;
+const WHY_PAID = `<details class="why-paid"><summary>앞으로는요?</summary>
+  <p>아직 초기라 거의 모든 기능을 무료로 쓰실 수 있습니다. 다만 사용하시는 분이 일정 인원을 넘으면 서버, 심평원·식약처 데이터 조회, AI 사용료가 늘어나 어쩔 수 없이 서버비를 받아야 운영이 가능합니다.</p>
+  <p>그때가 되더라도 지금 가입해 주신 초기 가입자분들은 계속 이용하실 수 있게 하겠습니다.</p></details>`;
 // 얼리버드 등록: ① 네이버 카페 가입 ② 카페 닉네임 ③ 구글 로그인 → 바로 승인(관리자가 나중에 확인)
 function fmJoin() {
   closeMaker();
@@ -4494,8 +4494,8 @@ function fmJoin() {
   <div class="mk-bg" id="mkBg" onclick="if(event.target.id==='mkBg')closeMaker()">
     <div class="mk-card fm-card">
       <div class="mk-emoji">🐦</div>
-      <div class="mk-t">얼리버드 사전 등록</div>
-      <div class="mk-who">지금은 베타 버전이라 전부 무료입니다.<br>사전 등록하시면 정식 버전이 나와도<br><b style="color:#0e8a4f">업데이트 날부터 2개월 더 무료</b><br><small>그 뒤엔 서버 비용으로 월 990원 정도만 받을 예정입니다.<br>양해 부탁드립니다.</small></div>
+      <div class="mk-t">초기 가입</div>
+      <div class="mk-who">지금은 베타 버전이라 거의 모든 기능을 무료로 쓰실 수 있습니다.<br>나중에 사용자가 늘어 서버비를 받게 되더라도<br><b style="color:#0e8a4f">지금 가입하신 분은 계속 이용하실 수 있습니다</b></div>
       <div class="fm-feat">스케줄 관리, 개원 정보, 약가 정보, 1페이퍼 경쟁품 비교(출력·전송), 지역별 처방통계까지 다 써먹는 MR 되셨으면 합니다.</div>
       <ol class="fm-steps">
         <li><b>네이버 카페 가입</b><a href="${CAFE_URL}" target="_blank" rel="noopener">카페 가기</a></li>
@@ -4504,7 +4504,7 @@ function fmJoin() {
       </ol>
       <div class="fm-err" id="fmErr"></div>
       <button class="mk-btn" style="border:0;width:100%;cursor:pointer;font:inherit;font-weight:800;" onclick="fmJoinGo()">구글 계정으로 등록하기</button>
-      <div class="fm-fine">※ 2개월은 등록한 날이 아니라 정식 버전으로 업데이트되는 날부터 계산됩니다. 990원은 베타 기간에 사전 등록하신 분만 해당됩니다(정식 버전 이후 가입은 월 2,900원). 카페에 없는 닉네임은 나중에 정리될 수 있습니다.</div>
+      <div class="fm-fine">※ 카페 닉네임은 회원 확인용입니다. 카페에 없는 닉네임은 나중에 정리될 수 있습니다.</div>
       <button class="mk-close" onclick="closeMaker()">닫기</button>
     </div>
   </div>`);
@@ -4527,7 +4527,7 @@ async function fmJoinGo() {
     if (!r.ok) throw new Error(r.error || '등록 실패');
     localStorage.setItem(FM_KEY, JSON.stringify({ email: r.email, joinedAt: r.joinedAt, tier: r.tier || 'founder', cafeNick: r.cafeNick || nick, checked: Date.now() }));
     closeMaker(); fmRender(); adminBarRender(); try { aiqRefresh(); } catch (e) {}
-    showToast(r.already ? '등록 정보가 수정됐습니다' : '사전 등록됐습니다. 감사합니다');
+    showToast(r.already ? '등록 정보가 수정됐습니다' : '초기 가입됐습니다. 감사합니다');
   } catch (e) {
     err.textContent = /popup/i.test(e.message) ? '로그인 창이 닫혔습니다' : e.message === 'revoked' ? '이용이 해제된 계정입니다. 카페로 문의 주세요.' : '등록이 안 됐습니다. 잠시 후 다시 해 주세요';
   }
@@ -4550,18 +4550,16 @@ function fmRender() {
   if (m && m.tier !== 'revoked') {
     const d = m.joinedAt ? new Date(m.joinedAt) : null;
     el.className = 'fm-banner done';
-    const founder = m.tier === 'founder';
-    el.innerHTML = `<b>${founder ? '초기 회원' : '얼리버드 사전 등록 완료'}</b><p style="margin-bottom:0;">${founder
-        ? '처음부터 함께해 주셔서 감사합니다. 초기 회원은 정식 버전 이후에도 계속 무료로 쓰실 수 있습니다.'
-        : '베타 기간엔 전부 무료입니다. 정식 버전이 나와도 업데이트 날부터 2개월은 그대로 무료예요.'}</p>
+    el.innerHTML = `<b>초기 가입 완료</b><p style="margin-bottom:0;">처음부터 함께해 주셔서 감사합니다. 나중에 서버비를 받게 되더라도 초기 가입자는 계속 이용하실 수 있습니다.</p>
       <small>${m.email}${m.cafeNick ? ` · 카페 ${sayEsc(m.cafeNick)}` : ''}${d ? ` · ${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()} 등록` : ''}</small>
-      ${m.cafeNick ? '' : `<button onclick="fmJoin()" style="margin-top:8px;">카페 닉네임 등록하기</button>`}${founder ? '' : WHY_PAID}`;
+      ${m.cafeNick ? '' : `<button onclick="fmJoin()" style="margin-top:8px;">카페 닉네임 등록하기</button>`}`;
   } else {
     el.className = 'fm-banner';
-    el.innerHTML = `<b>얼리버드 사전 등록 <span class="beta-tag">BETA</span></b>
-      <p>지금은 베타 버전이라 전부 무료로 쓰시면 됩니다. 대신 써 보시고 불편한 점이나 있었으면 하는 기능을 카페에 남겨 주세요. 그게 베타 기간 사용료라고 생각하겠습니다.</p>
+    if (PAYWALL_ON) { el.innerHTML = ''; return; }   // 유료 전환 후에는 모집 문구 숨김
+    el.innerHTML = `<b>초기 가입자 모집 <span class="beta-tag">BETA</span></b>
+      <p>지금은 베타 버전이라 거의 모든 기능을 무료로 쓰실 수 있습니다. 써 보시고 불편한 점이나 있었으면 하는 기능을 카페에 남겨 주세요. 그게 베타 기간 사용료라고 생각하겠습니다.</p>
       <p style="font-size:.76rem;opacity:.85;">스케줄 관리, 개원 정보, 약가 정보, 1페이퍼 경쟁품 비교(출력·전송), 지역별 처방통계까지 다 써먹는 MR 되셨으면 합니다.</p>
-      <button onclick="fmJoin()">사전 등록하기</button>${WHY_PAID}`;
+      <button onclick="fmJoin()">초기 가입하기</button>${WHY_PAID}`;
   }
 }
 fmRender(); setTimeout(fmCheck, 2500);
@@ -4656,8 +4654,8 @@ function sayWrite() {
   const body = document.getElementById('sayBody');
   if (!fmGet()) {
     body.innerHTML = `<div class="vs-sheet-title">✍️ 한마디 쓰기</div>
-      <div class="say-rules" style="font-size:0.82rem;">한마디는 <b>얼리버드 회원</b>만 쓸 수 있어요.<br>네이버 카페 가입 후 구글 계정으로 사전 등록하시면 쓸 수 있습니다.</div>
-      <div class="vs-form-btns"><button class="vs-cancel" onclick="sayOpen()">목록</button><button class="vs-save" onclick="fmJoin()">사전 등록하기</button></div>`;
+      <div class="say-rules" style="font-size:0.82rem;">한마디는 <b>초기 가입자</b>만 쓸 수 있어요.<br>네이버 카페 가입 후 구글 계정으로 초기 가입하시면 쓸 수 있습니다.</div>
+      <div class="vs-form-btns"><button class="vs-cancel" onclick="sayOpen()">목록</button><button class="vs-save" onclick="fmJoin()">초기 가입하기</button></div>`;
     return;
   }
   const sidoOpts = (typeof ST_SIDO !== 'undefined' ? ST_SIDO : []).map(([, n]) => `<option>${n}</option>`).join('');
@@ -4683,7 +4681,7 @@ async function saySubmit() {
       <b style="display:block;margin:8px 0 4px;">한마디가 접수됐어요</b><span style="font-size:0.8rem;color:var(--sub);">운영자 확인 후 홈에 게시돼요.</span>
       <div class="vs-form-btns"><button class="vs-save" onclick="document.getElementById('saySheet').classList.remove('on')">확인</button></div></div>`;
   } catch (e) {
-    const m = { limit: '오늘은 5개까지 쓸 수 있어요', not_member: '얼리버드 회원만 쓸 수 있어요', length: '5~120자로 적어 주세요' }[e.message];
+    const m = { limit: '오늘은 5개까지 쓸 수 있어요', not_member: '초기 가입자만 쓸 수 있어요', length: '5~120자로 적어 주세요' }[e.message];
     showToast(m || '올리지 못했어요. 잠시 후 다시 시도해 주세요');
     btn.disabled = false; btn.textContent = '올리기';
   }
@@ -4693,27 +4691,27 @@ function isSayAdmin() { const m = fmGet(); return !!(m && SAY_ADMIN_H.includes(e
 function adminBarRender() {
   const el = document.getElementById('adminBar'); if (!el) return;
   el.innerHTML = isSayAdmin() ? `<div class="admin-bar" onclick="sayAdmin()"><span>🛠 관리자 · 한마디 승인하기</span><span>›</span></div>
-    <div class="admin-bar" onclick="memberAdmin()"><span>🐦 관리자 · 얼리버드 명단</span><span>›</span></div>` : '';
+    <div class="admin-bar" onclick="memberAdmin()"><span>🐦 관리자 · 초기 가입자 명단</span><span>›</span></div>` : '';
 }
 async function memberAdmin() {
   document.getElementById('saySheet').classList.add('on');
   const body = document.getElementById('sayBody');
-  body.innerHTML = `<div class="vs-sheet-title">🐦 얼리버드 명단</div><div class="vs-empty">불러오는 중…</div>`;
+  body.innerHTML = `<div class="vs-sheet-title">🐦 초기 가입자 명단</div><div class="vs-empty">불러오는 중…</div>`;
   try {
     const r = await sayApi({ action: 'members' });
     if (!r.ok) throw new Error(r.error);
     const on = r.items.filter(m => m.tier !== 'revoked').length;
-    body.innerHTML = `<div class="vs-sheet-title">🐦 얼리버드 명단 <span style="font-size:0.8rem;color:var(--sub);">이용 중 ${on}명 · 전체 ${r.items.length}명</span></div>
+    body.innerHTML = `<div class="vs-sheet-title">🐦 초기 가입자 명단 <span style="font-size:0.8rem;color:var(--sub);">이용 중 ${on}명 · 전체 ${r.items.length}명</span></div>
       <div class="say-rules">카페 회원 목록과 닉네임을 비교해서, 카페에 없는 사람만 <b>해제</b>하면 돼요.<br>
         <a href="${CAFE_URL}" target="_blank" rel="noopener" style="color:#03c75a;font-weight:800;">네이버 카페 열기 ↗</a>
         <input class="vs-in" id="mbFind" placeholder="닉네임·이메일 찾기" oninput="memberFilter()" style="margin-top:8px;width:100%;box-sizing:border-box;"></div>
       <div id="mbList">${r.items.map(m => `<div class="say-item mb-row" data-k="${sayEsc(((m.cafeNick || '') + ' ' + (m.email || '')).toLowerCase())}" style="${m.tier === 'revoked' ? 'opacity:.5' : ''}">
-        <p><b>${m.cafeNick ? sayEsc(m.cafeNick) : '<span style="color:#b45309">닉네임 없음</span>'}</b> ${m.tier === 'revoked' ? '<small style="color:var(--red)">해제됨</small>' : m.tier === 'founder' ? '<small style="color:#0e8a4f">초기 가입 · 무료 유지</small>' : '<small>얼리버드 990원</small>'}</p>
+        <p><b>${m.cafeNick ? sayEsc(m.cafeNick) : '<span style="color:#b45309">닉네임 없음</span>'}</b> ${m.tier === 'revoked' ? '<small style="color:var(--red)">해제됨</small>' : '<small style="color:#0e8a4f">초기 가입자</small>'}</p>
         <small>${sayEsc(m.email)} · ${String(m.joinedAt || '').slice(0, 10)}</small>
         <div class="say-adm">${m.tier === 'revoked'
           ? `<button style="background:var(--g1);color:#fff;" onclick="memberSet('${m.id}','${m.cafeNick ? 'early' : 'founder'}')">복구</button>`
           : `<button style="background:rgba(239,68,68,0.1);color:var(--red);" onclick="memberSet('${m.id}','revoked')">해제</button>`}</div></div>`).join('') || '<div class="vs-empty">아직 없어요</div>'}</div>`;
-  } catch (e) { body.innerHTML = `<div class="vs-sheet-title">🐦 얼리버드 명단</div><div class="vs-empty">불러오지 못했어요 (${sayEsc(e.message)})</div>`; }
+  } catch (e) { body.innerHTML = `<div class="vs-sheet-title">🐦 초기 가입자 명단</div><div class="vs-empty">불러오지 못했어요 (${sayEsc(e.message)})</div>`; }
 }
 function memberFilter() { const q = document.getElementById('mbFind').value.trim().toLowerCase(); document.querySelectorAll('#mbList .mb-row').forEach(r => r.style.display = !q || r.dataset.k.includes(q) ? '' : 'none'); }
 async function memberSet(id, tier) {
@@ -4730,7 +4728,7 @@ async function sayAdmin() {
     if (!r.ok) throw new Error(r.error);
     body.innerHTML = `<div class="vs-sheet-title">🛠 한마디 승인 <span style="font-size:0.8rem;color:var(--sub);">대기 ${r.items.length}건</span></div>
       <div class="say-rules">${r.ntfyTopic
-        ? `🔔 폰 알림 연결됨 · ntfy 앱 주제: <b style="user-select:all;">${r.ntfyTopic}</b><br>새 한마디·얼리버드 회원 가입 시 알림이 와요.`
+        ? `🔔 폰 알림 연결됨 · ntfy 앱 주제: <b style="user-select:all;">${r.ntfyTopic}</b><br>새 한마디·초기 가입 시 알림이 와요.`
         : `🔔 폰 알림이 아직 꺼져 있어요.<br>① Play스토어에서 <b>ntfy</b> 앱 설치 → ② 아래 버튼으로 주제 만들기 → ③ ntfy 앱 ＋ 버튼에 주제 입력`}
         <div style="margin-top:8px;"><button class="vs-add" onclick="saySetup()">${r.ntfyTopic ? '주제 새로 만들기' : '🔔 알림 주제 만들기'}</button></div></div>
       ${r.items.map(s => `<div class="say-item" id="sq_${s.id}"><p>${sayEsc(s.text)}</p>

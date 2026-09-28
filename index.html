@@ -133,6 +133,14 @@
     }
 
 
+    .aiq{display:inline-block;margin-left:8px;font-size:.66rem;font-weight:800;color:#0e8a4f;background:rgba(14,138,79,.1);border-radius:999px;padding:2px 8px;vertical-align:1px;letter-spacing:0}
+    .aiq.out{color:#b91c1c;background:rgba(239,68,68,.1)}
+    .nw-tip{margin-top:8px;font-size:.78rem;line-height:1.5;background:rgba(14,138,79,.07);border-radius:10px;padding:7px 10px;color:var(--text,inherit)}
+    .nw-tip b{color:#0e8a4f}
+    .nw-ai{margin-top:8px;font-size:.8rem;line-height:1.55;border:1px dashed rgba(14,138,79,.35);border-radius:10px;padding:8px 10px}
+    .nw-ai .h{display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:.76rem;margin-bottom:4px}
+    .nw-ai p{margin:3px 0}
+    .nw-ai p b{color:#0e8a4f;margin-right:4px}
     /* ── 홈: 신규 개원 배너 ── */
     .nwh{margin:14px 32px 0;padding:14px 16px 12px;border-radius:var(--r-lg);cursor:pointer;color:#fff;
       background:linear-gradient(135deg,#0e8a4f 0%,#12a15e 55%,#1bb56d 100%);box-shadow:0 8px 24px rgba(14,138,79,.28);
@@ -1897,10 +1905,10 @@ function setSearchType(type, el) {
 }
 
 /* 외부 약품 서버 무응답 대비: 5초 넘으면 중단 → 로컬 검색으로 전환 */
-function fetchWithTimeout(url, ms = 5000) {
+function fetchWithTimeout(url, ms = 5000, opts = {}) {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), ms);
-  return fetch(url, { signal: ctrl.signal }).finally(() => clearTimeout(t));
+  return fetch(url, { ...opts, signal: ctrl.signal }).finally(() => clearTimeout(t));
 }
 
 function searchDrug() {
@@ -2281,7 +2289,7 @@ const formDisplay = (() => {
     <!-- AI 요약 -->
     <div class="ai-card" id="aiCard">
       <div class="ai-head">
-        <span class="ai-label">🤖 AI 요약</span>
+        <span class="ai-label">🤖 AI 요약</span>${aiqChip()}
         ${cached ? '' : '<div class="ai-loading"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div></div>'}
       </div>
       <div class="ai-body" id="aiBody">${cached ? cached.summary : '분석 중...'}</div>
@@ -2426,7 +2434,7 @@ CYP2C19을 거치지 않으면 상호작용이 낮음을 반드시 반영하세�
 
     const res = await fetch('/api/ai', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: aiHeaders('compare'),
       body: JSON.stringify({ prompt, maxTokens: 150 })
     });
 
@@ -2522,11 +2530,13 @@ API에서 용법용량 정보가 없을 경우, 이 성분/제형 기준으로 �
 
     const res = await fetch('/api/ai', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: aiHeaders('summary'),
       body: JSON.stringify({ prompt, maxTokens: 350 })
     });
 
     const data = await res.json();
+    if (res.status === 429 || data?.error === 'limit') { aiqSync(data); proLockAI(); return; }
+    aiqSync(data);
     const text = data?.text?.trim() || '';
 
     // 각 [태그] 내용은 "다음 [태그]"가 나오기 전까지만 (AI가 순서를 바꾸거나 태그를 빼먹어도 섞이지 않게)
@@ -3471,14 +3481,101 @@ function stNewRender() {
       <div class="nw-top"><b>${esc(h.name)}</b><span class="nw-type">${esc(h.type)}</span></div>
       <div class="nw-meta">🗓 ${d8(h.open)} 개원 · ${esc((h.sggu || '').replace(/^(대구|부산|인천|광주|대전|울산|서울)/, ''))}${h.docs ? ` · 의사 ${h.docs}명` : ''}</div>
       <div class="nw-addr">${esc(h.addr)}</div>
+      ${(t => `<div class="nw-tip">💡 <b>${esc(t.stage)}</b> · ${esc(t.stageTip)}<br>🎯 ${esc(t.dept)}</div>`)(nwTip(h))}
       <div class="nw-btns">
         ${h.tel ? `<a href="tel:${esc(h.tel)}">📞 ${esc(h.tel)}</a>` : ''}
         <a href="https://map.naver.com/p/search/${encodeURIComponent(h.name)}" target="_blank" rel="noopener">🗺 지도</a>
         <button onclick="stNewToVisit(${_stNew.indexOf(h)})">📒 면담기록</button>
+        <button onclick="nwAI(${_stNew.indexOf(h)})">🤖 첫 방문 멘트</button>
       </div>
+      <div id="nwAi${_stNew.indexOf(h)}">${nwAICached(h)}</div>
     </div>`).join('')}
     <div class="st-note" style="padding:4px 4px 20px;">※ 건강보험심사평가원 병원정보서비스의 개설일자 기준입니다. 진료과는 병원 이름으로 확인해 주세요.</div>`;
 }
+/* ── 신규 개원: 규칙 멘트 (즉시·무료) ── */
+const NW_DEPT = [
+  [/요양병원/, '요양병원 · 만성질환 다품목·장기처방, 약제과·원무과 먼저 파악'],
+  [/내과|가정의학/, '내과 계열 · 고혈압·당뇨·고지혈·위장약 수요'],
+  [/정형외과|마취통증|통증|재활/, '근골격 계열 · 진통소염·근이완·골다공증'],
+  [/이비인후/, '이비인후과 · 호흡기·항히스타민·항생제'],
+  [/소아|아동/, '소아청소년과 · 시럽제·호흡기·해열제'],
+  [/피부/, '피부과 · 항진균·외용 스테로이드·항히스타민'],
+  [/비뇨/, '비뇨의학과 · 전립선·과민성방광'],
+  [/산부인과|여성/, '산부인과 · 호르몬·질염·골다공증'],
+  [/정신|마음/, '정신건강의학과 · 항우울·수면·불안'],
+  [/신경과|뇌/, '신경과 · 치매·편두통·뇌혈관'],
+  [/안과/, '안과 · 점안제·안구건조'],
+  [/외과/, '외과 · 항생제·진통제·수술 후 처방'],
+];
+function nwDays(open) {
+  if (!open || open.length !== 8) return null;
+  const d = new Date(+open.slice(0, 4), +open.slice(4, 6) - 1, +open.slice(6));
+  return Math.max(0, Math.floor((Date.now() - d) / 864e5));
+}
+function nwTip(h) {
+  const n = nwDays(h.open);
+  let stage = '개원 시기 확인', stageTip = '개설일자 확인 후 방문 계획';
+  if (n !== null) {
+    if (n <= 14) { stage = `개원 ${n + 1}일차`; stageTip = '처방 패턴 잡히기 전 · 첫 인사 적기'; }
+    else if (n <= 45) { stage = `개원 ${Math.floor(n / 7) + 1}주차`; stageTip = '원내 처방 세팅 중 · 자료·샘플 들고 재방문'; }
+    else if (n <= 120) { stage = `개원 ${Math.max(2, Math.round(n / 30))}개월`; stageTip = '처방 습관 굳어지는 중 · 주력 품목 한 가지 집중'; }
+    else { stage = `개원 ${Math.round(n / 30)}개월`; stageTip = '거래처 정해졌을 수 있음 · 경쟁품 대비 포인트로'; }
+  }
+  const hit = NW_DEPT.find(([re]) => re.test(h.name || ''));
+  const dept = hit ? hit[1] : (/병원/.test(h.type || '') ? '병원급 · 여러 진료과, 약제과·원무과 먼저 파악' : '진료과는 간판·홈페이지로 확인');
+  return { stage, stageTip, dept };
+}
+
+/* ── 신규 개원: AI 첫 방문 멘트 (누를 때만 · AI 사용 횟수에 포함) ── */
+function nwKey(h) { return 'allai_nw_ai_' + (h.name || '') + '_' + (h.open || ''); }
+function nwAIHtml(t) {
+  const e = x => String(x || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const sec = tag => (t.match(new RegExp('\\[' + tag + '\\]([\\s\\S]*?)(?=\\[[A-Z_]+\\]|$)')) || [, ''])[1].trim();
+  const rows = [['인사', sec('GREET')], ['대화 소재', sec('TOPIC')], ['주의', sec('CAUTION')]].filter(r => r[1]);
+  const body = rows.length ? rows.map(([k, v]) => `<p><b>${k}</b>${e(v)}</p>`).join('') : `<p>${e(t)}</p>`;
+  return `<div class="nw-ai"><div class="h"><span>🤖 첫 방문 멘트</span>${aiqChip()}</div>${body}</div>`;
+}
+function nwAICached(h) { try { const t = localStorage.getItem(nwKey(h)); return t ? nwAIHtml(t) : ''; } catch (e) { return ''; } }
+async function nwAI(i) {
+  const h = _stNew[i], box = document.getElementById('nwAi' + i); if (!h || !box) return;
+  const cached = nwAICached(h); if (cached) { box.innerHTML = cached; return; }
+  if (!proAllowAI()) { box.innerHTML = `<div class="nw-ai"><div class="h"><span>🔒 오늘 무료 AI ${AI_FREE_PER_DAY}회를 모두 사용했어요</span></div><p>${PRO_MSG} · 내일 다시 채워져요</p></div>`; return; }
+  box.innerHTML = `<div class="nw-ai"><div class="h"><span>🤖 멘트 만드는 중…</span><div class="ai-loading"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div></div></div></div>`;
+  const t = nwTip(h);
+  const prompt = `당신은 20년차 제약 영업사원(MR)의 코치입니다. 새로 개원한 병원에 처음 방문할 때 쓸 멘트를 만들어 주세요.
+
+[병원 정보 — 아래가 전부입니다]
+이름: ${h.name}
+종류: ${h.type || '-'}
+지역: ${h.sggu || '-'}
+개원일: ${h.open || '-'} (${t.stage})
+의사 수: ${h.docs || '확인 안 됨'}
+이름으로 추정한 진료 분야: ${t.dept}
+
+규칙:
+- 원장의 경력·전공·출신 학교 등 위에 없는 사실은 절대 지어내지 말 것
+- 특정 제품 광고, 과장, 리베이트·접대를 연상시키는 표현 금지
+- 첫 방문이라 짧고 예의 바르게, 개원 축하로 시작
+- 각 항목 한두 문장, 전체 10초 안에 읽히게
+
+아래 형식 그대로 답하세요:
+[GREET] 첫 인사 한두 문장 (실제로 말할 문장)
+[TOPIC] 이 진료 분야·개원 시기에 맞는 대화 소재 한두 개
+[CAUTION] 이 시기 방문 시 조심할 점 한 줄`;
+  try {
+    proCountAI();
+    const res = await fetchWithTimeout('/api/ai', 25000, { method: 'POST', headers: aiHeaders('newopen'), body: JSON.stringify({ prompt, maxTokens: 300 }) });
+    const d = await res.json();
+    if (res.status === 429 || d?.error === 'limit') { aiqSync(d); box.innerHTML = `<div class="nw-ai"><div class="h"><span>🔒 오늘 무료 AI ${AI_FREE_PER_DAY}회를 모두 사용했어요</span></div><p>${PRO_MSG} · 내일 다시 채워져요</p></div>`; return; }
+    aiqSync(d);
+    const text = (d?.text || '').trim(); if (!text) throw new Error('empty');
+    try { localStorage.setItem(nwKey(h), text); } catch (e) {}
+    box.innerHTML = nwAIHtml(text);
+  } catch (e) {
+    box.innerHTML = `<div class="nw-ai"><div class="h"><span>AI 멘트를 불러오지 못했어요</span></div><p>잠시 후 다시 눌러 주세요.</p></div>`;
+  }
+}
+
 function stNewToVisit(i) {
   const h = _stNew[i]; if (!h) return;
   goScreen('screen_visit', '면담기록');
@@ -4043,8 +4140,31 @@ function isPro() { const m = fmGet(); return !!(m && (m.tier === 'founder' || m.
 function proLocked() { return PAYWALL_ON && !isPro(); }
 function proToday() { const d = new Date(); return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; }
 function proAIUsed() { try { const c = JSON.parse(localStorage.getItem(AI_CNT_KEY) || '{}'); return c.day === proToday() ? c.n : 0; } catch (e) { return 0; } }
-function proCountAI() { try { localStorage.setItem(AI_CNT_KEY, JSON.stringify({ day: proToday(), n: proAIUsed() + 1 })); } catch (e) {} }
+function proCountAI() { try { localStorage.setItem(AI_CNT_KEY, JSON.stringify({ day: proToday(), n: proAIUsed() + 1 })); } catch (e) {} try { aiqRefresh(); } catch (e) {} }
 function proAllowAI() { return !proLocked() || proAIUsed() < AI_FREE_PER_DAY; }
+/* AI 사용 칩 · 기기 ID (서버 카운팅용 — 서버는 AI_LIMIT_ON=1 일 때만 제한) */
+function aiDevId() {
+  try { let d = localStorage.getItem('allai_dev_id');
+    if (!d) { d = (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2)); localStorage.setItem('allai_dev_id', d); }
+    return d; } catch (e) { return ''; }
+}
+function aiHeaders(kind) {
+  const m = fmGet(), h = { 'Content-Type': 'application/json', 'X-Allai-Kind': kind, 'X-Allai-Dev': aiDevId() };
+  if (m && m.email && /^[\x20-\x7e]+$/.test(m.email)) h['X-Allai-Member'] = m.email;
+  return h;
+}
+function aiqText() {
+  if (!PAYWALL_ON) return '✨ 창립 기간 무제한';
+  if (isPro()) return '🎖 PRO 무제한';
+  return `오늘 무료 ${Math.max(0, AI_FREE_PER_DAY - proAIUsed())}/${AI_FREE_PER_DAY}`;
+}
+function aiqChip() { return `<span class="aiq${PAYWALL_ON && !isPro() && proAIUsed() >= AI_FREE_PER_DAY ? ' out' : ''}">${aiqText()}</span>`; }
+function aiqRefresh() { document.querySelectorAll('.aiq').forEach(e => { e.textContent = aiqText(); e.classList.toggle('out', PAYWALL_ON && !isPro() && proAIUsed() >= AI_FREE_PER_DAY); }); }
+// 서버가 알려준 사용 횟수가 폰 기록보다 많으면 맞춰 줌 (앱 재설치 등)
+function aiqSync(d) {
+  if (d && typeof d.used === 'number' && d.used > proAIUsed()) { try { localStorage.setItem(AI_CNT_KEY, JSON.stringify({ day: proToday(), n: d.used })); } catch (e) {} }
+  aiqRefresh();
+}
 function proLockAI() {
   const body = document.getElementById('aiBody'); if (!body) return;
   document.querySelector('#aiCard .ai-loading')?.remove();

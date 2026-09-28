@@ -181,6 +181,9 @@
     .st-hint{margin-top:6px;font-size:.72rem;color:var(--sub2)}
     .st-gnl .chips button{font:inherit;font-size:.76rem;font-weight:700;border:1px solid rgba(14,138,79,.35);background:#fff;color:#0e8a4f;border-radius:999px;padding:5px 10px;cursor:pointer}
     .st-gnl .chips button.on{background:#0e8a4f;color:#fff}
+    .fm-card{max-height:calc(100vh - 32px);overflow-y:auto}
+    .fm-feat{margin-top:10px;font-size:.74rem;line-height:1.6;color:var(--sub);background:rgba(14,138,79,.06);border-radius:10px;padding:8px 10px}
+    .fm-feat b{color:#0e8a4f;font-size:.8rem}
     .fm-steps{text-align:left;margin:14px 0 6px;padding-left:20px;font-size:.84rem;line-height:1.5}
     .fm-steps li{margin-bottom:10px}
     .fm-steps li b{display:inline-block;margin-right:8px}
@@ -4428,14 +4431,14 @@ function proLockAI() {
     <div style="font-size:1.4rem;">🔒</div>
     <b style="display:block;margin:4px 0;">오늘 무료 AI 요약 ${AI_FREE_PER_DAY}회를 모두 사용했어요</b>
     <span style="font-size:0.78rem;color:var(--sub);">3회 초과분은 ${PRO_MSG}.<br>내일 다시 무료 ${AI_FREE_PER_DAY}회가 채워져요.</span>
-    ${isPro() ? '' : `<button onclick="fmJoin()" style="margin-top:10px;font:inherit;font-size:0.8rem;font-weight:800;padding:8px 14px;border-radius:999px;border:none;background:#1E3A5F;color:#fff;cursor:pointer;">🐦 얼리버드 등록 (월 990원 고정)</button>`}
+    ${isPro() ? '' : `<button onclick="fmJoin()" style="margin-top:10px;font:inherit;font-size:0.8rem;font-weight:800;padding:8px 14px;border-radius:999px;border:none;background:#1E3A5F;color:#fff;cursor:pointer;">🐦 얼리버드 등록 (2개월 무료 → 990원)</button>`}
   </div>`;
   ['clinicalVal', 'issueVal', 'fdaVal'].forEach(id => { const e = document.getElementById(id); if (e) e.innerHTML = '<span style="color:var(--sub2);font-weight:500;">🔒</span>'; });
 }
 function proDecorateLocks(root) {
   (root || document).querySelectorAll('.pro-lock').forEach(c => {
     if (c.querySelector('.pro-veil')) return;
-    c.insertAdjacentHTML('beforeend', `<div class="pro-veil" onclick="fmJoin()" style="cursor:pointer;"><b>🔒 ${PRO_MSG}</b><span>${c.dataset.veil || '무료로는 이번 달 처방액까지 볼 수 있어요.'}<br>🐦 얼리버드는 월 990원 고정 (일반 2,900원)</span></div>`);
+    c.insertAdjacentHTML('beforeend', `<div class="pro-veil" onclick="fmJoin()" style="cursor:pointer;"><b>🔒 ${PRO_MSG}</b><span>${c.dataset.veil || '무료로는 이번 달 처방액까지 볼 수 있어요.'}<br>🐦 얼리버드는 첫 2개월 무료 → 딱 월 990원 (일반 2,900원)</span></div>`);
   });
 }
 // 경쟁품 비교 → 엑셀(CSV) 내보내기 (PRO)
@@ -4467,7 +4470,8 @@ function fmJoin() {
     <div class="mk-card fm-card">
       <div class="mk-emoji">🐦</div>
       <div class="mk-t">얼리버드 회원 등록</div>
-      <div class="mk-who">유료 전환 후 <b style="color:#0e8a4f">첫 1개월 무료 → 월 990원 고정</b><br><small>(일반 요금 월 2,900원)</small></div>
+      <div class="mk-who">유료 전환 후 <b style="color:#0e8a4f">첫 2개월 무료 → 딱 월 990원</b><br><small>얼리버드는 최소 비용만 받을게요 (일반 월 2,900원)</small></div>
+      <div class="fm-feat">📅 스케줄 관리 · 🆕 개원 정보 · 📉 약가 정보 · ⚔️ 1페이퍼 경쟁품 비교 출력·전송 · 🗺 지역별 처방통계<br><b>모두 활용하는 전문 MR이 되세요</b></div>
       <ol class="fm-steps">
         <li><b>네이버 카페 가입</b><a href="${CAFE_URL}" target="_blank" rel="noopener">카페 열기 ↗</a></li>
         <li><b>카페 닉네임</b><input id="fmNick" maxlength="30" placeholder="카페에서 쓰는 닉네임" value="${(m && m.cafeNick) || ''}"></li>
@@ -4498,7 +4502,7 @@ async function fmJoinGo() {
     if (!r.ok) throw new Error(r.error || '등록 실패');
     localStorage.setItem(FM_KEY, JSON.stringify({ email: r.email, joinedAt: r.joinedAt, tier: r.tier || 'founder', cafeNick: r.cafeNick || nick, checked: Date.now() }));
     closeMaker(); fmRender(); adminBarRender(); try { aiqRefresh(); } catch (e) {}
-    showToast(r.already ? '얼리버드 회원 정보가 업데이트됐어요 🐦' : '얼리버드 등록 완료! 유료 전환 후에도 월 990원 고정이에요 🐦');
+    showToast(r.already ? '얼리버드 회원 정보가 업데이트됐어요 🐦' : '얼리버드 등록 완료! 유료 전환 후 2개월 무료, 이후 월 990원이에요 🐦');
   } catch (e) {
     err.textContent = /popup/i.test(e.message) ? '로그인 창이 닫혔어요' : e.message === 'revoked' ? '이용이 해제된 계정이에요. 카페로 문의해 주세요.' : '등록에 실패했어요. 잠시 후 다시 시도해 주세요';
   }
@@ -4521,14 +4525,15 @@ function fmRender() {
   if (m && m.tier !== 'revoked') {
     const d = m.joinedAt ? new Date(m.joinedAt) : null;
     el.className = 'fm-banner done';
-    el.innerHTML = `<b>🐦 ALLAI 얼리버드 회원</b><p style="margin-bottom:0;">${m.tier === 'founder' ? '초기 가입 회원이라 유료 기능을 <b style="display:inline;font-size:inherit;">계속 무료</b>로 이용해요.' : '유료 전환 후 <b style="display:inline;font-size:inherit;">첫 1개월 무료 → 월 990원 고정</b> (일반 2,900원)'}</p>
+    el.innerHTML = `<b>🐦 ALLAI 얼리버드 회원</b><p style="margin-bottom:0;">${m.tier === 'founder' ? '초기 가입 회원이라 유료 기능을 <b style="display:inline;font-size:inherit;">계속 무료</b>로 이용해요.' : '유료 전환 후 <b style="display:inline;font-size:inherit;">첫 2개월 무료 → 딱 월 990원</b> (일반 2,900원)'}</p>
       <small>${m.email}${m.cafeNick ? ` · 카페 ${sayEsc(m.cafeNick)}` : ''}${d ? ` · ${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()} 등록` : ''}</small>
       ${m.cafeNick ? '' : `<button onclick="fmJoin()" style="margin-top:8px;">카페 닉네임 등록하기</button>`}${WHY_PAID}`;
   } else {
     el.className = 'fm-banner';
     el.innerHTML = `<b>🐦 얼리버드 회원 모집 중</b>
       <p>곧 AI 무제한·성분 비교·처방 분석 같은 <b style="display:inline;font-size:inherit;">유료 기능</b>이 생겨요(월 2,900원).
-      지금 <b style="display:inline;font-size:inherit;">네이버 카페 가입 + 구글 등록</b>하면 <b style="display:inline;font-size:inherit;">첫 1개월 무료 → 월 990원 고정</b>이에요.</p>
+      지금 <b style="display:inline;font-size:inherit;">네이버 카페 가입 + 구글 등록</b>하면 <b style="display:inline;font-size:inherit;">첫 2개월 무료 → 딱 월 990원</b>, 최소 비용만 받을게요.</p>
+      <p style="font-size:.74rem;opacity:.9;">📅 스케줄 관리 · 🆕 개원 정보 · 📉 약가 정보 · ⚔️ 1페이퍼 경쟁품 비교 출력·전송 · 🗺 지역별 처방통계<br>모두 활용하는 전문 MR이 되세요</p>
       <button onclick="fmJoin()">🐦 얼리버드 회원 등록</button>${WHY_PAID}`;
   }
 }

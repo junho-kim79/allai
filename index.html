@@ -177,6 +177,7 @@
     .st-go{width:100%;margin-top:10px;font:inherit;font-size:.92rem;font-weight:900;border:0;border-radius:12px;padding:12px;background:#e8efe9;color:#0e8a4f;cursor:pointer}
     .st-go.dirty{background:#0e8a4f;color:#fff;box-shadow:0 4px 14px rgba(14,138,79,.3);animation:nwhPulse2 1.6s infinite}
     @keyframes nwhPulse2{0%,100%{transform:scale(1)}50%{transform:scale(1.015)}}
+    .st-period{font-size:.72rem;color:var(--sub);margin:2px 0 4px}
     .st-hint{margin-top:6px;font-size:.72rem;color:var(--sub2)}
     .st-gnl .chips button{font:inherit;font-size:.76rem;font-weight:700;border:1px solid rgba(14,138,79,.35);background:#fff;color:#0e8a4f;border-radius:999px;padding:5px 10px;cursor:pointer}
     .st-gnl .chips button.on{background:#0e8a4f;color:#fff}
@@ -3451,7 +3452,7 @@ function stDrawLine(mode) {
   }
   series.forEach((sr, i) => { if (!sr.color) sr.color = ST_COLORS[i]; });
 
-  const W = 340, H = 230, L = 40, R = 64, T = 14, B = 26;
+  const W = 340, H = 240, L = 40, R = 64, T = 14, B = 34;
   if (_stPct) series.forEach(sr => { const b0 = sr.vals[0] || 1; sr.vals = sr.vals.map(v => (v - b0) / b0 * 100); });
   const fmtV = v => _stPct ? `${v >= 0 ? '+' : ''}${v.toFixed(1)}%` : stWon(v);
   const all = series.flatMap(sr => sr.vals);
@@ -3465,7 +3466,10 @@ function stDrawLine(mode) {
   const ticks = 4, grid = [];
   for (let k = 0; k <= ticks; k++) { const v = lo + (hi - lo) * k / ticks; grid.push(`<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="rgba(0,0,0,0.07)"/><text x="${L - 6}" y="${y(v) + 3}" text-anchor="end" font-size="9" fill="#8a8984">${_stPct ? Math.round(v) + '%' : stWon(v)}</text>`); }
   if (_stPct) grid.push(`<line x1="${L}" x2="${W - R}" y1="${y(0)}" y2="${y(0)}" stroke="rgba(0,0,0,0.4)" stroke-width="1"/>`);
-  const xl = months.map((m, i) => (i % 2 === (n - 1) % 2) ? `<text x="${x(i)}" y="${H - 8}" text-anchor="middle" font-size="9" fill="#8a8984">${stYm(m.ym, true)}</text>` : '').join('');
+  // 모든 달 표시 + 첫 달·1월 아래에 연도
+  const xl = months.map((m, i) => { const mo = +String(m.ym).slice(4), yr = String(m.ym).slice(2, 4);
+    return `<text x="${x(i)}" y="${H - 17}" text-anchor="middle" font-size="8.5" font-weight="${i === n - 1 ? 800 : 500}" fill="${i === n - 1 ? '#3a3935' : '#8a8984'}">${mo}월</text>`
+      + ((i === 0 || mo === 1) ? `<text x="${x(i)}" y="${H - 6}" text-anchor="middle" font-size="7.5" font-weight="700" fill="#0e8a4f">'${yr}</text>` : ''); }).join('');
   // 끝 라벨: 겹치지 않게 최소 11px 간격으로 세로 정렬
   // 라벨은 끝값 큰 순 5개만 (나머지는 범례·손가락으로 확인), 차트 안에 들어오게 위로 밀어올림
   const ends = series.map((sr, si) => ({ si, y: y(sr.vals[n - 1]), v: sr.vals[n - 1] }))
@@ -3480,6 +3484,7 @@ function stDrawLine(mode) {
       ${endY[si] === undefined ? '' : `<text x="${x(n - 1) + 7}" y="${(endY[si] + 3).toFixed(1)}" font-size="8.5" font-weight="700" fill="#3a3935">${series.length > 1 ? sr.name.replace(/^기타 /, '기타').slice(0, 4) + ' ' : ''}${fmtV(sr.vals[n - 1])}</text>`}</g>`).join('');
   const el = document.getElementById('stLine');
   el.innerHTML = `
+    <div class="st-period">📅 ${stYm(months[0].ym)} ~ ${stYm(months[n - 1].ym)} · 월별 (점을 누르면 그 달 금액)</div>
     <div class="st-chart">
       <svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="최근 12개월 처방액 추이">
         ${grid.join('')}${xl}${lines}

@@ -151,6 +151,19 @@
     .st-gnl .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
     .st-gnl .chips button{font:inherit;font-size:.76rem;font-weight:700;border:1px solid rgba(14,138,79,.35);background:#fff;color:#0e8a4f;border-radius:999px;padding:5px 10px;cursor:pointer}
     .st-gnl .chips button.on{background:#0e8a4f;color:#fff}
+    .mk-foot{margin-top:12px;font-size:.74rem;color:var(--sub);line-height:1.7}
+    .mk-foot b{color:var(--text,#333)}
+    .mk-foot span{font-size:.66rem;color:var(--sub2)}
+    .mk-bg{position:fixed;inset:0;z-index:9999;background:rgba(20,12,4,.55);display:flex;align-items:center;justify-content:center;padding:24px;animation:fadeUp .25s ease both}
+    .mk-card{width:100%;max-width:340px;background:var(--card,#fffdf8);border-radius:22px;padding:24px 20px 16px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+    .mk-emoji{font-size:2.6rem;line-height:1}
+    .mk-t{font-size:1.25rem;font-weight:900;margin-top:8px;letter-spacing:-.03em}
+    .mk-who{font-size:.82rem;color:var(--sub);margin-top:4px}
+    .mk-who b{color:#0e8a4f;font-size:1rem}
+    .mk-body{font-size:.86rem;line-height:1.7;margin:14px 0 6px;color:var(--text,#333)}
+    .mk-sign{font-family:Georgia,serif;font-style:italic;font-size:1.1rem;font-weight:700;text-align:right;padding:4px 8px;cursor:default;user-select:none}
+    .mk-btn{display:block;margin-top:10px;padding:11px;border-radius:12px;background:#0e8a4f;color:#fff;font-weight:800;font-size:.88rem;text-decoration:none}
+    .mk-close{margin-top:6px;font:inherit;font-size:.8rem;color:var(--sub);background:none;border:0;padding:8px;cursor:pointer}
     /* ── 홈: 신규 개원 배너 ── */
     .nwh{margin:14px 32px 0;padding:14px 16px 12px;border-radius:var(--r-lg);cursor:pointer;color:#fff;
       background:linear-gradient(135deg,#0e8a4f 0%,#12a15e 55%,#1bb56d 100%);box-shadow:0 8px 24px rgba(14,138,79,.28);
@@ -1238,6 +1251,7 @@
   더 깊은 정보는 전문 DB 유료 사이트를 이용해 주세요.<br>
   <span style="color:#4caf50;font-weight:700;">ALLAI가 만든 앱에는 광고가 없습니다 ✓</span><br>
   <span style="color:#bbb;">※ 본 서비스는 참고용 정보입니다.</span>
+  <div class="mk-foot">현직 <b id="mkYears">22</b>년차 MR이 병원 복도에서 직접 만들었어요 — <b>K</b><br><span>🤫 로고에 비밀이 하나 있어요</span></div>
   <div style="height:24px;"></div>
 
   </div>
@@ -1726,10 +1740,39 @@ document.getElementById('logoBtn').addEventListener('click', () => {
 
   if (logoClickCount >= 5) {
     logoClickCount = 0;
-    const pw = prompt('관리자 비밀번호 입력');
-    if (pw === '9811') openAdmin();
+    openMaker();   // 🥚 만든이 카드 (관리자는 카드 속 'K' 서명 3번)
   }
 });
+
+/* ── 만든이 K (정체 비공개) ── */
+function makerYears() { return new Date().getFullYear() - 2005 + 1; }   // 2005년 입사 = 1년차
+let _kTap = 0, _kTimer = null;
+function makerSign() {
+  _kTap++; clearTimeout(_kTimer); _kTimer = setTimeout(() => { _kTap = 0; }, 1500);
+  if (_kTap >= 3) { _kTap = 0; closeMaker(); const pw = prompt('관리자 비밀번호 입력'); if (pw === '9811') openAdmin(); }
+}
+function openMaker() {
+  closeMaker();
+  document.body.insertAdjacentHTML('beforeend', `
+  <div class="mk-bg" id="mkBg" onclick="if(event.target.id==='mkBg')closeMaker()">
+    <div class="mk-card">
+      <div class="mk-emoji">🕵️</div>
+      <div class="mk-t">찾으셨네요!</div>
+      <div class="mk-who">만든이 <b>K</b> · 현직 ${makerYears()}년차 MR</div>
+      <div class="mk-body">
+        면담 1분 전, 병원 복도에서 약 정보 찾느라<br>허둥대던 게 싫어서 퇴근 후에 하나씩 만들었어요.<br><br>
+        광고 없이, 현장에서 진짜 필요한 것만 넣습니다.<br>
+        이름은 비밀이에요.<br>복도에서 마주쳐도 모른 척해 주세요 😉
+      </div>
+      <div class="mk-sign" onclick="makerSign()">— K</div>
+      <a class="mk-btn" href="https://cafe.naver.com/allaiai" target="_blank" rel="noopener">✉️ K에게 의견 보내기</a>
+      <button class="mk-close" onclick="closeMaker()">닫기</button>
+    </div>
+  </div>`);
+  try { navigator.vibrate && navigator.vibrate([30, 40, 30]); } catch (e) {}
+}
+function closeMaker() { document.getElementById('mkBg')?.remove(); }
+try { document.getElementById('mkYears').textContent = makerYears(); } catch (e) {}
   
 
 function openAdmin() {
@@ -4349,7 +4392,9 @@ function pcOpen(name) {
 }
 
 /* ── MR 한마디: 목록 · 작성 (창립 멤버) · 관리자 승인 ── */
-const SAY_ADMINS = ['junhoangel@gmail.com', 'k.no1.realtor@gmail.com'];
+// 관리자 이메일은 소스에 그대로 두지 않고 해시로만 비교 (실제 권한 확인은 서버 api/say.js)
+const SAY_ADMIN_H = ["16xe9p023yi","r1ygqfwjf"];
+function emailHash(str, seed = 7) { str = String(str || '').toLowerCase().trim(); let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed; for (let i = 0, ch; i < str.length; i++) { ch = str.charCodeAt(i); h1 = Math.imul(h1 ^ ch, 2654435761); h2 = Math.imul(h2 ^ ch, 1597334677); } h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507); h1 ^= Math.imul(h2 ^ (h2 >>> 13), 3266489909); h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507); h2 ^= Math.imul(h1 ^ (h1 >>> 13), 3266489909); return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36); }
 let _idTok = null, _idTokExp = 0;
 async function idToken() {                        // 구글 로그인 (이메일 확인용), 50분 재사용
   if (_idTok && Date.now() < _idTokExp) return _idTok;
@@ -4423,7 +4468,7 @@ async function saySubmit() {
   }
 }
 // 관리자
-function isSayAdmin() { const m = fmGet(); return !!(m && SAY_ADMINS.includes(String(m.email).toLowerCase())); }
+function isSayAdmin() { const m = fmGet(); return !!(m && SAY_ADMIN_H.includes(emailHash(m.email))); }
 function adminBarRender() {
   const el = document.getElementById('adminBar'); if (!el) return;
   el.innerHTML = isSayAdmin() ? `<div class="admin-bar" onclick="sayAdmin()"><span>🛠 관리자 · 한마디 승인하기</span><span>›</span></div>` : '';

@@ -1077,6 +1077,8 @@
     .fm-banner small { display: block; font-size: 0.7rem; color: rgba(255,255,255,0.75); margin-top: 6px; }
     .pro-tag { display: inline-block; font-size: 0.58rem; font-weight: 900; letter-spacing: .04em; color: #fff; background: #1E3A5F; border-radius: 5px; padding: 2px 5px; vertical-align: 2px; margin-left: 3px; }
     .pro-lock { position: relative; overflow: hidden; }
+    .pro-lock.flat { min-height: 110px; }
+    .pro-lock.flat .pro-veil { inset: 0; }
     .pro-lock > *:not(h4):not(.pro-veil) { filter: blur(6px); pointer-events: none; user-select: none; }
     .pro-veil { position: absolute; inset: 42px 0 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; padding: 10px 16px; background: rgba(255,255,255,0.35); }
     .pro-veil b { font-size: 0.86rem; font-weight: 900; }
@@ -1391,7 +1393,7 @@
       <button class="tab" id="stTabNew" onclick="stSetTab('new')">🆕 신규 개원</button>
     </div>
     <div class="st-controls">
-      <div class="st-kind" id="stKindRow"><button class="on" id="stKindAtc" onclick="stSetKind('atc')">약효군</button><button id="stKindCmpn" onclick="stSetKind('cmpn')">성분 <span class="menu-new" style="background:#0e8a4f;">NEW</span></button></div>
+      <div class="st-kind" id="stKindRow"><button class="on" id="stKindAtc" onclick="stSetKind('atc')">약효군</button><button id="stKindCmpn" onclick="stSetKind('cmpn')">성분 비교 <span class="pro-tag">PRO</span></button></div>
       <label class="st-field" id="stAtcField"><span>약효군</span>
         <select id="stAtc" onchange="stRun()"></select></label>
       <div id="stCmpnField" style="display:none;">
@@ -3880,19 +3882,21 @@ function stRenderCmp(results, ings, place, partial) {
   el.innerHTML = `
     <div class="st-card" style="margin-top:0;">
       <h4>${e(place)} · 성분 비교 <small>${ST_ROUTE[_stRoute]} · ${stYm(lastYm)}</small></h4>
-      <table class="st-cmp">
-        <tr><th>성분</th><th>처방액</th><th>전월</th><th>전년</th></tr>
-        ${rows.map(p => `<tr><td><i style="background:${p.color}"></i>${e(p.name)}<small>비교 중 ${Math.round(p.months[n - 1].amt / sum * 100)}%</small></td>
-          <td><b>${stWon(p.months[n - 1].amt)}</b></td><td>${stPct(p.months[n - 1].amt, p.months[n - 2]?.amt)}</td><td>${n >= 13 ? stPct(p.months[n - 1].amt, p.months[0].amt) : '-'}</td></tr>`).join('')}
-      </table>
+      ${(() => { const row = p => `<tr><td><i style="background:${p.color}"></i>${e(p.name)}<small>비교 중 ${Math.round(p.months[n - 1].amt / sum * 100)}%</small></td>
+          <td><b>${stWon(p.months[n - 1].amt)}</b></td><td>${stPct(p.months[n - 1].amt, p.months[n - 2]?.amt)}</td><td>${n >= 13 ? stPct(p.months[n - 1].amt, p.months[0].amt) : '-'}</td></tr>`;
+        const head = '<tr><th>성분</th><th>처방액</th><th>전월</th><th>전년</th></tr>';
+        // 무료: 1위 성분만 보이고 나머지는 흐리게 (미리보기)
+        if (!proLocked()) return `<table class="st-cmp">${head}${rows.map(row).join('')}</table>`;
+        return `<table class="st-cmp">${head}${row(rows[0])}</table>` + (rows.length > 1 ? `<div class="pro-lock flat" data-veil="성분 ${rows.length}개 비교는 PRO 기능이에요."><table class="st-cmp">${rows.slice(1).map(row).join('')}</table></div>` : '');
+      })()}
       ${partial ? `<div class="st-note" style="margin-top:8px;color:#b45309;">⚠️ 심평원 서버가 바빠서 일부 지역·월이 빠졌을 수 있어요. 잠시 후 다시 열면 채워져요.</div>` : ''}
     </div>
-    <div class="st-card ${proLocked() ? 'pro-lock' : ''}">
+    <div class="st-card ${proLocked() ? 'pro-lock' : ''}" data-veil="성분별 12개월 추이 비교는 PRO 기능이에요.">
       <h4>최근 12개월 성분별 처방액 <span class="pro-tag">PRO</span></h4>
       <div class="st-seg" id="stSeg"><button data-v="cmp">처방액</button><button data-v="pct">증감률</button></div>
       <div id="stLine"></div>
     </div>
-    ${sgNames.length > 1 ? `<div class="st-card ${proLocked() ? 'pro-lock' : ''}">
+    ${sgNames.length > 1 ? `<div class="st-card ${proLocked() ? 'pro-lock' : ''}" data-veil="지역별 성분 비교는 PRO 기능이에요.">
       <h4>시·군·구별 <span class="pro-tag">PRO</span><small>${stYm(lastYm)} 처방액</small></h4>
       <div style="overflow-x:auto;"><table class="st-cmp st-cmp-sg">
         <tr><th>지역</th>${per.map(p => `<th><i style="background:${p.color}"></i>${e(p.name.slice(0, 6))}</th>`).join('')}</tr>
@@ -4383,7 +4387,7 @@ function proLockAI() {
 function proDecorateLocks(root) {
   (root || document).querySelectorAll('.pro-lock').forEach(c => {
     if (c.querySelector('.pro-veil')) return;
-    c.insertAdjacentHTML('beforeend', `<div class="pro-veil"><b>🔒 ${PRO_MSG}</b><span>무료로는 이번 달 처방액까지 볼 수 있어요.<br>창립 멤버는 평생 무료예요.</span></div>`);
+    c.insertAdjacentHTML('beforeend', `<div class="pro-veil"><b>🔒 ${PRO_MSG}</b><span>${c.dataset.veil || '무료로는 이번 달 처방액까지 볼 수 있어요.'}<br>창립 멤버는 평생 무료예요.</span></div>`);
   });
 }
 // 경쟁품 비교 → 엑셀(CSV) 내보내기 (PRO)

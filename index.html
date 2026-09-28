@@ -141,6 +141,16 @@
     .nw-ai .h{display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:.76rem;margin-bottom:4px}
     .nw-ai p{margin:3px 0}
     .nw-ai p b{color:#0e8a4f;margin-right:4px}
+    .st-kind{display:flex;background:var(--card2,#f3efe7);border-radius:12px;padding:3px;margin-bottom:10px}
+    .st-kind button{flex:1;font:inherit;font-size:.85rem;font-weight:800;border:0;background:transparent;padding:8px;border-radius:10px;color:var(--sub);cursor:pointer}
+    .st-kind button.on{background:#fff;color:var(--text,#222);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+    .st-cmpn-box{display:flex;gap:6px}
+    .st-cmpn-box input{flex:1;min-width:0;font:inherit;font-size:.9rem;padding:9px 10px;border:1px solid rgba(0,0,0,.12);border-radius:10px;background:#fff}
+    .st-cmpn-box button{font:inherit;font-weight:800;font-size:.85rem;border:0;border-radius:10px;padding:0 14px;background:#0e8a4f;color:#fff;cursor:pointer}
+    .st-gnl{margin-top:8px;font-size:.78rem;color:var(--sub)}
+    .st-gnl .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+    .st-gnl .chips button{font:inherit;font-size:.76rem;font-weight:700;border:1px solid rgba(14,138,79,.35);background:#fff;color:#0e8a4f;border-radius:999px;padding:5px 10px;cursor:pointer}
+    .st-gnl .chips button.on{background:#0e8a4f;color:#fff}
     /* ── 홈: 신규 개원 배너 ── */
     .nwh{margin:14px 32px 0;padding:14px 16px 12px;border-radius:var(--r-lg);cursor:pointer;color:#fff;
       background:linear-gradient(135deg,#0e8a4f 0%,#12a15e 55%,#1bb56d 100%);box-shadow:0 8px 24px rgba(14,138,79,.28);
@@ -1349,8 +1359,14 @@
       <button class="tab" id="stTabNew" onclick="stSetTab('new')">🆕 신규 개원</button>
     </div>
     <div class="st-controls">
+      <div class="st-kind" id="stKindRow"><button class="on" id="stKindAtc" onclick="stSetKind('atc')">약효군</button><button id="stKindCmpn" onclick="stSetKind('cmpn')">성분 <span class="menu-new" style="background:#0e8a4f;">NEW</span></button></div>
       <label class="st-field" id="stAtcField"><span>약효군</span>
         <select id="stAtc" onchange="stRun()"></select></label>
+      <div id="stCmpnField" style="display:none;">
+        <label class="st-field"><span>제품명으로 성분 찾기</span>
+          <div class="st-cmpn-box"><input id="stCmpnQ" placeholder="예) 파리에트, 리피토, 라베프라졸" onkeydown="if(event.key==='Enter')stCmpnFind()"><button onclick="stCmpnFind()">찾기</button></div></label>
+        <div id="stCmpnPick"></div>
+      </div>
       <div class="st-row2">
         <label class="st-field"><span>시·도</span>
           <select id="stSido" onchange="stSidoChanged()"></select></label>
@@ -3646,11 +3662,59 @@ async function stSidoChanged(silent) {
 }
 
 let _stTab = 'rx', _stNew = [];
+/* ── 처방 분석: 약효군 / 성분 ── */
+let _stKind = 'atc', _stGnl = { name: '', ingr: '', list: [], on: [] };
+function stSetKind(k) {
+  _stKind = k;
+  document.getElementById('stKindAtc').classList.toggle('on', k === 'atc');
+  document.getElementById('stKindCmpn').classList.toggle('on', k === 'cmpn');
+  document.getElementById('stAtcField').style.display = k === 'atc' ? '' : 'none';
+  document.getElementById('stCmpnField').style.display = k === 'cmpn' ? '' : 'none';
+  if (k === 'atc' || _stGnl.on.length) stRun();
+  else { document.getElementById('statContent').innerHTML = '<div class="vs-empty">제품명이나 성분명을 넣고 <b>찾기</b>를 눌러 주세요.<br><small>같은 성분·함량의 제네릭까지 합친 지역 처방액을 보여 드려요.</small></div>'; setTimeout(() => document.getElementById('stCmpnQ')?.focus(), 50); }
+}
+function stGnlLabel(n) {
+  // "파리에트정10밀리그램(라베프라졸나트륨)_(10mg/1정)" → "10mg · 정"
+  const u = (String(n).match(/_\(([^)]+)\)/) || [])[1] || '';
+  const form = /캡슐/.test(n) ? '캡슐' : /주|주사/.test(n) ? '주사' : /시럽|현탁|액/.test(n) ? '액' : /정/.test(n) ? '정' : '';
+  return (u.split('/')[0] || n.slice(0, 12)) + (form ? ' · ' + form : '');
+}
+async function stCmpnFind() {
+  const q = document.getElementById('stCmpnQ').value.trim(); if (!q) return;
+  const box = document.getElementById('stCmpnPick');
+  box.innerHTML = '<div class="st-gnl">심평원 약가 목록에서 성분 찾는 중…</div>';
+  try {
+    const d = await (await fetchWithTimeout(`/api/price?itmNm=${encodeURIComponent(q)}&rows=200`, 15000)).json();
+    const items = (d.items || []).filter(x => x.gnlNmCd && /^[0-9A-Z]{9}$/.test(x.gnlNmCd));
+    if (!items.length) { box.innerHTML = `<div class="st-gnl">'${q.replace(/[<>&"]/g, '')}'로 찾은 약이 없어요. 제품명 앞부분만 넣어 보세요. (예: 파리에트)</div>`; return; }
+    // 가장 많이 나온 주성분(앞 4자리) 기준으로, 함량·제형별 코드 모으기
+    const cnt = {}; items.forEach(x => { const k = x.gnlNmCd.slice(0, 4); cnt[k] = (cnt[k] || 0) + 1; });
+    const main = Object.entries(cnt).sort((a, b) => b[1] - a[1])[0][0];
+    const by = {};
+    items.filter(x => x.gnlNmCd.startsWith(main)).forEach(x => { if (!by[x.gnlNmCd]) by[x.gnlNmCd] = { code: x.gnlNmCd, label: stGnlLabel(x.itmNm), name: x.itmNm }; });
+    const list = Object.values(by).sort((a, b) => a.code.localeCompare(b.code)).slice(0, 6);
+    const ingr = ((items.find(x => x.gnlNmCd.startsWith(main)) || {}).itmNm || '').match(/\(([^)]+)\)/)?.[1] || q;
+    _stGnl = { name: q, ingr, list, on: list.map(x => x.code) };
+    stCmpnChips(); stRun();
+  } catch (e) { box.innerHTML = '<div class="st-gnl">성분을 찾지 못했어요. 잠시 후 다시 시도해 주세요.</div>'; }
+}
+function stCmpnChips() {
+  const e = x => String(x).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  document.getElementById('stCmpnPick').innerHTML = `<div class="st-gnl">🧪 <b style="color:var(--text)">${e(_stGnl.ingr)}</b> · 합산할 함량·제형 (같은 성분 제네릭 포함)
+    <div class="chips">${_stGnl.list.map(g => `<button class="${_stGnl.on.includes(g.code) ? 'on' : ''}" title="${e(g.name)}" onclick="stGnlToggle('${g.code}')">${e(g.label)}</button>`).join('')}</div></div>`;
+}
+function stGnlToggle(c) {
+  const on = _stGnl.on; const i = on.indexOf(c);
+  if (i >= 0) { if (on.length === 1) return; on.splice(i, 1); } else on.push(c);
+  stCmpnChips(); stRun();
+}
 function stSetTab(t, noRun) {
   _stTab = t;
   document.getElementById('stTabRx').classList.toggle('on', t === 'rx');
   document.getElementById('stTabNew').classList.toggle('on', t === 'new');
-  document.getElementById('stAtcField').style.display = t === 'rx' ? '' : 'none';
+  document.getElementById('stAtcField').style.display = t === 'rx' && _stKind === 'atc' ? '' : 'none';
+  document.getElementById('stKindRow').style.display = t === 'rx' ? '' : 'none';
+  document.getElementById('stCmpnField').style.display = t === 'rx' && _stKind === 'cmpn' ? '' : 'none';
   document.getElementById('stNewOpts').style.display = t === 'new' ? '' : 'none';
   document.getElementById('stTitle').textContent = t === 'rx' ? '지역 처방 분석' : '신규 개원 병원';
   document.getElementById('statSub').textContent = t === 'rx' ? '심평원 건강보험 청구 데이터 · 약효군(ATC 4단계) 기준' : '심평원 요양기관 개설일자 기준 · 신규 거래처 발굴';
@@ -3660,8 +3724,11 @@ async function stRun() {
   if (_stTab === 'new') return stNewRun();
   const run = ++_stRun;
   const el = document.getElementById('statContent');
+  if (_stKind === 'cmpn' && !_stGnl.on.length) return stSetKind('cmpn');
   const atc = document.getElementById('stAtc').value;
-  const atcLabel = (ST_ATC.find(a => a[0] === atc) || [atc, atc])[1];
+  const isCmpn = _stKind === 'cmpn';
+  const atcLabel = isCmpn ? `${_stGnl.ingr} (${_stGnl.on.length === _stGnl.list.length ? '전체 함량' : _stGnl.on.length + '개 함량'})` : (ST_ATC.find(a => a[0] === atc) || [atc, atc])[1];
+  const qKey = isCmpn ? `gnl=${_stGnl.on.slice().sort().join(',')}` : `atc=${atc}`;
   const sido = document.getElementById('stSido').value;
   const sidoName = (ST_SIDO.find(x => x[0] === sido) || ['', ''])[1];
   const sgguSel = document.getElementById('stSggu').value;
@@ -3692,7 +3759,7 @@ async function stRun() {
       const [code, name] = queue.shift();
       for (let tryN = 0; tryN < 2; tryN++) {
         try {
-          const d = await (await fetchWithTimeout(`/api/usage?mode=trend&atc=${atc}&sido=${sido}&sggu=${code}&months=13${endQ}`, 20000)).json();
+          const d = await (await fetchWithTimeout(`/api/usage?mode=trend&${qKey}&sido=${sido}&sggu=${code}&months=13${endQ}`, 25000)).json();
           if (!d.error && d.months && d.months.length && !d.errors) { results.push({ code, name, d }); break; }
           if (!d.error && d.months && d.months.length && tryN === 1) { results.push({ code, name, d }); break; }
         } catch (e) {}
@@ -3759,7 +3826,7 @@ async function stRun() {
       ${bySggu.map((s, i) => `<div class="st-hrow"><span class="l">${i + 1}. ${s.name}</span><span class="t"><i style="width:${Math.round(s.amt / sgMax * 100)}%;background:var(--blue);"></i></span><span class="v">${stWon(s.amt)}</span></div>`).join('')}
     </div>` : ''}
     <div class="st-note" style="padding:0 4px 20px;" id="stNoteEnd">
-      ※ 건강보험심사평가원 의약품사용정보(처방 기준, 건강보험·의료급여 합계). 약효군(ATC 4단계) 단위이며 제품별 처방은 공개되지 않습니다.
+      ※ 건강보험심사평가원 의약품사용정보(처방 기준, 건강보험·의료급여 합계). ${isCmpn ? '성분(주성분코드) 단위로 같은 성분의 모든 회사 제품 합계예요. 판매 회사가 3곳 이하이거나 한 제품이 80%를 넘는 성분은 심평원이 공개하지 않아 비어 보일 수 있어요.' : '약효군(ATC 4단계) 단위'}이며 제품별 처방은 공개되지 않습니다.
       요양기관 소재지 기준이고, 심사 결정 후 공개되어 약 4~5개월 늦게 반영됩니다.
     </div>`;
   document.querySelectorAll('#stSeg button').forEach(bt => bt.onclick = () => stDrawLine(bt.dataset.v));

@@ -118,6 +118,8 @@ export default async function handler(req, res) {
 
     if (mode === "trend") {
       const atc = String(req.query.atc || "A02BC").toUpperCase();
+      // 성분(주성분코드) 모드: &gnl=222201ATE,222202ATE (최대 6개, 함량·제형별 코드 합산)
+      const gnls = String(req.query.gnl || "").toUpperCase().split(",").filter((g) => /^[0-9A-Z]{9}$/.test(g)).slice(0, 6);
       const sido = String(req.query.sido || "230000");
       const tp = req.query.tp === "01" ? "01" : "02";
       const months = Math.min(Math.max(Number(req.query.months) || 12, 1), 24);
@@ -130,8 +132,11 @@ export default async function handler(req, res) {
 
       const yms = ymList(endYm, months);
       const jobs = [];
-      for (const ym of yms) for (const sg of sgguCodes) jobs.push({ ym, sg });
-      const results = await Promise.all(jobs.map((j) => call({ diagYm: j.ym, atcStep4Cd: atc, sidoCd: sido, sgguCd: j.sg, cpmdPrscTp: tp })));
+      if (gnls.length) { for (const ym of yms) for (const sg of sgguCodes) for (const g of gnls) jobs.push({ ym, sg, g }); }
+      else for (const ym of yms) for (const sg of sgguCodes) jobs.push({ ym, sg });
+      const results = await Promise.all(jobs.map((j) => j.g
+        ? call({ diagYm: j.ym, gnlNmCd: j.g, sidoCd: sido, sgguCd: j.sg, cpmdPrscTp: tp }, 7000, "getCmpnAreaList1.2")
+        : call({ diagYm: j.ym, atcStep4Cd: atc, sidoCd: sido, sgguCd: j.sg, cpmdPrscTp: tp })));
 
       let atcName = "", sidoName = "";
       const byMonth = Object.fromEntries(yms.map((ym) => [ym, { ym, amt: 0, qty: 0, byType: {} }]));
@@ -139,7 +144,7 @@ export default async function handler(req, res) {
       results.forEach((r, i) => {
         const { ym, sg } = jobs[i];
         for (const it of r.items) {
-          atcName = atcName || it.atcStep4CdNm || ""; sidoName = sidoName || it.sidoCdNm || "";
+          atcName = atcName || it.atcStep4CdNm || it.gnlNmCdNm || ""; sidoName = sidoName || it.sidoCdNm || "";
           const amt = Number(it.msupUseAmt) || 0, qty = Number(it.totUseQty) || 0;
           const cl = String(it.recuClCd).padStart(2, "0");
           const bm = byMonth[ym]; bm.amt += amt; bm.qty += qty;

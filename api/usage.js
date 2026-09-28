@@ -88,6 +88,7 @@ export default async function handler(req, res) {
   try {
     // 성분별 조회 기능 이름 찾기 (진단용): /api/usage?mode=probe&drug=파리에트
     if (mode === "probe") {
+      res.setHeader("Cache-Control", "no-store");
       const drug = String(req.query.drug || "파리에트");
       let gnl = String(req.query.gnl || "");
       if (!gnl) {

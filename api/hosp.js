@@ -40,15 +40,17 @@ export default async function handler(req, res) {
     const months = Math.min(Math.max(Number(req.query.months) || 3, 1), 12);
     const first = await call({ ...base, pageNo: "1" });
     if (first.debug) return res.status(200).json(first.debug);
-    if (first.error && !first.items.length) return res.status(200).json({ items: [], error: first.error });
+    if (first.error && !first.items.length) { res.setHeader("Cache-Control", "no-store"); return res.status(200).json({ items: [], error: first.error }); }
     const pages = Math.min(Math.ceil(first.total / 1000), 12);
     const rest = await Promise.all(Array.from({ length: Math.max(0, pages - 1) }, (_, i) => call({ ...base, pageNo: String(i + 2) })));
     const all = [first, ...rest].flatMap((r) => r.items);
+    const failed = rest.filter((r) => r.error && !r.items.length).length;
+    if (failed || !first.total) res.setHeader("Cache-Control", "no-store");   // 일부 실패·0건은 저장하지 않음 (다음에 다시 조회)
     const now = new Date(Date.now() + 9 * 3600e3);
     const from = new Date(now.getFullYear(), now.getMonth() - months, now.getDate());
     const fromStr = `${from.getFullYear()}${String(from.getMonth() + 1).padStart(2, "0")}${String(from.getDate()).padStart(2, "0")}`;
     const items = all.map(slim).filter((h) => h.open >= fromStr && !/약국/.test(h.type || "")).sort((a, b) => b.open.localeCompare(a.open));
-    return res.status(200).json({ items, scanned: all.length, total: first.total, from: fromStr, months });
+    return res.status(200).json({ items, scanned: all.length, total: first.total, from: fromStr, months, ...(failed ? { partial: failed } : {}) });
   }
 
   const r = await call({ ...base, pageNo: String(req.query.page || 1), numOfRows: String(Math.min(Number(req.query.rows) || 100, 1000)) });

@@ -3583,17 +3583,21 @@ async function stNewRun() {
       <div style="font-size:0.85rem;font-weight:700;">${place} · 최근 ${months}개월 신규 개원</div>
       <div style="font-size:0.74rem;color:var(--sub);margin-top:4px;">심평원 병원 목록 확인 중 <span id="stProgTx">0/${list.length}</span></div>
       <div class="st-prog"><i id="stProg" style="width:0%"></i></div></div>`;
-  const found = []; let done = 0; const q = list.slice();
+  const found = []; let done = 0; const q = list.slice(); const errs = []; let scanned = 0;
   const worker = async () => {
     while (q.length) {
       const [code] = q.shift();
+      let ok = false, lastErr = '';
       for (let t = 0; t < 2; t++) {
+        if (errs.length >= 3 && !found.length && !scanned) break;   // 계속 실패하면 빨리 멈춤
         try {
-          const d = await (await fetchWithTimeout(`/api/hosp?mode=new&sido=${sido}&sggu=${code}&months=${months}`, 20000)).json();
-          if (!d.error) { found.push(...(d.items || [])); break; }
-        } catch (e) {}
+          const d = await (await fetchWithTimeout(`/api/hosp?mode=new&sido=${sido}&sggu=${code}&months=${months}${t ? `&r=${Date.now()}` : ''}`, 20000)).json();
+          if (!d.error) { found.push(...(d.items || [])); scanned += d.scanned || 0; ok = true; break; }
+          lastErr = d.error;
+        } catch (e) { lastErr = '응답 없음'; }
         await new Promise(r => setTimeout(r, 700));
       }
+      if (!ok) errs.push(lastErr || '응답 없음');
       done++;
       if (run !== _stRun) return;
       const pg = document.getElementById('stProg'); if (pg) pg.style.width = Math.round(done / list.length * 100) + '%';
@@ -3604,9 +3608,15 @@ async function stNewRun() {
   if (run !== _stRun) return;
   _stNew = found.sort((a, b) => b.open.localeCompare(a.open));
   _stNewPlace = place;
+  // 심평원 오류로 하나도 못 받았으면 "없음" 대신 오류 안내
+  if (errs.length && !found.length && !scanned) {
+    el.innerHTML = `<div class="vs-empty">심평원 병원 정보를 불러오지 못했어요.<br><small>${String(errs[0] || '').replace(/[<>&]/g, '').slice(0, 80)}</small><br><button class="vs-add" style="margin-top:10px;" onclick="stRun()">다시 조회</button></div>`;
+    return;
+  }
+  _stNewErr = errs.length; _stNewScanned = scanned;
   stNewRender();
 }
-let _stNewPlace = '';
+let _stNewPlace = '', _stNewErr = 0, _stNewScanned = 0;
 function stNewRender() {
   const el = document.getElementById('statContent');
   const kind = document.getElementById('stNewKind').value;
@@ -3614,7 +3624,7 @@ function stNewRender() {
   const esc = t => String(t || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const d8 = v => v && v.length === 8 ? `${v.slice(0, 4)}.${v.slice(4, 6)}.${v.slice(6)}` : v;
   const byType = {}; items.forEach(h => byType[h.type] = (byType[h.type] || 0) + 1);
-  if (!items.length) { el.innerHTML = `<div class="vs-empty">${esc(_stNewPlace)} · 이 기간에 새로 연 곳이 없어요</div>`; return; }
+  if (!items.length) { el.innerHTML = `<div class="vs-empty">${esc(_stNewPlace)} · 이 기간에 새로 연 곳이 없어요${_stNewScanned ? `<br><small>병원 ${_stNewScanned.toLocaleString()}곳 확인</small>` : ''}${_stNewErr ? `<br><small>일부 지역은 심평원 응답이 없어 빠졌어요 · <a href="#" onclick="stRun();return false;">다시 조회</a></small>` : ''}</div>`; return; }
   el.innerHTML = `
     <div class="st-card" style="margin-top:0;">
       <h4>${esc(_stNewPlace)} · 신규 개원 ${items.length}곳</h4>
@@ -3761,7 +3771,7 @@ async function nwHeroLoad() {
     await Promise.all([worker(), worker(), worker()]);
     items = found.filter(h => !/치과|한방|한의원|보건/.test(h.type || '')).sort((a, b) => (b.open || '').localeCompare(a.open || ''))
       .map(h => ({ name: h.name, type: h.type, open: h.open, sggu: h.sggu }));
-    if (!fail || items.length) { try { localStorage.setItem(key, JSON.stringify({ t: Date.now(), items })); } catch (e) {} }
+    if (!fail) { try { localStorage.setItem(key, JSON.stringify({ t: Date.now(), items })); } catch (e) {} }
     else { document.getElementById('nwhNum').textContent = '–'; document.getElementById('nwhList').innerHTML = '<div class="nwh-row nwh-ph">눌러서 바로 확인하기</div>'; return; }
   }
   const esc = t => String(t || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
